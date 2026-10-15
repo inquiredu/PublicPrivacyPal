@@ -1,0 +1,28 @@
+name: Local foundation CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+      - run: npm run ci
+      - name: Authorization tests with Auth and Firestore emulators
+        run: npm run test:integration
+      - name: Full local backup and recovery rehearsal
+        run: npm run test:recovery

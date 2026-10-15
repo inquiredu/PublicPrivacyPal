@@ -1,0 +1,10 @@
+[
+  {"name":"all commitments","assessments":["meets","meets"],"weights":[2,1],"expected":100},
+  {"name":"all conflicts","assessments":["does_not_meet","does_not_meet"],"weights":[2,1],"expected":0},
+  {"name":"silence remains explicit","assessments":["not_addressed","not_addressed"],"weights":[2,1],"expected":60},
+  {"name":"partial credit","assessments":["partial","partial"],"weights":[2,1],"expected":50},
+  {"name":"critical double weight","assessments":["meets","does_not_meet"],"weights":[2,1],"expected":67},
+  {"name":"exclude inapplicable","assessments":["meets","not_applicable"],"weights":[2,1],"expected":100},
+  {"name":"no applicable evidence","assessments":["not_applicable","not_applicable"],"weights":[2,1],"expected":0},
+  {"name":"single final rounding","assessments":["partial","not_addressed","meets"],"weights":[2,1,0.5],"expected":60}
+]

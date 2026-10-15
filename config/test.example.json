@@ -1,0 +1,8 @@
+{
+  "mode": "emulator",
+  "projectId": "demo-privacypal-tests",
+  "districtId": "test-district",
+  "districtName": "Test District",
+  "allowedDomains": ["school.example"],
+  "bootstrapAdminEmail": "admin@school.example"
+}

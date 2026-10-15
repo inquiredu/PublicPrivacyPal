@@ -1,0 +1,8 @@
+{
+  "mode": "emulator",
+  "projectId": "demo-privacypal-river",
+  "districtId": "river-valley",
+  "districtName": "River Valley Demo District",
+  "allowedDomains": ["river.example"],
+  "bootstrapAdminEmail": "admin@river.example"
+}

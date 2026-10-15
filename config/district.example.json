@@ -1,0 +1,8 @@
+{
+  "mode": "emulator",
+  "projectId": "demo-privacypal-local",
+  "districtId": "maple-grove",
+  "districtName": "Maple Grove Demo District",
+  "allowedDomains": ["maple.example"],
+  "bootstrapAdminEmail": "admin@maple.example"
+}
