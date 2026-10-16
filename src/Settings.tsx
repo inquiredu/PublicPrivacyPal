@@ -8,7 +8,7 @@ import {
   laws, librarySettingsSchema, priorityOptions, standards, states, tiers,
   type EvaluationSettings, type LibrarySettings, type SavedSettings,
 } from '../shared/settings';
-import './settings.css';
+
 
 type SettingsResponse = { evaluation: SavedSettings<EvaluationSettings>; library: SavedSettings<LibrarySettings> };
 const errorText = (e: unknown) => e instanceof Error ? e.message : 'Settings could not be saved. Try again.';
@@ -34,7 +34,7 @@ export function Settings({ user, openLibraryRequest = 0 }: { user: User; openLib
   }, [user, attempt]);
   if (!saved) return <div className="original-settings">{error ? <><Message error>{error}</Message><button onClick={() => setAttempt(x => x + 1)}>Try again</button></> : <p role="status">Loading district settings…</p>}</div>;
   return <div className="original-settings">
-    <div className="settings-toolbar"><div><strong>District settings</strong><p>Evaluation choices and your public library’s appearance.</p></div><button className="secondary" onClick={() => setLibraryOpen(true)}>⚙ Customize Library</button></div>
+    <div className="settings-toolbar"><div><h1 className="settings-title">District settings</h1><p>Evaluation choices and your public library’s appearance.</p></div><button className="secondary" onClick={() => setLibraryOpen(true)}>⚙ Customize Library</button></div>
     {libraryNotice && <Message>{libraryNotice}</Message>}
     <SetupWizard user={user} saved={saved.evaluation} onSaved={evaluation => setSaved(s => s && ({ ...s, evaluation }))}/>
     {libraryOpen && <LibraryDesignWizard user={user} saved={saved.library} onClose={() => setLibraryOpen(false)} onReloaded={library => setSaved(s => s && ({ ...s, library }))} onSaved={library => { setSaved(s => s && ({ ...s, library })); setLibraryOpen(false); setLibraryNotice(`Library changes saved — version ${library.revision}. The local public library is updated.`); }}/>}
@@ -122,7 +122,7 @@ function LibraryDesignWizard({ user, saved, onSaved, onReloaded, onClose }: { us
   const [revision, setRevision] = useState(saved.revision); const [baseline, setBaseline] = useState(saved.values);
   const dialog = useRef<HTMLDialogElement>(null); const logoInput = useRef<HTMLInputElement>(null);
   const dirty = JSON.stringify(draft) !== JSON.stringify(baseline); useUnsaved(dirty);
-  useEffect(() => { const el = dialog.current!; el.showModal(); return () => el.close(); }, []);
+  useEffect(() => { const el = dialog.current!; const trigger = document.activeElement; el.showModal(); return () => { el.close(); if (trigger instanceof HTMLElement && trigger.isConnected) trigger.focus(); }; }, []);
   const requestClose = () => { if (!busy) { if (dirty) setDiscard('close'); else onClose(); } };
   function update<K extends keyof LibrarySettings>(key: K, value: LibrarySettings[K]) { setDraft(d => ({ ...d, [key]: value })); }
   async function save(e: FormEvent) {

@@ -7,13 +7,16 @@ and one complete service workflow are finished. No further work is scheduled.
 
 Work only in PublicPrivacyPal. The district instance and original `inquiredu/privacypal` repository
 remain untouched. All records, accounts and agreement facts are synthetic and use the named local
-demo emulators. Nothing was pushed, deployed, fetched from a vendor or sent to an AI service.
+demo emulators. The owner authorized pushing the development branch to the separate PublicPrivacyPal GitHub
+repository. No deployment, vendor fetching or AI calls are part of that push.
 Read `AGENTS.md` before continuing.
 
 Local commit **fae8d20** (`Checkpoint local setup, reliable reviews, and versioned storage`) preserves
 the preceding setup, draft/receipt reliability and bounded 50-measure storage milestones. Branch:
-`codex/open-source-audit`. The complete-service implementation is subsequent, uncommitted work;
-preserve it and all existing files. No dependency changes were needed.
+`codex/open-source-audit`. The complete-service implementation was committed locally as **edc75f7**
+(`Restore complete service review cards and four-tab workflow`). The subsequent accessibility and
+bundle improvements are included in the development checkpoint prepared for GitHub. Preserve
+existing files. No dependencies were added.
 
 ## Restored experience
 
@@ -86,8 +89,10 @@ This workspace holds the durable backup and validation evidence even if temporar
 
 1. Review the restored local service with the owner, especially configurable tier requirements and
    staff/family wording. Keep legal policy content district-owned.
-2. Expand accessibility checks and reduce the approximately 1 MB main browser bundle. The existing
-   build-size warning remains; no production performance/capacity claim is made.
+2. Continue assistive-technology and accessibility validation. The first keyboard/focus/reflow pass
+   is complete, and on-demand screens remove the build-size warning. Initial JavaScript is now
+   282.10 kB gzip across its full dependency graph (down from 299.44 kB using identical compression).
+   See `docs/accessibility-performance.md`; no production performance/capacity claim is made.
 3. Design expiry monitoring before real agreements: dates are rechecked at approval/publication,
    but there is no automatic time-triggered withdrawal. Card warnings summarize the last write.
 4. Plan production provisioning, account turnover, encrypted retention and upgrade/rollback before
@@ -96,3 +101,20 @@ This workspace holds the durable backup and validation evidence even if temporar
 
 References: `docs/service-detail.md`, `docs/review-storage.md`, `docs/review-workflow.md`,
 `docs/backup-recovery.md`, `docs/design-continuity-plan.md`, and `docs/provenance.md`.
+
+## Accessibility and bundle follow-up
+
+The current build passes all 90 unit/isolation checks, TypeScript and bundle/isolation gates.
+Production-build browser checks cover keyboard navigation, dialog Escape/focus return,
+settings/service draft retention and 320px reflow. The 125 integration tests and two recovery
+cycles above remain the service-milestone evidence; no server, authorization or storage behavior
+was changed in this follow-up. No synthetic records/settings were saved during its browser checks.
+The same verified installation backup remains current. The development preview stays on port 5173;
+the temporary production-build preview on port 5174 was used for validation only.
+
+## GitHub development checkpoint
+
+Destination verified as `https://github.com/inquiredu/PublicPrivacyPal`, currently private.
+Publish branch `codex/open-source-audit`; do not change repository visibility, merge into main,
+create a release or deploy as part of this checkpoint. GitHub Actions runs verification only.
+Local accounts, backups and private reference material stay ignored and are not included.

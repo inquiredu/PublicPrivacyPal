@@ -8,5 +8,9 @@ export default defineConfig({
     proxy: { '/api': `http://127.0.0.1:${ports.api}` },
     fs: { deny: ['**/.private/**', '**/.local/**', '**/firebase-export-*/**', '**/auth_export/**', '**/firestore_export/**', '**/privacypal-backup.json', '**/firebase-export-metadata.json', '**/config/*.json', '**/.git/**', '**/.env*', '**/*.{pem,key}'] },
   },
-  build: { outDir: 'dist' },
+  build: { outDir: 'dist', manifest: true, rolldownOptions: { output: { codeSplitting: { groups: [
+    { name: 'firestore', test: /node_modules\/@firebase\/firestore/ },
+    { name: 'auth', test: /node_modules\/@firebase\/auth/ },
+    { name: 'react', test: /node_modules\/(?:react|react-dom|scheduler)\// },
+  ] } } } },
 });

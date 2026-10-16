@@ -48,7 +48,7 @@ export function useReviewCommands(user: User, onSaved: (review: Review) => void)
     } catch (e) { setMessage(e instanceof Error ? e.message : 'The result could not be checked.'); }
     finally { setBusy(false); }
   }
-  const notice = <section aria-label="Save status">{message && <p role="status">{message}</p>}{pending && <div className="notice"><strong>{busy ? 'Working' : 'Save outcome not confirmed'}: {pending.label}</strong><p>Your draft is kept. Check the result before making another change. A pending request is never sent automatically after reload.</p><button type="button" className="secondary" disabled={busy} onClick={() => void check()}>Check saved result</button>{notFound && <button type="button" disabled={busy} onClick={() => void send(pending)}>Retry same save</button>}</div>}</section>;
+  const notice = <section aria-label="Save status"><p role="status" aria-atomic="true">{message}</p>{pending && <div className="notice"><strong>{busy ? 'Working' : 'Save outcome not confirmed'}: {pending.label}</strong><p>Your draft is kept. Check the result before making another change. A pending request is never sent automatically after reload.</p><button type="button" className="secondary" disabled={busy} onClick={() => void check()}>Check saved result</button>{notFound && <button type="button" disabled={busy} onClick={() => void send(pending)}>Retry same save</button>}</div>}</section>;
   return { start, notice, blocked: busy || !!pending };
 }
 export type ReviewCommands = ReturnType<typeof useReviewCommands>;

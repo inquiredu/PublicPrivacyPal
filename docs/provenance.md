@@ -366,3 +366,7 @@ The existing large main-bundle warning remains open. Full-rubric service data an
 two complete backup/restore cycles. Final counts and local artifacts are recorded in the handoff.
 No push, deployment, production login, live policy fetch or AI call occurred. The original district
 instance and repository remained untouched.
+
+The accessibility/bundle follow-up preserves restoration commit `edc75f7`. See
+`accessibility-performance.md` for measured build sizes, keyboard/reflow evidence and limitations.
+It adds no dependencies and makes no server, authorization or storage changes.

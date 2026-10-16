@@ -2,7 +2,7 @@
 
 A community edition of PrivacyPal, intended for school districts to install and control themselves.
 
-**Status: local district setup, library customization, pasted-policy review, and tested backup/recovery.** This milestone uses Auth and Firestore emulators, synthetic
+**Status: development checkpoint — district setup, complete four-tab service review, staff/family views, and tested backup/recovery.** This milestone uses Auth and Firestore emulators, synthetic
 districts, and a local API. It is not a production deployment or a release for district adoption.
 
 The first release will focus on reviewing educational tools, extracting evidence from privacy
@@ -11,6 +11,7 @@ Districts will own their data, accounts, infrastructure, and provider credential
 will be freely licensed; hosting, email, and AI services can have operating costs.
 
 Start with the [open-source plan](docs/open-source-plan.md) and [source provenance](docs/provenance.md).
+See the [service workflow](docs/service-detail.md) and [accessibility and bundle checks](docs/accessibility-performance.md) for implemented behavior and remaining limits.
 
 ## Run locally
 

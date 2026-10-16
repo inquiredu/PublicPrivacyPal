@@ -2,16 +2,18 @@ import { ServiceNotice } from './ServiceNotice';
 import { DraftProvider } from './ReviewDrafts';
 import { browserDraftStore, clearReviewDrafts, type DraftStore } from './draft-store';
 import { api } from './api';
-import { Reviews } from './Reviews';
-import { Settings } from './Settings';
+import { DeferredScreen } from './DeferredScreen';
+
 import { LibraryView } from './LibraryView';
 import { defaultLibrary, librarySettingsSchema, type LibrarySettings, type LibraryProfile } from '../shared/settings';
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { lazy, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, type User } from 'firebase/auth';
 import { addDoc, collection, doc, onSnapshot, query, where, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { connectLocal, type Client } from './firebase';
 import { roles, type Role } from '../shared/config';
 
+const Reviews = lazy(() => import('./Reviews').then(m => ({ default: m.Reviews })));
+const Settings = lazy(() => import('./Settings').then(m => ({ default: m.Settings })));
 type Profile = LibraryProfile;
 type Member = { uid: string; email: string; role: Role; active: boolean; protected?: boolean };
 type Tool = { id: string; name: string; url: string; notes: string };
@@ -57,6 +59,9 @@ function Workspace({ client }: { client: Client }) {
   const [library, setLibrary] = useState<LibrarySettings>();
   const [libraryError, setLibraryError] = useState('');
   const [customizeRequest, setCustomizeRequest] = useState(0);
+  const [settingsOwner, setSettingsOwner] = useState('');
+  const mainRef = useRef<HTMLElement>(null);
+  const previousTab = useRef(tab);
   const [error, setError] = useState('');
   useEffect(() => onAuthStateChanged(client.auth, next => { setAuthReady(true); setUser(next); setMember(null); setAccountReady(!next); setTab('library'); }), [client]);
   useEffect(() => {
@@ -98,16 +103,23 @@ function Workspace({ client }: { client: Client }) {
     finally { setSigningOut(false); }
   }
   const currentTab = (tab === 'reviews' && !canReview) || (['people', 'settings'].includes(tab) && member?.role !== 'admin') || (tab === 'workspace' && !member) ? 'library' : tab;
+  useEffect(() => {
+    document.title = `${currentTab === 'library' ? 'Public library' : currentTab === 'reviews' ? 'Policy reviews' : currentTab === 'settings' ? 'Settings' : currentTab === 'people' ? 'People & access' : 'My workspace'} · PrivacyPal`;
+    if (previousTab.current !== currentTab) mainRef.current?.focus();
+    previousTab.current = currentTab;
+    if (currentTab === 'settings' && user) setSettingsOwner(user.uid);
+    if (!user || member?.role !== 'admin') setSettingsOwner('');
+  }, [currentTab, user?.uid, member?.role]);
   const content = <div className="app-shell"><a className="skip-link" href="#main-content">Skip to main content</a>
     <aside className="sidebar"><Brand/><div className="district-label"><span className="eyebrow">DISTRICT WORKSPACE</span><strong>{client.config.districtName}</strong></div><nav aria-label="Main navigation">
-      <button className={currentTab === 'library' ? 'nav active' : 'nav'} onClick={() => setTab('library')}><span aria-hidden="true">▦</span>Public library</button>
-      {member && <button className={currentTab === 'workspace' ? 'nav active' : 'nav'} onClick={() => setTab('workspace')}><span aria-hidden="true">▤</span>My workspace</button>}
-      {canReview && <button className={currentTab === 'reviews' ? 'nav active' : 'nav'} onClick={() => setTab('reviews')}><span aria-hidden="true">✓</span>Policy reviews</button>}
-      {member?.role === 'admin' && <button className={currentTab === 'people' ? 'nav active' : 'nav'} onClick={() => setTab('people')}><span aria-hidden="true">♧</span>People & access</button>}
-      {member?.role === 'admin' && <button className={currentTab === 'settings' ? 'nav active' : 'nav'} onClick={() => setTab('settings')}><span aria-hidden="true">⚙</span>Settings</button>}
+      <button aria-current={currentTab === 'library' ? 'page' : undefined} className={currentTab === 'library' ? 'nav active' : 'nav'} onClick={() => setTab('library')}><span aria-hidden="true">▦</span>Public library</button>
+      {member && <button aria-current={currentTab === 'workspace' ? 'page' : undefined} className={currentTab === 'workspace' ? 'nav active' : 'nav'} onClick={() => setTab('workspace')}><span aria-hidden="true">▤</span>My workspace</button>}
+      {canReview && <button aria-current={currentTab === 'reviews' ? 'page' : undefined} className={currentTab === 'reviews' ? 'nav active' : 'nav'} onClick={() => setTab('reviews')}><span aria-hidden="true">✓</span>Policy reviews</button>}
+      {member?.role === 'admin' && <button aria-current={currentTab === 'people' ? 'page' : undefined} className={currentTab === 'people' ? 'nav active' : 'nav'} onClick={() => setTab('people')}><span aria-hidden="true">♧</span>People & access</button>}
+      {member?.role === 'admin' && <button aria-current={currentTab === 'settings' ? 'page' : undefined} className={currentTab === 'settings' ? 'nav active' : 'nav'} onClick={() => setTab('settings')}><span aria-hidden="true">⚙</span>Settings</button>}
     </nav><div className="sidebar-bottom"><span className="sandbox-dot"/>Local sandbox<p>Independent by design.<br/>Built for district ownership.</p></div></aside>
     <div className="main-shell"><header className="topbar"><span>Community edition <span className="divider">/</span> {currentTab === 'library' ? 'Public library' : currentTab === 'people' ? 'People & access' : currentTab === 'reviews' ? 'Policy reviews' : currentTab === 'settings' ? 'Settings' : 'My workspace'}</span><span className="pill">Local sandbox</span></header>
-      <main id="main-content">{currentTab !== 'library' && currentTab !== 'settings' && <div className="page-heading"><div><p className="eyebrow">YOUR DISTRICT WORKSPACE</p><h1>{currentTab === 'people' ? 'People & access' : currentTab === 'reviews' ? 'Evidence. Review. Publication.' : 'Welcome to your workspace.'}</h1><p>{currentTab === 'people' ? 'Give each colleague the access they need.' : `You’re signed in as ${member ? roleLabels[member.role].toLowerCase() : 'a district user'}.`}</p></div></div>}
+      <main id="main-content" ref={mainRef} tabIndex={-1} aria-label={currentTab === 'library' ? 'Public library' : currentTab === 'reviews' ? 'Policy reviews' : currentTab === 'settings' ? 'Settings' : currentTab === 'people' ? 'People & access' : 'My workspace'}>{currentTab !== 'library' && currentTab !== 'settings' && <div className="page-heading"><div><p className="eyebrow">YOUR DISTRICT WORKSPACE</p><h1>{currentTab === 'people' ? 'People & access' : currentTab === 'reviews' ? 'Evidence. Review. Publication.' : 'Welcome to your workspace.'}</h1><p>{currentTab === 'people' ? 'Give each colleague the access they need.' : `You’re signed in as ${member ? roleLabels[member.role].toLowerCase() : 'a district user'}.`}</p></div></div>}
         {error && <Notice>{error}</Notice>}
         <section className="session-bar" aria-label="Account"><div><strong>{user ? user.email : 'You’re viewing the public library'}</strong><p>{member ? roleLabels[member.role] : user ? accountReady ? 'No active membership. Ask your local administrator to assign access.' : 'Checking your membership…' : 'Anyone can browse. District team members can sign in below.'}</p></div>{user && <button className="secondary" disabled={signingOut} onClick={() => { void leaveAccount(); }}>Sign out</button>}</section>
         {confirmSignOut && <dialog ref={signOutDialog} className="draft-signout-dialog" aria-labelledby="draft-signout-title" aria-describedby="draft-signout-description" onCancel={e => { e.preventDefault(); if (!signingOut) keepEditing(); }}>
@@ -116,8 +128,8 @@ function Workspace({ client }: { client: Client }) {
           <div className="actions"><button type="button" className="secondary" autoFocus disabled={signingOut} onClick={keepEditing}>Keep editing</button><button type="button" disabled={signingOut} onClick={() => void leaveAccount(true)}>{signingOut ? 'Signing out…' : 'Erase drafts and sign out'}</button></div>
         </dialog>}
         {currentTab === 'library' && <>{libraryError && <Notice>{libraryError}</Notice>}{library ? <LibraryView settings={library} profiles={profiles} onCustomize={member?.role === 'admin' ? () => { setTab('settings'); setCustomizeRequest(n => n + 1); } : undefined}/> : !libraryError && <p role="status">Loading library settings…</p>}{!user && <Login client={client}/>}</>}
-        {member?.role === 'admin' && user && <div hidden={currentTab !== 'settings'}><Settings key={user.uid} user={user} openLibraryRequest={customizeRequest}/></div>}
-        {currentTab === 'reviews' && canReview && user && drafts && <Reviews key={`${user.uid}-${member.role}`} client={client} user={user} readOnly={member.role === 'viewer'}/>}
+        {member?.role === 'admin' && user && (currentTab === 'settings' || settingsOwner === user.uid) && <div hidden={currentTab !== 'settings'}><DeferredScreen name="Settings"><Settings key={user.uid} user={user} openLibraryRequest={customizeRequest}/></DeferredScreen></div>}
+        {currentTab === 'reviews' && canReview && user && drafts && <DeferredScreen name="Policy reviews"><Reviews key={`${user.uid}-${member.role}`} client={client} user={user} readOnly={member.role === 'viewer'}/></DeferredScreen>}
         {currentTab === 'workspace' && member && user && <DistrictWork key={`${user.uid}-${member.role}`} client={client} user={user} member={member}/>}
         {currentTab === 'people' && member?.role === 'admin' && user && <People client={client} user={user}/>}
         <footer>PrivacyPal Community <span>District-owned tools. Informed decisions.</span></footer>

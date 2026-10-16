@@ -43,3 +43,11 @@ button:focus-visible, [role=tabpanel]:focus-visible { outline: 3px solid #0369a1
 @media (max-width: 700px) { .service-fields { grid-template-columns: minmax(0,1fr); } .service-tabs [role=tab] { flex: 1 1 40%; } }
 
 .review-detail .score-panel { background: #f8fafc; border-color: #cbd5e1; }
+
+/* Visible focus for native disclosures, tab panels and programmatic navigation. */
+:where(button,a,input,textarea,select,summary,[tabindex]):focus-visible{outline:3px solid #975c09;outline-offset:3px}
+#main-content:focus{outline:2px solid #975c09;outline-offset:-4px}
+.review-title h2:focus{outline:3px solid #975c09;outline-offset:4px}
+summary{cursor:pointer}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+.settings-title{font-size:24px;letter-spacing:normal;margin:0 0 6px}
