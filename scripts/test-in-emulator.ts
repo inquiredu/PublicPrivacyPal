@@ -7,7 +7,7 @@ if (JSON.parse(process.env.FIREBASE_CONFIG || '{}').projectId !== config.project
   throw new Error('Integration tests must be launched by the dedicated demo emulator command.');
 }
 const { FIREBASE_CONFIG: _generatedConfig, ...cleanEnvironment } = process.env;
-const child = spawn(process.execPath, ['--import', 'tsx', '--test', '--test-concurrency=1', 'test/integration/permissions.test.ts', 'test/integration/reviews.test.ts', 'test/integration/evidence.test.ts', 'test/integration/settings.test.ts', 'test/integration/review-storage.test.ts'], {
+const child = spawn(process.execPath, ['--import', 'tsx', '--test', '--test-concurrency=1', 'test/integration/permissions.test.ts', 'test/integration/reviews.test.ts', 'test/integration/evidence.test.ts', 'test/integration/settings.test.ts', 'test/integration/review-storage.test.ts', 'test/integration/service.test.ts'], {
   stdio: 'inherit', env: emulatorEnvironment(config, cleanEnvironment),
 });
 child.on('exit', code => { process.exitCode = code ?? 1; });

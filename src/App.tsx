@@ -1,3 +1,4 @@
+import { ServiceNotice } from './ServiceNotice';
 import { DraftProvider } from './ReviewDrafts';
 import { browserDraftStore, clearReviewDrafts, type DraftStore } from './draft-store';
 import { api } from './api';
@@ -151,21 +152,24 @@ function People({ user }: { client: Client; user: User }) {
 }
 
 function DistrictWork({ client, user, member }: { client: Client; user: User; member: Member }) {
+  const [staffProfiles, setStaffProfiles] = useState<LibraryProfile[]>([]);
+  const [staffSearch, setStaffSearch] = useState('');
   const [requests, setRequests] = useState<RequestRow[]>([]); const [tools, setTools] = useState<Tool[]>([]); const [notice, setNotice] = useState(''); const [busy, setBusy] = useState(false);
   const base = `districts/${client.config.districtId}`;
   const canReview = ['admin', 'reviewer'].includes(member.role);
   useEffect(() => {
     const ref = collection(client.db, `${base}/requests`);
     const stopRequests = onSnapshot(canReview ? ref : query(ref, where('requestedBy', '==', user.uid)), snap => setRequests(snap.docs.map(d => ({ id: d.id, ...d.data() } as RequestRow))), () => { setRequests([]); setNotice('Request access is unavailable. Your permissions may have changed.'); });
+    const stopStaff = onSnapshot(collection(client.db, `${base}/staffTools`), snap => setStaffProfiles(snap.docs.map(d => ({ id: d.id, ...d.data() } as LibraryProfile))), () => { setStaffProfiles([]); setNotice('Staff catalogue could not be loaded.'); });
     const stopTools = member.role !== 'staff' ? onSnapshot(collection(client.db, `${base}/tools`), snap => setTools(snap.docs.map(d => ({ id: d.id, ...d.data() } as Tool))), () => { setTools([]); setNotice('Internal tool access is unavailable.'); }) : () => {};
-    return () => { stopRequests(); stopTools(); };
+    return () => { stopRequests(); stopTools(); stopStaff(); };
   }, [client, base, user.uid, member.role, canReview]);
   async function request(e: FormEvent<HTMLFormElement>) {
     e.preventDefault(); const form = e.currentTarget; const data = new FormData(form); setBusy(true); setNotice('');
     try { await addDoc(collection(client.db, `${base}/requests`), { toolName: String(data.get('toolName')).trim(), purpose: String(data.get('purpose')).trim(), requestedBy: user.uid, status: 'pending', archived: false, createdAt: serverTimestamp() }); form.reset(); setNotice('Request submitted for review.'); }
     catch { setNotice('The request could not be saved. Your access may have changed.'); } finally { setBusy(false); }
   }
-  return <><div className="panel"><h2>Request a tool</h2><p>Tell your district team what you want to use and why.</p><form className="request-form" onSubmit={e => { void request(e); }}><label>Tool name<input name="toolName" required maxLength={120}/></label><label>How would you use it?<textarea name="purpose" required maxLength={2000} rows={3}/></label><button disabled={busy}>Submit request</button></form>{notice && <Notice>{notice}</Notice>}</div>
+  return <><section className="panel"><h2>Staff catalogue</h2><p>Check permitted use, grade scope and conditions before choosing a resource.</p><label>Search staff resources<input type="search" value={staffSearch} onChange={e => setStaffSearch(e.target.value)}/></label><div className="catalogue">{staffProfiles.filter(p => `${p.name} ${p.category}`.toLowerCase().includes(staffSearch.toLowerCase())).map(p => <article className="tool-card" key={p.id}><h3>{p.name}</h3><ServiceNotice profile={p} staff/></article>)}</div>{!staffProfiles.length && <p>No published staff resources yet.</p>}</section><div className="panel"><h2>Request a tool</h2><p>Tell your district team what you want to use and why.</p><form className="request-form" onSubmit={e => { void request(e); }}><label>Tool name<input name="toolName" required maxLength={120}/></label><label>How would you use it?<textarea name="purpose" required maxLength={2000} rows={3}/></label><button disabled={busy}>Submit request</button></form>{notice && <Notice>{notice}</Notice>}</div>
       <div className="panel"><h2>{canReview ? 'District requests' : 'Your requests'}</h2>{!requests.length && <p>No requests yet. Your next request will appear here.</p>}{requests.map(r => <div className="request-row" key={r.id}><div><strong>{r.toolName}</strong><p>{r.purpose}</p></div><span className="pill">{r.status}</span></div>)}</div>
       {member.role !== 'staff' && <div className="panel"><h2>Internal tool records</h2><p>Reviewer notes stay inside your district workspace.</p>{tools.map(tool => <ToolEditor key={tool.id} tool={tool} canEdit={canReview} onSave={async notes => { await updateDoc(doc(client.db, `${base}/tools/${tool.id}`), { notes, updatedAt: serverTimestamp(), updatedBy: user.uid }); }}/>)}</div>}
     </>;

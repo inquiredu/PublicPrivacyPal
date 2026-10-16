@@ -32,6 +32,7 @@ and leave space below Firestore's document limit for its field/path encoding.
 
 | Record | Purpose | Maximum bytes |
 | --- | --- | ---: |
+| `services/{hash}` | Attributed service facts and adopted tier requirements | 48 KiB |
 | Review head | Identity, revisions, job, publication state, counts and version references | 8 KiB |
 | `sources/{hash}` | Fixed policy text, capture metadata and source version | 128 KiB |
 | `definitions/{hash}` | Adopted measures, context, priorities and scoring version | 256 KiB |
@@ -108,3 +109,9 @@ and injected conversion failure. The recovery rehearsal imports a mixed old/new-
 compares every migrated document, verifies a fully reviewed/published 50-measure record and its
 first partial evaluation, then saves schema 3 and restores again. These are correctness checks;
 production transfer, render-time and cost budgets remain future pilot work.
+
+## Service-detail extension
+
+The service workflow adds an immutable service snapshot, a lightweight head reference/summary and
+a service-revision binding on decisions. Existing evaluations remain unchanged. See
+[complete service review](service-detail.md) for fields, commands, projections and schema-4 backups.

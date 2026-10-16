@@ -3,7 +3,7 @@
 Proposed 2026-10-15 following a read-only review of the original project.
 
 **Current direction:** the draft/retry and versioned storage gates below are implemented locally.
-Continue restoring the original service cards/four tabs on that foundation. The owner requested this review after the setup milestone.
+The one-service reviewer-card/four-tab restoration is now implemented locally; see `service-detail.md` for the field map and deliberate limits. The owner requested this review after the setup milestone.
 Familiar workflows remain the baseline; neither old implementation choices nor new prototype
 choices are exempt from challenge. The recommendations below are not claims that the remaining
 work has already been implemented.
@@ -289,3 +289,10 @@ their failure-injection/browser cases are acceptance work below, not claimed com
 Before an external pilot, separately complete session/admin turnover, production queue/fetch/AI
 boundaries if enabled, public delivery/performance budgets, accessibility and upgrade/rollback
 rehearsals. A test count, dependency audit, or familiar screen alone is not evidence for those claims.
+
+## Complete-service increment
+
+The original card and four-tab workflow now run on the bounded contract with versioned service
+facts, adopted configurable tier requirements, preserved human corrections and audience projections.
+See [service detail](service-detail.md) for acceptance and remaining scope. Broader tag browsing,
+batch workflows and independent public delivery remain ahead; no production enablement occurred.

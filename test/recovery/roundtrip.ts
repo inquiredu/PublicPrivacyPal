@@ -1,3 +1,5 @@
+import { exampleTierPolicy } from '../../shared/service-policy.ts';
+import { serviceValues } from '../fixtures/service.ts';
 import { readReview, readEvaluation } from '../../server/review-storage.ts';
 import { measuresFor } from '../../shared/evaluation.ts';
 import { commandIdentity, commandStatus } from '../../server/commands.ts';
@@ -57,17 +59,18 @@ try {
       await s.db.doc(`${base}/members/${user.uid}`).set({ email, role: role === 'disabled' || role === 'revoked' ? 'reviewer' : role, active: role !== 'revoked' });
     }
     const settingsActor = identities.admin as DecodedIdToken;
-    await saveSettings(s, settingsActor, { section: 'evaluation', revision: 0, values: { ...defaultEvaluation(), state: 'Colorado', districtMission: 'Synthetic recovery mission', evaluationWeights: { ...defaultEvaluation().evaluationWeights, security: 1.5 } } });
+    await saveSettings(s, settingsActor, { section: 'evaluation', revision: 0, values: { ...defaultEvaluation(), state: 'Colorado', tierPolicy: exampleTierPolicy(), districtMission: 'Synthetic recovery mission', evaluationWeights: { ...defaultEvaluation().evaluationWeights, security: 1.5 } } });
     await saveSettings(s, settingsActor, { section: 'library', revision: 0, values: { ...defaultLibrary('Recovery District'), title: 'Recovered practice library', themeColor: '#114488', footerSections: [], defaultViewMode: 'compact' } });
     const actor = identities.reviewer as DecodedIdToken;
     const unicode = '測'.repeat(32000);
-    let full = await createReview(s, actor, { name: 'Full rubric recovery', sourceKind: 'pasted', sourceLabel: 'Synthetic Unicode policy', sourceText: unicode, rubricMode: 'district', settingsRevision: 1, engineVersion: 'evidence-weighted-v1' });
+    let full = await createReview(s, actor, { name: 'Full rubric recovery', serviceSettingsRevision: 1, sourceKind: 'pasted', sourceLabel: 'Synthetic Unicode policy', sourceText: unicode, rubricMode: 'district', settingsRevision: 1, engineVersion: 'evidence-weighted-v1' });
     let firstEvaluation = '';
     for (const c of measuresFor(full)) {
       full = await reviewAction(s, actor, full.id, { action: 'edit_evidence', revision: full.revision, evidence: { criterionId: c.id, finding: 'partial', citations: [0, 2000, 4000].map(start => ({ start, end: start + 2000, quote: unicode.slice(start, start + 2000) })), rationale: '証'.repeat(1000) } });
       firstEvaluation ||= full.analysis!.id;
     }
     assert.ok(Buffer.byteLength(JSON.stringify(full)) > 1024 * 1024);
+    full = await reviewAction(s, actor, full.id, { action: 'edit_service', revision: full.revision, service: { values: serviceValues, rationale: 'Synthetic service facts across recovery.' } });
     full = await reviewAction(s, actor, full.id, { action: 'decide', revision: full.revision, decision: { outcome: 'conditional', rationale: 'Synthetic full rubric recovery.', conditions: 'Fictional demonstration only.', summary: 'Synthetic full rubric recovery.', category: 'Learning' } });
     full = await reviewAction(s, actor, full.id, { action: 'publish', revision: full.revision });
     let review = await createReview(s, actor, { name: 'Recovery Orchard', fixtureId: 'complete' });
@@ -93,7 +96,7 @@ try {
     const { contract: _contract, ...legacy } = review; await root.set(legacy);
     const completed = (await root.collection('history').where('action', '==', 'analysis_completed').get()).docs[0];
     await completed.ref.update({ details: { analysis: review.analysis } });
-    const backup = await saveBackup(s); assert.equal(verifyBackup(backup, config).dataSchema, 2);
+    const backup = await saveBackup(s); assert.equal(verifyBackup(backup, config).dataSchema, 4);
     const lock = await acquireMaintenance(s, 'Establish synthetic migration expectation');
     await migrateReviews(s, lock); await releaseMaintenance(s, lock);
     writeFileSync(receiptPath, JSON.stringify({ password, identities, commandId, fullId: full.id, firstEvaluation, reviewId: review.id, pastedId: pasted.id, partialId: partial.id, failedId: failed.id, pendingId: pending.id, backup, documents: await allDocuments() }), { mode: 0o600 });
@@ -105,6 +108,7 @@ try {
     assert.deepEqual(await allDocuments(), receipt.documents, 'Every Firestore document must survive exactly, including history, timestamps, quota and projections.');
     const full = await s.db.runTransaction(tx => readReview(s, tx, receipt.fullId));
     assert.equal(full.published, true); assert.equal(full.analysis?.findings.length, 50); assert.equal(full.analysis?.score.total, 50);
+    assert.deepEqual(full.service?.values, serviceValues); assert.equal(full.service?.policy.version, 'local-tier-example-v1'); assert.equal(full.decision?.serviceRevision, full.service?.revision);
     assert.equal(full.contract?.settingsRevision, 1); assert.equal(full.sourceText, '測'.repeat(32000));
     const prior = await s.db.runTransaction(tx => readEvaluation(s, tx, full.id, receipt.firstEvaluation));
     assert.equal(prior.analysis.findings.filter(f => f.reviewedBy).length, 1);
@@ -154,7 +158,7 @@ try {
       assert.equal((await s.db.doc(`${base}/reviews/${receipt.failedId}`).get()).get('job.status'), 'failed');
       const originalManifest = readFileSync(resolve(receipt.backup, 'privacypal-backup.json'), 'utf8');
       const nextBackup = await saveBackup(s); assert.notEqual(nextBackup, receipt.backup);
-      assert.equal(verifyBackup(nextBackup, config).dataSchema, 3);
+      assert.equal(verifyBackup(nextBackup, config).dataSchema, 4);
       assert.equal(readFileSync(resolve(receipt.backup, 'privacypal-backup.json'), 'utf8'), originalManifest);
       receipt.backup = nextBackup; receipt.documents = await allDocuments(); writeFileSync(receiptPath, JSON.stringify(receipt), { mode: 0o600 });
     }

@@ -104,14 +104,15 @@ already-running worker, concurrent locks and a failed export. Unit tests reject 
 
 ## Review storage schema compatibility
 
-New converted archives use `dataSchema: 3` for bounded review heads, fixed source/definition records,
-immutable findings/evaluations/decisions and paged history. The reader accepts schema 1, 2 and 3
-with matching configuration and dependency lockfile. Legacy or mixed records cause a newly saved
-pre-migration archive to use schema 2; restore converts those reviews before releasing maintenance.
-Schema-3 restore keeps every document unchanged. Older readers reject schema 3; never relabel an
-archive to force a rollback. Preserve the original archive and compatible source/toolchain.
+Bounded reviews without service records continue to use schema 3; legacy/mixed archives without
+services use schema 2. **Any archive containing the new service records uses schema 4**, including
+mixed legacy/service archives. This prevents the prior checkpoint build from restoring data whose
+tier requirements it cannot enforce. The current reader accepts schemas 1–4 with matching
+configuration and dependency lockfile. Restores of schemas 1/2 and 4 run the idempotent legacy
+conversion under maintenance before releasing the lock. Existing bounded records remain unchanged.
 
-See [review storage](review-storage.md) for the resumable local migration, bounds and failure
-handling. The recovery rehearsal includes a mixed schema-2 archive, exact migrated-document
-comparison, 50 maximum-length Unicode findings, earlier evaluation versions and publication, then
-another complete schema-3 restore. This is a specific local upgrade, not a general migration system.
+Never relabel an archive to force a rollback. Preserve the original archive and compatible source.
+The recovery rehearsal now includes a mixed legacy/schema-4 archive, exact migrated-document
+comparison, 50 maximum-length Unicode findings, service facts and tier policy, an earlier evaluation,
+and publication, then a second full schema-4 restore. This is a specific local upgrade, not a general
+migration system. See [service detail](service-detail.md) and [review storage](review-storage.md).

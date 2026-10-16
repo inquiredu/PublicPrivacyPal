@@ -1,6 +1,8 @@
 import type { Transaction, DocumentSnapshot } from 'firebase-admin/firestore';
 import type { Services } from './firebase.ts';
 import type { Review, Analysis, ReviewEvent } from '../shared/review.ts';
+import { serviceBlockers, decisionIsCurrent } from '../shared/service.ts';
+import type { ServiceRecord } from '../shared/service.ts';
 import { reviewedCount } from '../shared/review.ts';
 import { STORAGE_VERSION, PAGE_SIZE, measuresFor, type EvaluationContract, type ReviewSummary, type Page } from '../shared/evaluation.ts';
 import { practiceContract, digest } from './evaluation.ts';
@@ -8,14 +10,14 @@ import { sourceHash } from './evidence.ts';
 import { HttpError } from './operations.ts';
 
 // Conservative UTF-8 JSON bounds leave room for Firestore field/path encoding overhead.
-export const BYTE_LIMITS = { head: 8192, source: 128 * 1024, definition: 256 * 1024, evaluation: 64 * 1024, finding: 32 * 1024, decision: 32 * 1024, history: 96 * 1024, detail: 3 * 1024 * 1024 };
+export const BYTE_LIMITS = { service: 48 * 1024, head: 8192, source: 128 * 1024, definition: 256 * 1024, evaluation: 64 * 1024, finding: 32 * 1024, decision: 32 * 1024, history: 96 * 1024, detail: 3 * 1024 * 1024 };
 export function bounded<T>(kind: keyof typeof BYTE_LIMITS, data: T): T {
   if (Buffer.byteLength(JSON.stringify(data), 'utf8') > BYTE_LIMITS[kind]) throw new HttpError(413, `${kind} exceeds its storage byte limit.`);
   return data;
 }
 export const reviewCollection = (s: Services) => s.db.collection(`districts/${s.config.districtId}/reviews`);
-export type ReviewHead = Omit<Review, 'sourceText' | 'analysis' | 'decision' | 'contract'> & {
-  storageVersion: 3; sourceId: string; definitionId: string; analysisId: string | null; decisionId: string | null;
+export type ReviewHead = Omit<Review, 'sourceText' | 'analysis' | 'decision' | 'contract' | 'service'> & {
+  serviceId?: string; serviceSummary?: { tier: string; grades: string; dataUse: string; decision: string; blockers: string[] }; storageVersion: 3; sourceId: string; definitionId: string; analysisId: string | null; decisionId: string | null;
   score: number | null; reviewed: number; measureCount: number;
 };
 type StoredEvaluation = Omit<Analysis, 'findings'> & { sourceId: string; definitionId: string; findingIds: string[] };
@@ -25,7 +27,7 @@ function required(snap: DocumentSnapshot, kind: keyof typeof BYTE_LIMITS) {
   return bounded(kind, snap.data()!);
 }
 export function summary(r: ReviewHead): ReviewSummary {
-  return { id: r.id, name: r.name, revision: r.revision, createdAt: r.createdAt, updatedAt: r.updatedAt, published: r.published, status: r.job.status, score: r.score, reviewed: r.reviewed, measureCount: r.measureCount };
+  return { id: r.id, name: r.name, revision: r.revision, createdAt: r.createdAt, updatedAt: r.updatedAt, published: r.published, status: r.job.status, score: r.score, reviewed: r.reviewed, measureCount: r.measureCount, ...(r.serviceSummary ? { service: r.serviceSummary } : {}) };
 }
 export async function readEvaluation(s: Services, tx: Transaction, reviewId: string, evaluationId: string) {
   const root = reviewCollection(s).doc(reviewId);
@@ -56,10 +58,12 @@ export async function readReview(s: Services, tx: Transaction, id: string, exist
   const { id: contractId, ...definition } = contract;
   if (contract.id !== head.definitionId || digest(definition) !== contractId || sourceHash(source.text) !== head.sourceId || contract.criteria.length > 50) throw new HttpError(409, 'Review version integrity check failed.');
   if (version && (version.contract.id !== contract.id || version.analysis.sourceHash !== head.sourceId)) throw new HttpError(409, 'Evaluation does not match this review.');
-  const { storageVersion: _, sourceId: _s, definitionId: _d, analysisId: _a, decisionId: _j, score: _c, reviewed: _r, measureCount: _m, ...r } = head;
+  const service = head.serviceId ? required(await tx.get(root.collection('services').doc(refId(head.serviceId))), 'service') as ServiceRecord : undefined;
+  if (service && digest(service) !== head.serviceId) throw new HttpError(409, 'Service details integrity check failed.');
+  const { serviceId: _si, serviceSummary: _ss, storageVersion: _, sourceId: _s, definitionId: _d, analysisId: _a, decisionId: _j, score: _c, reviewed: _r, measureCount: _m, ...r } = head;
   const decision = decisionSnap ? required(decisionSnap, 'decision') as Review['decision'] : null;
   if (decision && digest(decision) !== head.decisionId) throw new HttpError(409, 'Decision integrity check failed.');
-  return bounded('detail', { ...r, sourceText: source.text as string, contract, analysis: version?.analysis || null, decision });
+  return bounded('detail', { ...r, ...(service ? { service } : {}), sourceText: source.text as string, contract, analysis: version?.analysis || null, decision });
 }
 export function writeEvaluation(s: Services, tx: Transaction, r: Review, analysis: Analysis, seen = new Set<string>()) {
   const root = reviewCollection(s).doc(r.id); const contract = r.contract!;
@@ -84,8 +88,10 @@ export function writeReview(s: Services, tx: Transaction, r: Review, previous?: 
   }
   const decisionId = r.decision ? digest(r.decision) : null;
   if (r.decision && decisionId !== (previous?.decision ? digest(previous.decision) : null)) tx.set(root.collection('decisions').doc(decisionId!), bounded('decision', r.decision));
-  const { sourceText: _, analysis: _a, decision: _d, contract: _c, ...fields } = r;
-  const head: ReviewHead = { ...fields, storageVersion: STORAGE_VERSION, sourceId, definitionId, analysisId: r.analysis?.id || null, decisionId, score: r.analysis?.score.total ?? null, reviewed: reviewedCount(r), measureCount: measuresFor(r).length };
+  const serviceId = r.service ? digest(r.service) : undefined;
+  if (r.service && serviceId !== (previous?.service ? digest(previous.service) : undefined)) tx.set(root.collection('services').doc(serviceId!), bounded('service', r.service));
+  const { service: _sv, sourceText: _, analysis: _a, decision: _d, contract: _c, ...fields } = r;
+  const head: ReviewHead = { ...fields, ...(r.service ? { serviceId, serviceSummary: { tier: r.service.values.tier, grades: r.service.values.grades, dataUse: r.service.values.dataUse, decision: decisionIsCurrent(r) ? r.decision!.outcome : 'New decision needed', blockers: serviceBlockers(r.service) } } : {}), storageVersion: STORAGE_VERSION, sourceId, definitionId, analysisId: r.analysis?.id || null, decisionId, score: r.analysis?.score.total ?? null, reviewed: reviewedCount(r), measureCount: measuresFor(r).length };
   tx.set(root, bounded('head', head));
 }
 

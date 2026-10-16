@@ -1,4 +1,7 @@
 import { z } from 'zod';
+import { tierPolicySchema } from './service-policy.ts';
+import { tiers, type Tier } from './service-policy.ts';
+export { tiers, type Tier } from './service-policy.ts';
 import pef from './settings/pef-example.json';
 
 // Adapted from PrivacyPal SetupWizard/LibraryDesignWizard at adad00a (AGPL-3.0-only).
@@ -32,6 +35,7 @@ export const evaluationSettingsSchema = z.object({
   evaluationStandards: selections(standards.map(s => s.id)),
   laws: selections(laws.map(l => l.id)).refine(a => a.length > 0, 'Select at least one law reference.'),
   customEvaluationContext: plainText(6000), districtMission: plainText(4000), strategicPlan: plainText(12000),
+  tierPolicy: tierPolicySchema.optional(),
   starterProfile: z.enum(['pef-2.0', 'none']), evaluationWeights: z.record(z.string(), priority),
 }).strict().superRefine((s, ctx) => {
   const keys = Object.keys(s.evaluationWeights);
@@ -49,8 +53,6 @@ export function defaultEvaluation(): EvaluationSettings {
   return { sector: 'Education (K-12)', state: '', evaluationStandards: ['1edtech', 'student_privacy_pledge', 'accessibility_security'], laws: ['ferpa', 'coppa', 'ppra'], customEvaluationContext: '', districtMission: '', strategicPlan: '', starterProfile: 'pef-2.0', evaluationWeights: defaultWeights() };
 }
 
-export const tiers = ['Tier 1: Core System Tool', 'Tier 2: Site/Department Approved', 'Tier 3A: Requires Parent Consent', 'Tier 3B: No Account Required', 'Pending'] as const;
-export type Tier = typeof tiers[number];
 export const DEFAULT_NOTICE = 'This local practice library contains fictional examples. It does not represent official district approvals.';
 export const DEFAULT_FOOTER = [
   { id: 'questions', heading: 'Questions about a resource', body: 'Contact {email} for information about this practice library.' },
@@ -90,7 +92,7 @@ export function accentText(color: string): '#000000' | '#ffffff' {
   const luminance = c[0] * .2126 + c[1] * .7152 + c[2] * .0722;
   return (luminance + .05) / .05 >= 1.05 / (luminance + .05) ? '#000000' : '#ffffff';
 }
-export type LibraryProfile = { id: string; name: string; summary: string; category: string; tierLevel?: Tier; sortOrder?: number; synthetic?: boolean; outcome?: string; conditions?: string };
+export type LibraryProfile = { grades?: string; dataUse?: string; dataCategories?: string; approvedWhen?: string; permissionWhen?: string; alternative?: string; support?: string; ageGuidance?: string; curriculum?: string; educationVersion?: string; educationNotes?: string; score?: number | null; evidenceCount?: number; measureCount?: number; reviewedAt?: string; id: string; name: string; summary: string; category: string; tierLevel?: Tier; sortOrder?: number; synthetic?: boolean; outcome?: string; conditions?: string };
 export function visibleProfiles(profiles: LibraryProfile[], search: string, tier: string, sort: LibrarySettings['defaultSortMode']) {
   return profiles.filter(p => `${p.name} ${p.category} ${p.summary}`.toLowerCase().includes(search.toLowerCase()) && (tier === 'all' || (p.tierLevel || 'Pending') === tier)).sort((a, b) => {
     const primary = sort === 'tier_asc' ? tiers.indexOf(a.tierLevel || 'Pending') - tiers.indexOf(b.tierLevel || 'Pending') : sort === 'library_order' ? (a.sortOrder ?? Number.MAX_SAFE_INTEGER) - (b.sortOrder ?? Number.MAX_SAFE_INTEGER) : 0;

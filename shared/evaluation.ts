@@ -11,4 +11,4 @@ export const measuresFor = (r: { contract?: EvaluationContract }) => r.contract?
 export const STORAGE_VERSION = 3;
 export const PAGE_SIZE = 20;
 export type Page<T> = { items: T[]; nextCursor: string | null };
-export type ReviewSummary = { id: string; name: string; revision: number; createdAt: string; updatedAt: string; published: boolean; status: string; score: number | null; reviewed: number; measureCount: number };
+export type ReviewSummary = { service?: { tier: string; grades: string; dataUse: string; decision: string; blockers: string[] }; id: string; name: string; revision: number; createdAt: string; updatedAt: string; published: boolean; status: string; score: number | null; reviewed: number; measureCount: number };

@@ -337,3 +337,32 @@ isolated temporary validation copy, with matching source and a verified final ba
 the original workspace. The original service card and four-tab restoration remain next; this is
 its storage foundation. No push, deployment, production login, live fetching or model call occurred,
 and the existing district instance and original repository were untouched.
+
+## Complete service card and four-tab restoration
+
+Local checkpoint `fae8d20` preserves the preceding milestones. This increment adapts the workflow
+from pinned original `ToolCard`, `ToolDetailView`, `tierPolicy`, `StaffToolCard`, `PublicNoticeLibrary`
+and `publicProjection` source at `adad00a05e67bf9ea88d145cf2e0a1100ec27889`, read locally without
+running it. Original license/attribution remain in this repository. No production bindings or
+operational data were imported. Implementation and deliberate behavior changes are mapped in
+[service detail](service-detail.md).
+
+The new server commands preserve immutable service versions, enforce configurable adopted tier
+requirements, and bind human decisions to both evidence and service revisions. Preview/publication
+share an allowlisted builder. Service backups use schema 4 so earlier readers reject them.
+
+The synthetic browser walkthrough created Cedar Complete Service using settings revision 2 and the
+full 50-measure rubric. Repetitive findings were populated through the local API (one partial
+quotation, 49 explicit omissions), not falsely claimed as fifty manual entries. Browser checks
+confirmed navigation-safe service drafts, an unresolved DPA blocker, document confirmation,
+conditional publication, a 1-to-0 evidence correction, actual withdrawal, a fresh decision and
+republication, and reload persistence. Original Orchard QA remained 57/100. Anonymous family and
+staff-account screens were inspected independently. A dedicated synthetic staff account was added
+for this check; its credentials remain in ignored `.local/accounts/`.
+
+Arrow-key tab navigation and 390-pixel layout were checked; the narrow page had no horizontal
+overflow. Broader screen-reader/zoom/accessibility and measured performance remain release work.
+The existing large main-bundle warning remains open. Full-rubric service data and decisions survived
+two complete backup/restore cycles. Final counts and local artifacts are recorded in the handoff.
+No push, deployment, production login, live policy fetch or AI call occurred. The original district
+instance and repository remained untouched.

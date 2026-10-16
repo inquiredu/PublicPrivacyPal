@@ -105,3 +105,11 @@ shell; do not alter credentials or settings for an existing district service. `n
 refuses. A future production installer needs real verified authentication, operator authorization,
 domain ownership decisions, service hardening, encrypted operational backups, schema upgrades, and a
 separately reviewed target. Use `independent-trial.md` for the current local rehearsal.
+
+## Complete service workflow
+
+See [service detail](service-detail.md) for the restored reviewer cards and four tabs. To enable the
+complete workflow, explicitly adopt the optional tier policy in Settings, then create a service
+review using its saved revision. Practice reviews remain usable without changing their scores.
+Service backups require this service-aware build (schema 4); preserve pre-service archives for
+rollback. The staff catalogue is in My workspace and uses its separate audience projection.

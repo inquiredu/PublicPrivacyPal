@@ -1,3 +1,4 @@
+import { TierPolicyEditor } from './TierPolicyEditor';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import type { User } from 'firebase/auth';
 import { api } from './api';
@@ -101,6 +102,7 @@ function SetupWizard({ user, saved, onSaved }: { user: User; saved: SavedSetting
           <label>Strategic Plan / Key Priorities<textarea rows={4} maxLength={12000} value={draft.strategicPlan} onChange={e => update('strategicPlan', e.target.value)} placeholder="Enter key strategic priorities, values, or goals…"/></label>
         </div>}
       </section>
+      <TierPolicyEditor value={draft.tierPolicy} onChange={value => update('tierPolicy', value)}/>
       <section><h3>6. Customize Evaluation Priorities</h3><p className="help">Choose a starting framework and adjust the importance of each area. The original PrivacyPal example includes 50 measures in 11 areas.</p>
         <label>Starting framework<select value={draft.starterProfile} onChange={e => { setStatus(''); setDraft(d => ({ ...d, starterProfile: e.target.value as EvaluationSettings['starterProfile'], evaluationWeights: e.target.value === 'none' ? {} : defaultWeights() })); }}><option value="pef-2.0">PrivacyPal Evaluation Framework 2.0 — optional example</option><option value="none">Choose evaluation measures later</option></select></label>
         {draft.starterProfile === 'pef-2.0' ? <><div className="option-box priorities">{evaluationAreas.map(area => <div className="priority-row" key={area.id}><div><strong>{area.name}</strong><small>{area.criteria.length} measures</small></div><div className="priority-options" role="group" aria-label={`${area.name} priority`}>{priorityOptions.map(opt => <label key={opt.value} className={`priority priority-${opt.value * 2} ${draft.evaluationWeights[area.id] === opt.value ? 'selected' : ''}`}><input type="radio" name={`weight-${area.id}`} value={opt.value} checked={draft.evaluationWeights[area.id] === opt.value} onChange={() => update('evaluationWeights', { ...draft.evaluationWeights, [area.id]: opt.value })}/>{opt.label}</label>)}</div></div>)}</div><details className="measure-preview"><summary>Preview included measures ({included} of 50)</summary>{evaluationAreas.map(a => <section key={a.id}><h4>{a.name} · {draft.evaluationWeights[a.id] === 0 ? 'Disabled' : `${draft.evaluationWeights[a.id]}× weight`}</h4><ul>{a.criteria.map(c => <li key={c.id}>{c.question}</li>)}</ul></section>)}</details></> : <Message>Your context can be saved now. No scoring framework has been adopted.</Message>}

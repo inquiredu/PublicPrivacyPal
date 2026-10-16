@@ -1,101 +1,98 @@
-# PrivacyPal local handoff — parked
+# PrivacyPal local handoff — complete service milestone
 
-Parked at the owner's request on October 15, 2026 (final backup timestamps are October 16 UTC).
-No further feature work is scheduled. The local preview and demo emulators were stopped cleanly.
+Updated October 15, 2026 (backup timestamps are October 16 UTC). The requested local checkpoint
+and one complete service workflow are finished. No further work is scheduled.
 
-## Boundaries
+## Boundaries and checkpoint
 
-Work only in PublicPrivacyPal. Keep the existing district instance and original
-`inquiredu/privacypal` repository untouched. Use synthetic data, local demo emulators and local
-accounts. Do not start the archived upstream app or its maintenance scripts. Nothing was pushed,
-deployed, authenticated against production, fetched from a vendor, or sent to an AI service.
-Read `AGENTS.md` before resuming.
+Work only in PublicPrivacyPal. The district instance and original `inquiredu/privacypal` repository
+remain untouched. All records, accounts and agreement facts are synthetic and use the named local
+demo emulators. Nothing was pushed, deployed, fetched from a vendor or sent to an AI service.
+Read `AGENTS.md` before continuing.
 
-## Completed checkpoint
+Local commit **fae8d20** (`Checkpoint local setup, reliable reviews, and versioned storage`) preserves
+the preceding setup, draft/receipt reliability and bounded 50-measure storage milestones. Branch:
+`codex/open-source-audit`. The complete-service implementation is subsequent, uncommitted work;
+preserve it and all existing files. No dependency changes were needed.
 
-- District-neutral administration and tested role permissions.
-- Original setup and library customization adapted to local persistence.
-- Manual pasted-policy review, exact quotations, editable evidence, deterministic scoring,
-  human decisions, atomic publication/withdrawal and fresh-decision republication.
-- Tab-scoped draft protection and command receipts for reliable save/retry reconciliation.
-- Versioned, bounded review storage supporting the optional original 50-measure framework.
-  Each new full-rubric review explicitly adopts saved settings and a scoring engine. Existing
-  reviews retain their source, rubric and arithmetic. Lists/history are paged and detail loads
-  on selection. Legacy local records migrate under maintenance with resumable failure handling.
+## Restored experience
 
-The original reviewer cards and four-tab service detail have **not** yet been restored. The owner
-wants refinement of that existing design, preserving its useful detail and workflow. The current
-simplified review screen is a development surface.
+Reviewer cards show tier, grades, data involvement, reviewed coverage, independent score/decision
+and publication state. Detail restores **Overview**, **Compliance**, **Classification**, and
+**Publish & Documents**. The original pinned implementation was read as reference; see
+`docs/service-detail.md` for the field map and intentional refinements/deferred features.
 
-## Verified state
+The optional administrator-configured tier policy is explicitly adopted and versioned. Service
+facts, DPA dates/reference/scope, rostering, conditions and classification persist in bounded,
+immutable service versions. Service drafts survive navigation. Corrections atomically withdraw
+both audience projections and require a decision bound to the new service/evaluation revision.
+The same allowlist renders publication previews and actual staff/family notices.
 
-Latest checks passed: 83 unit/isolation tests, 113 emulator integration tests, TypeScript/build,
-source/bundle isolation, and two complete backup/restore cycles. These include maximum-length
-Unicode evidence across 50 measures, prior evaluation retrieval, 1,000-summary pagination,
-permission denials, stale settings, concurrent/failed writes and legacy migration/recovery.
+Existing reviews keep their original rubric/arithmetic and do not silently adopt new settings.
+A new source or changed adopted policy requires a new review. Staff see permitted use first with
+score as supporting context; families do not receive scores, evidence or private document fields.
 
-Browser checks confirmed the earlier published Orchard QA review remains 57/100. A new private
-`Cedar Full Rubric — Browser QA` uses settings revision 1, has one of 50 measures reviewed and a
-provisional score of 1/100, and retains the evidence/rationale correction after reload. The public
-library still has four synthetic resources. Full review publication/correction/republication is
-covered by automated tests. Console inspection returned no warnings/errors.
+## Verification
 
-Evidence and the machine-readable receipt are under `.local/validation/review-storage/`.
-The existing browser bundle size warning remains open; no production performance or capacity
-claim is made. No dependency changes were introduced during the storage milestone.
+Final validation: 90 unit/isolation tests, 125 emulator integration tests, TypeScript/build and
+source/bundle isolation. Two full backup/restore cycles preserve service facts, adopted policy,
+current decision, earlier evaluation, roles and accounts, including mixed legacy/schema-4 data.
+Tests cover authorization, stale settings, DPA boundaries, write failure/concurrency, command replay,
+maintenance, byte limits, drafts and explicit audience projections.
 
-## Saved state and restart
+Browser acceptance used **Cedar Complete Service — Browser QA** (review
+`f0b519e0-d6e2-489d-963c-7d8080a825c2`). Settings revision 2 explicitly adopts the example tier policy.
+The service has all 50 measures reviewed, Tier 2, grades 6–8, fictional agreement/rostering facts,
+and a synthetic conditional decision. The initial evidence was populated through the local API
+(one partial quote and 49 omissions); the browser performed the human correction and decisions.
+The correction changed 1/100 to 0/100, removed the actual family listing, and required a fresh
+decision before republication. Reload retained the final published state and service facts.
+This is interaction test data, not a vendor assessment.
 
-A fresh final backup was verified, copied into this workspace, and verified again before parking:
+The earlier Orchard QA publication remains 57/100; the earlier Cedar partial review remains intact.
+Anonymous and dedicated synthetic staff views were checked. Arrow/Home/End tabs and a 390px layout
+were checked; no horizontal overflow or console warnings/errors were observed after reload.
+Evidence is under `.local/validation/service-detail/`. Broader accessibility is not certified.
 
-`.local/backups/2026-10-16T01-39-15-960Z-78e01fbc-8b37-4cdb-a5f2-6aa07c4088f1`
+## Saved installation and restart
 
-It is a schema-3 whole-installation backup containing synthetic accounts, settings, reviews,
-versions, decisions and projections. Existing local passwords still apply. Earlier backups,
-including the pre-migration schema-2 archive, remain preserved. Never relabel manifests.
+The final schema-4 whole-installation backup was saved, verified, copied into this workspace and
+verified again:
+
+`.local/backups/2026-10-16T03-22-58-046Z-f00809dd-dfe1-49fb-93de-51e09a23a0e6`
+
+It includes synthetic accounts, settings, complete service, evidence versions, decisions and public
+projections. Keep older backups. The checkpoint's older backup reader must reject schema 4; never
+relabel a manifest. Rollback uses the preserved pre-service schema-3 backup with compatible source.
 
 With Node 24, Java 21+ and dependencies available, from this repository:
 
 ```sh
-npm run dev -- --restore .local/backups/2026-10-16T01-39-15-960Z-78e01fbc-8b37-4cdb-a5f2-6aa07c4088f1
+npm run dev -- --restore .local/backups/2026-10-16T03-22-58-046Z-f00809dd-dfe1-49fb-93de-51e09a23a0e6
 ```
 
-Starting without `--restore` creates an empty emulator session. Do not bootstrap over the saved
-installation. Use the existing local account file under `.local/accounts/`; do not copy passwords
-into this handoff or source control. Save a verified backup before stopping a future session.
+Starting without `--restore` creates an empty session. Do not bootstrap over the saved installation.
+Use the existing admin or dedicated `service-staff` account file under `.local/accounts/`; never
+publish credentials. Save a verified backup before stopping a future session.
 
-Validation and the preview ran from `/private/tmp/privacypal-setup-deps` to avoid occasional synced
-Documents filesystem stalls. Source, tests, rules, manifests and documentation matched the original
-workspace at the storage checkpoint. The original workspace holds the final backup and logs, so
-preserve those even if the temporary directory disappears. Its toolchain was Node 24 from
-`/private/tmp/privacypal-runtime/node_modules/node/bin`, Java from
-`/private/tmp/privacypal-audit.aXzT2k/jdk/jdk-21.0.12.1+1/Contents/Home`, and emulator cache from
-`/private/tmp/privacypal-audit.aXzT2k/emulators`. Temporary paths are conveniences, not installation
-requirements.
+The final preview runs at http://127.0.0.1:5173/ from `/private/tmp/privacypal-setup-deps`, avoiding
+occasional synced Documents filesystem stalls. Source/tests match this workspace. Node 24 is at
+`/private/tmp/privacypal-runtime/node_modules/node/bin`; Java is at
+`/private/tmp/privacypal-audit.aXzT2k/jdk/jdk-21.0.12.1+1/Contents/Home`; emulator cache is at
+`/private/tmp/privacypal-audit.aXzT2k/emulators`. These paths are conveniences, not requirements.
+This workspace holds the durable backup and validation evidence even if temporary files disappear.
 
-## Git state
+## Next suggested work
 
-Branch: `codex/open-source-audit`. Last committed baseline: `9523fbd`. Subsequent milestones remain
-uncommitted, including this storage work and handoff. Preserve all existing edits and untracked
-source/tests; do not reset or clean the checkout. No commit or push was made while parking.
+1. Review the restored local service with the owner, especially configurable tier requirements and
+   staff/family wording. Keep legal policy content district-owned.
+2. Expand accessibility checks and reduce the approximately 1 MB main browser bundle. The existing
+   build-size warning remains; no production performance/capacity claim is made.
+3. Design expiry monitoring before real agreements: dates are rechecked at approval/publication,
+   but there is no automatic time-triggered withdrawal. Card warnings summarize the last write.
+4. Plan production provisioning, account turnover, encrypted retention and upgrade/rollback before
+   deployment. Bulk/assignment workflows, tag browsing/dialogs, live AI/fetching, Drive, email and
+   signing remain deferred. The repository remains emulator-only and is not release-ready.
 
-## Next authorized direction when the owner resumes
-
-Resume at `docs/design-continuity-plan.md`: restore one complete service through the original
-reviewer card and four tabs, using this tested storage contract. Read the pinned original source
-before adapting each surface. Preserve tier requirements, DPA/rostering facts, conditions,
-classification, human corrections, evidence coverage and audience-specific publication preview.
-Use a synthetic example with an unresolved DPA, missing policy statements, an evidence correction,
-and a fresh decision before republication. Keep district approval separate from score.
-
-Do not start that milestone until the owner resumes work. Main references:
-
-- `docs/review-storage.md` — architecture, byte/page limits, API and migration.
-- `docs/review-workflow.md` — evidence, drafts, retry and publication semantics.
-- `docs/backup-recovery.md` — restore, maintenance and failure procedures.
-- `docs/design-continuity-plan.md` — original feature map and reliability decisions.
-- `docs/provenance.md` — implementation and validation evidence.
-
-Remaining release work includes the original service experience, broader accessibility and
-performance verification, production provisioning, account turnover, encrypted retention and
-production upgrade/rollback. Live AI, fetching, Drive, mail and signing remain deferred.
+References: `docs/service-detail.md`, `docs/review-storage.md`, `docs/review-workflow.md`,
+`docs/backup-recovery.md`, `docs/design-continuity-plan.md`, and `docs/provenance.md`.

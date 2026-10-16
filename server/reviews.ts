@@ -4,7 +4,9 @@ import type { SavedSettings, EvaluationSettings } from '../shared/settings.ts';
 import { districtContract, practiceContract } from './evaluation.ts';
 import { readReview, readEvaluation, writeReview, summary, bounded, decodeCursor, encodeCursor, historyPage, type ReviewHead } from './review-storage.ts';
 import { replayCommand, recordCommand, type CommandIdentity } from './commands.ts';
-import { randomUUID } from 'node:crypto';
+import { emptyService, serviceBlockers, decisionIsCurrent, audienceProjection, type ServiceRecord } from '../shared/service.ts';
+import { tierPolicySchema } from '../shared/service-policy.ts';
+import { randomUUID, createHash } from 'node:crypto';
 import type { DecodedIdToken } from 'firebase-admin/auth';
 import type { Transaction } from 'firebase-admin/firestore';
 import { z } from 'zod';
@@ -22,7 +24,7 @@ const staffRef = (s: Services, id: string) => s.db.doc(`districts/${s.config.dis
 const nowISO = () => new Date().toISOString();
 function parse<T>(schema: z.ZodType<T>, raw: unknown): T {
   const result = schema.safeParse(raw);
-  if (!result.success) throw new HttpError(400, 'Invalid review command. Check required fields and conditions.');
+  if (!result.success) throw new HttpError(400, `Invalid review command. ${result.error.issues[0]?.message || 'Check required fields and conditions.'}`);
   return result.data;
 }
 async function authorize(s: Services, tx: Transaction, actor: DecodedIdToken, edit = false) {
@@ -43,6 +45,12 @@ async function quota(s: Services, tx: Transaction) {
 function job(actor: DecodedIdToken, attempt = 1): Review['job'] {
   return { id: randomUUID(), status: 'queued', actorUid: actor.uid, actorEmail: actor.email!, attempt, leaseUntil: 0, error: null };
 }
+async function adoptService(s: Services, tx: Transaction, actor: DecodedIdToken, revision: number): Promise<ServiceRecord> {
+  const saved = (await tx.get(s.db.doc(`districts/${s.config.districtId}/settings/evaluation`))).data() as SavedSettings<EvaluationSettings> | undefined;
+  if (!saved?.complete || saved.revision !== revision || !saved.values.tierPolicy) throw new HttpError(409, 'Ask an administrator to save a tier policy in Settings, then adopt its current revision.');
+  if (saved.contentHash !== createHash('sha256').update(JSON.stringify({ definitionVersion: saved.definitionVersion, values: saved.values })).digest('hex')) throw new HttpError(409, 'The saved settings hash does not match.');
+  return { version: 1, revision: 1, values: emptyService(), policy: tierPolicySchema.parse(saved.values.tierPolicy), settingsRevision: revision, updatedAt: nowISO(), updatedBy: actor.uid, rationale: 'Explicitly adopted the saved district tier policy.' };
+}
 export async function listReviews(s: Services, actor: DecodedIdToken, cursor?: string) {
   return s.db.runTransaction(async tx => {
     await authorize(s, tx, actor);
@@ -62,7 +70,7 @@ export async function rubricStatus(s: Services, actor: DecodedIdToken) {
     await authorize(s, tx, actor);
     const saved = await tx.get(s.db.doc(`districts/${s.config.districtId}/settings/evaluation`));
     const available = saved.get('complete') === true && saved.get('values.starterProfile') === 'pef-2.0';
-    return { available, revision: saved.get('revision') || 0, measureCount: available ? 50 : 0 };
+    return { servicePolicyAvailable: !!saved.get('values.tierPolicy'), available, revision: saved.get('revision') || 0, measureCount: available ? 50 : 0 };
   });
 }
 export async function createReview(s: Services, actor: DecodedIdToken, raw: unknown, imported = false, command?: CommandIdentity) {
@@ -77,12 +85,13 @@ export async function createReview(s: Services, actor: DecodedIdToken, raw: unkn
     const total = count.get('count') || 0;
     if (total >= 1000) throw new HttpError(429, 'This local sandbox is limited to 1000 reviews.');
     const contract = 'rubricMode' in input ? districtContract((await tx.get(s.db.doc(`districts/${s.config.districtId}/settings/evaluation`))).data() as SavedSettings<EvaluationSettings> | undefined, input.settingsRevision, input.engineVersion) : practiceContract(input.profileVersion);
+    const service = input.serviceSettingsRevision ? await adoptService(s, tx, actor, input.serviceSettingsRevision) : undefined;
     const pasted = 'sourceKind' in input;
     const spend = pasted ? undefined : await quota(s, tx);
     const text = 'sourceKind' in input ? input.sourceText : fixtures[input.fixtureId].text;
     const capturedAt = nowISO();
     const r: Review = {
-      id, name: input.name, contract, profileVersion: input.profileVersion,
+      id, name: input.name, contract, ...(service ? { service } : {}), profileVersion: input.profileVersion,
       fixtureId: 'fixtureId' in input ? input.fixtureId : null, sourceKind: pasted ? 'pasted' : 'fixture',
       sourceLabel: 'sourceKind' in input ? input.sourceLabel : fixtures[input.fixtureId].label,
       sourceText: text, sourceHash: sourceHash(text), sourceVersion: 1, sourceCapturedAt: capturedAt,
@@ -110,7 +119,18 @@ export async function reviewAction(s: Services, actor: DecodedIdToken, id: strin
     const active = ['queued', 'running'].includes(r.job.status);
     let spend: (() => unknown) | undefined;
     let details: unknown = null;
-    if (input.action === 'retry' || input.action === 'reanalyze') {
+    if (input.action === 'adopt_service') {
+      if (r.service) throw new HttpError(409, 'This review already has an adopted tier policy. Create a new review to adopt different requirements.');
+      r.service = await adoptService(s, tx, actor, input.settingsRevision); r.published = false;
+      details = { serviceRevision: r.service.revision, policyVersion: r.service.policy.version, settingsRevision: r.service.settingsRevision };
+    } else if (input.action === 'edit_service') {
+      if (!r.service) throw new HttpError(409, 'Adopt the saved district tier policy before editing service details.');
+      if (active) throw new HttpError(409, 'Finish or cancel the current analysis before editing service details.');
+      if (input.service.values.dpaStatus === 'recorded' && input.service.values.dpaSigned > nowISO().slice(0, 10)) throw new HttpError(400, 'A recorded agreement cannot have a future signing date.');
+      r.service = { ...r.service, revision: r.service.revision + 1, values: input.service.values, rationale: input.service.rationale, updatedAt: nowISO(), updatedBy: actor.uid };
+      r.published = false;
+      details = { before: previousReview.service, after: r.service };
+    } else if (input.action === 'retry' || input.action === 'reanalyze') {
       if (isPastedReview(r)) throw new HttpError(409, 'Pasted policies are reviewed manually. Edit the evidence for each criterion.');
       if (active || (input.action === 'retry' && r.job.status !== 'failed')) throw new HttpError(409, 'The analysis is not ready for that action.');
       if (input.action === 'retry' && r.job.attempt >= 3) throw new HttpError(409, 'Retry limit reached. Start a new analysis.');
@@ -138,10 +158,12 @@ export async function reviewAction(s: Services, actor: DecodedIdToken, id: strin
       };
     } else if (input.action === 'decide') {
       if (!currentAnalysis(r)) throw new HttpError(409, 'Complete the current evidence review before deciding. Each pasted-policy criterion needs an explicit finding and rationale.');
-      r.decision = { ...input.decision, analysisId: r.analysis!.id, actorUid: actor.uid, at: nowISO() };
+      if (input.decision.outcome !== 'declined' && serviceBlockers(r.service).length) throw new HttpError(409, serviceBlockers(r.service).join(' '));
+      r.decision = { ...input.decision, ...(r.service ? { serviceRevision: r.service.revision } : {}), analysisId: r.analysis!.id, actorUid: actor.uid, at: nowISO() };
       r.published = false;
     } else if (input.action === 'publish') {
-      if (!currentAnalysis(r) || !r.analysis || r.decision?.analysisId !== r.analysis.id || !['approved', 'conditional'].includes(r.decision.outcome)) throw new HttpError(409, 'A current approved or conditional human decision is required before publishing.');
+      if (!currentAnalysis(r) || !r.analysis || !decisionIsCurrent(r) || !r.decision || !['approved', 'conditional'].includes(r.decision.outcome)) throw new HttpError(409, 'A current approved or conditional human decision is required before publishing.');
+      if (serviceBlockers(r.service).length) throw new HttpError(409, serviceBlockers(r.service).join(' '));
       r.published = true;
     } else { r.published = false; }
     const before = previousReview.decision;
@@ -149,9 +171,7 @@ export async function reviewAction(s: Services, actor: DecodedIdToken, id: strin
     spend?.();
     if (r.published) {
       // Explicit projection only: never copy source, evidence, rationale, identity, or job errors.
-      const d = r.decision!;
-      const profile = { name: r.name, category: d.category, summary: d.summary, outcome: d.outcome, conditions: d.conditions, reviewedAt: d.at, synthetic: !isPastedReview(r) };
-      tx.set(publicRef(s, id), profile); tx.set(staffRef(s, id), profile);
+      tx.set(publicRef(s, id), audienceProjection(r, 'public')!); tx.set(staffRef(s, id), audienceProjection(r, 'staff')!);
     } else { unpublish(s, tx, id); }
     writeReview(s, tx, r, previousReview);
     event(s, tx, r, input.action, actor.uid, input.action === 'decide' ? { before, after: r.decision } : details);
@@ -177,7 +197,7 @@ export async function exportReview(s: Services, actor: DecodedIdToken, id: strin
     const page = historyPage(rows, `history:${s.config.districtId}:${id}`);
     const bundle = { format: r.contract?.kind === 'district' ? 'privacypal-district-v1' : isPastedReview(r) ? 'privacypal-pasted-v1' : 'privacypal-synthetic-v1',
       draft: isPastedReview(r) ? { name: r.name, sourceKind: 'pasted', sourceLabel: r.sourceLabel, sourceText: r.sourceText, profileVersion: r.profileVersion } : { name: r.name, fixtureId: r.fixtureId, profileVersion: r.profileVersion || 'community-demo-v1' },
-      ...(!isPastedReview(r) ? { sourceText: r.sourceText } : {}), snapshot: { contract: r.contract, analysis: r.analysis, decision: r.decision, history: page.items, historyNextCursor: page.nextCursor } };
+      ...(!isPastedReview(r) ? { sourceText: r.sourceText } : {}), snapshot: { ...(r.service ? { service: r.service } : {}), contract: r.contract, analysis: r.analysis, decision: r.decision, history: page.items, historyNextCursor: page.nextCursor } };
     while (Buffer.byteLength(JSON.stringify(bundle)) > 2 * 1024 * 1024 && bundle.snapshot.history.length) {
       bundle.snapshot.history.pop(); const last = bundle.snapshot.history.at(-1);
       bundle.snapshot.historyNextCursor = last ? encodeCursor(`history:${s.config.districtId}:${id}`, last.at, last.id) : null;

@@ -59,3 +59,9 @@ test('current reader accepts baseline schema-1 archives without relabeling them'
   assert.equal(verifyBackup(root, config).dataSchema, 1);
   assert.equal(JSON.parse(readFileSync(path, 'utf8')).dataSchema, 1);
 });
+
+test('service-aware schema-4 archives remain distinct from earlier formats', t => {
+  const root = fixture(); t.after(() => rmSync(root, { recursive: true }));
+  const manifest = sealBackup(root, config, randomUUID(), 4);
+  assert.equal(manifest.dataSchema, 4); assert.equal(verifyBackup(root, config).dataSchema, 4);
+});

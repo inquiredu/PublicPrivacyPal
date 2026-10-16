@@ -57,7 +57,7 @@ export function apiServer(s: Services) {
       if (req.method === 'GET' && req.url === '/api/reviews') return send(res, 200, await listReviews(s, identity, cursor));
       if (req.method === 'POST' && (req.url === '/api/reviews' || req.url === '/api/reviews/import' || (reviewRoute && !reviewRoute[2]))) {
         requireMember((await membersRef(s).doc(identity.uid).get()).data(), identity, ['admin', 'reviewer']);
-        const raw = await jsonBody(req, req.url === '/api/reviews/import' ? MAX_REVIEW_IMPORT_BYTES : reviewRoute ? 32768 : 131072);
+        const raw = await jsonBody(req, req.url === '/api/reviews/import' ? MAX_REVIEW_IMPORT_BYTES : reviewRoute ? 65536 : 131072);
         const command = commandIdentity(req.headers['idempotency-key'], req.url!, raw);
         if (reviewRoute) return send(res, 200, await reviewAction(s, identity, reviewRoute[1], raw, command));
         return send(res, 201, req.url === '/api/reviews/import' ? await importReview(s, identity, raw, command) : await createReview(s, identity, raw, false, command));

@@ -197,4 +197,4 @@ and durable actor-scoped receipts for safe create/import/action reconciliation a
 See `review-workflow.md` for draft retention and sign-out limits, and `provenance.md` for automated
 and browser evidence. The versioned full-evaluation contract is now implemented with bounded source,
 findings and history storage, explicit saved-rubric adoption, and legacy migration/recovery tests.
-See `review-storage.md`. Restore the original complete service detail on that contract next.
+See `review-storage.md`. The one-service card/four-tab restoration is now implemented on that contract; see `service-detail.md` for the field map, acceptance and remaining work.

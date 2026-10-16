@@ -105,3 +105,13 @@ Review heads/history permit only bounded client lists (at most 21 including look
 definition, evaluation, finding and decision subcollections deny direct client access for every
 role. Private API reads recheck current membership and return one selected review/version. See
 [review storage](review-storage.md) for the format and limits.
+
+## Complete service review
+
+Service adoption and edits use the existing reviewer/admin commands and transaction-time checks.
+The administrator configures tier policy through private versioned Settings. Review readers receive
+the adopted copy through the API; all direct service-version access is denied. Both approval and
+publication enforce its requirements, including current signed DPA facts when required.
+The family projection has no score or private document fields. The staff projection now explicitly
+includes score/coverage and usage guidance; this is supporting information, never authorization.
+See [service detail](service-detail.md) for the field map and failure semantics.
