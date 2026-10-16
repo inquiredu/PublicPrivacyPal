@@ -1,0 +1,783 @@
+{
+  "rubricVersion": "2.0",
+  "rubricName": "PrivacyPal Evaluation Framework (PEF)",
+  "description": "A comprehensive privacy evaluation framework synthesized from 1EdTech TrustEd Apps, Common Sense Media Privacy Program, Student Data Privacy Consortium (NDPA), FERPA, COPPA, and SOPIPA. Each criterion maps to exactly one policy characteristic for deterministic, reproducible scoring.",
+  "lastUpdated": "2026-02-25",
+  "frameworkSources": [
+    {
+      "id": "1edtech",
+      "name": "1EdTech TrustEd Apps",
+      "version": "2024",
+      "criteriaCount": 13
+    },
+    {
+      "id": "commonsense",
+      "name": "Common Sense Media Privacy Program",
+      "version": "2024",
+      "criteriaCount": 15
+    },
+    {
+      "id": "sdpc",
+      "name": "Student Data Privacy Consortium (NDPA)",
+      "version": "2.1",
+      "criteriaCount": 8
+    },
+    {
+      "id": "ferpa",
+      "name": "FERPA Requirements",
+      "version": "statutory",
+      "criteriaCount": 6
+    },
+    {
+      "id": "coppa",
+      "name": "COPPA Requirements",
+      "version": "2024 update",
+      "criteriaCount": 5
+    },
+    {
+      "id": "sopipa",
+      "name": "SOPIPA Requirements",
+      "version": "statutory",
+      "criteriaCount": 4
+    }
+  ],
+  "evaluationAreas": [
+    {
+      "id": "data_collection",
+      "name": "Data Collection Transparency",
+      "description": "What data is collected, how, and why",
+      "weight": "critical",
+      "criteria": [
+        {
+          "id": "dc_001",
+          "question": "Does the policy list all types of data collected with specificity?",
+          "policyCharacteristic": "dataTypesListed",
+          "requiredFinding": "yes",
+          "source": "1EdTech DCQ1 + Common Sense 2.1.1",
+          "evaluation": {
+            "meets": "Policy provides comprehensive, specific list of all data types collected (e.g., 'name, email address, grade level' rather than 'personal information')",
+            "partial": "Policy lists some data types but uses vague categories or says 'may include'",
+            "doesNotMeet": "No specific data types listed, only vague terms like 'user data' or 'information you provide'"
+          }
+        },
+        {
+          "id": "dc_002",
+          "question": "Does the policy explain HOW data is collected during app usage?",
+          "policyCharacteristic": "dataCollectionMethods",
+          "requiredFinding": "yes",
+          "source": "1EdTech DCQ2",
+          "evaluation": {
+            "meets": "Clear documentation of collection methods (e.g., 'via account registration form', 'automatically through cookies', 'from school via roster sync')",
+            "partial": "Some collection methods mentioned but incomplete",
+            "doesNotMeet": "No explanation of how data is gathered"
+          }
+        },
+        {
+          "id": "dc_003",
+          "question": "Does the policy state the specific purposes for data collection?",
+          "policyCharacteristic": "dataPurpose",
+          "requiredFinding": "yes",
+          "source": "1EdTech DCQ1 + Common Sense 2.4",
+          "evaluation": {
+            "meets": "Each data type has a clear, legitimate educational purpose (e.g., 'email for account recovery', 'grades to show progress')",
+            "partial": "General purposes stated but not tied to specific data types",
+            "doesNotMeet": "No purpose stated or overly broad purposes that could enable any use"
+          }
+        },
+        {
+          "id": "dc_004",
+          "question": "Does the policy minimize data collection to what is necessary?",
+          "policyCharacteristic": "dataMinimization",
+          "requiredFinding": "yes",
+          "source": "1EdTech + ISTE + Common Sense 2.4.1",
+          "evaluation": {
+            "meets": "Only essential data for core functionality is collected; policy explains why each piece is necessary",
+            "partial": "Some non-essential data collected but with opt-out options",
+            "doesNotMeet": "Collects extensive data without clear necessity or educational purpose"
+          }
+        },
+        {
+          "id": "dc_005",
+          "question": "Does the policy disclose collection of sensitive data (geolocation, health, biometric)?",
+          "policyCharacteristic": "sensitiveDataDisclosure",
+          "requiredFinding": "yes",
+          "source": "Common Sense 2.1.3-2.1.6 + COPPA 2024",
+          "evaluation": {
+            "meets": "Explicitly discloses whether sensitive data categories (geolocation, health, biometric, etc.) are or are not collected",
+            "partial": "Some sensitive categories addressed but not all",
+            "doesNotMeet": "No mention of sensitive data categories despite collecting personal information"
+          }
+        },
+        {
+          "id": "dc_006",
+          "question": "Does the policy disclose whether behavioral or usage data is collected?",
+          "policyCharacteristic": "behavioralDataDisclosure",
+          "requiredFinding": "yes",
+          "source": "Common Sense 2.1.5",
+          "evaluation": {
+            "meets": "Explicitly states whether behavioral, analytics, or usage data is collected and for what purpose",
+            "partial": "Mentions analytics or usage tracking but details are vague",
+            "doesNotMeet": "No mention of behavioral or usage data collection"
+          }
+        }
+      ]
+    },
+    {
+      "id": "data_ownership",
+      "name": "Data Ownership & User Rights",
+      "description": "Who owns the data and what rights users have",
+      "weight": "critical",
+      "criteria": [
+        {
+          "id": "do_001",
+          "question": "Does the policy clearly state that users/schools retain ownership of their data?",
+          "policyCharacteristic": "dataOwnership",
+          "requiredFinding": "yes",
+          "source": "1EdTech DCQ3 + SDPC NDPA",
+          "evaluation": {
+            "meets": "Policy explicitly states users/schools own their data and grants only limited license for service operation",
+            "partial": "Ownership unclear or policy claims broad license rights",
+            "doesNotMeet": "Policy claims ownership or perpetual, irrevocable license to user data"
+          }
+        },
+        {
+          "id": "do_002",
+          "question": "Can users access and export their data?",
+          "policyCharacteristic": "accessRights",
+          "requiredFinding": "yes",
+          "source": "1EdTech DCQ3 + Common Sense 6.1",
+          "evaluation": {
+            "meets": "Clear process for users to access and export their data in portable format",
+            "partial": "Access mentioned but process unclear or limited",
+            "doesNotMeet": "No access rights mentioned"
+          }
+        },
+        {
+          "id": "do_003",
+          "question": "Can users delete their data entirely?",
+          "policyCharacteristic": "deletionProcess",
+          "requiredFinding": "yes",
+          "source": "1EdTech DCQ4 + Common Sense 6.5",
+          "evaluation": {
+            "meets": "Users can fully delete all personal data (not just de-identify or anonymize)",
+            "partial": "Deletion available but with significant limitations or only anonymization offered",
+            "doesNotMeet": "No deletion rights or policy retains data indefinitely"
+          }
+        },
+        {
+          "id": "do_004",
+          "question": "Can users correct or amend inaccurate data?",
+          "policyCharacteristic": "amendmentProcess",
+          "requiredFinding": "yes",
+          "source": "Common Sense 6.3 + FERPA",
+          "evaluation": {
+            "meets": "Clear process for users to correct or update their information",
+            "partial": "Amendment mentioned but process unclear",
+            "doesNotMeet": "No amendment rights mentioned"
+          }
+        },
+        {
+          "id": "do_005",
+          "question": "Can schools or parents request deletion of student data on behalf of students?",
+          "policyCharacteristic": "schoolDeletionRights",
+          "requiredFinding": "yes",
+          "source": "Common Sense 6.5.4 + SOPIPA + COPPA",
+          "evaluation": {
+            "meets": "Explicit process for schools, parents, or guardians to request deletion of student data",
+            "partial": "Mentions school/parent rights but process unclear",
+            "doesNotMeet": "No provision for school or parent-initiated deletion"
+          }
+        }
+      ]
+    },
+    {
+      "id": "data_retention",
+      "name": "Data Retention & Disposition",
+      "description": "How long data is kept and what happens at contract end",
+      "weight": "critical",
+      "criteria": [
+        {
+          "id": "dr_001",
+          "question": "Does the policy specify a data retention period?",
+          "policyCharacteristic": "dataRetention",
+          "requiredFinding": "yes",
+          "source": "1EdTech DCQ5 + SOPIPA",
+          "evaluation": {
+            "meets": "Clear retention period specified (e.g., '60 days after account closure', 'end of school year + 90 days')",
+            "partial": "Retention period mentioned but vague ('as long as necessary') or lengthy",
+            "doesNotMeet": "No retention period specified or indefinite retention"
+          }
+        },
+        {
+          "id": "dr_002",
+          "question": "Is the retention period reasonable for educational purposes?",
+          "policyCharacteristic": "retentionReasonable",
+          "requiredFinding": "yes",
+          "source": "ISTE + Common Sense",
+          "evaluation": {
+            "meets": "Retention tied to legitimate need (e.g., academic year + reasonable period for records)",
+            "partial": "Retention period longer than needed but not indefinite",
+            "doesNotMeet": "Indefinite retention or retention for commercial purposes beyond educational need"
+          }
+        },
+        {
+          "id": "dr_003",
+          "question": "Is data returned or destroyed upon contract termination?",
+          "policyCharacteristic": "dataDisposition",
+          "requiredFinding": "yes",
+          "source": "SDPC NDPA + Common Sense",
+          "evaluation": {
+            "meets": "Policy commits to returning or destroying all student data upon contract termination within a specified timeframe",
+            "partial": "Mentions data disposition but timeframe or process unclear",
+            "doesNotMeet": "No commitment to data return or destruction upon termination"
+          }
+        }
+      ]
+    },
+    {
+      "id": "security",
+      "name": "Security & Access Controls",
+      "description": "Technical and organizational security protections",
+      "weight": "critical",
+      "criteria": [
+        {
+          "id": "sec_001",
+          "question": "Does the policy describe specific security measures?",
+          "policyCharacteristic": "securityMeasures",
+          "requiredFinding": "yes",
+          "source": "1EdTech SECQ1 + Common Sense 8.x",
+          "evaluation": {
+            "meets": "Detailed explanation of security protocols (encryption, access controls, security assessments, monitoring)",
+            "partial": "Generic security statements ('we take security seriously') without specifics",
+            "doesNotMeet": "No security measures mentioned"
+          }
+        },
+        {
+          "id": "sec_002",
+          "question": "Is data encrypted in transit (TLS 1.2+)?",
+          "policyCharacteristic": "encryptionTransit",
+          "requiredFinding": "yes",
+          "source": "1EdTech SECQ2 + Common Sense 8.5",
+          "evaluation": {
+            "meets": "Data encrypted in transit using TLS 1.2+ or equivalent modern protocol",
+            "partial": "Encryption mentioned but protocol version unclear or outdated",
+            "doesNotMeet": "No transit encryption mentioned or uses deprecated protocols"
+          }
+        },
+        {
+          "id": "sec_003",
+          "question": "Is data encrypted at rest?",
+          "policyCharacteristic": "encryptionAtRest",
+          "requiredFinding": "yes",
+          "source": "1EdTech SECQ2 + Common Sense 8.6",
+          "evaluation": {
+            "meets": "Data encrypted at rest using industry-standard encryption",
+            "partial": "Some data encrypted at rest but not comprehensive",
+            "doesNotMeet": "No at-rest encryption mentioned"
+          }
+        },
+        {
+          "id": "sec_004",
+          "question": "Are strong password requirements enforced?",
+          "policyCharacteristic": "passwordRequirements",
+          "requiredFinding": "yes",
+          "source": "1EdTech SECQ3",
+          "evaluation": {
+            "meets": "Strong passwords required (not merely suggested), with specific complexity requirements",
+            "partial": "Password requirements mentioned but weak or optional",
+            "doesNotMeet": "No password requirements or very weak standards"
+          }
+        },
+        {
+          "id": "sec_005",
+          "question": "Is two-factor authentication, SSO, or managed accounts available?",
+          "policyCharacteristic": "authenticationSecurity",
+          "requiredFinding": "yes",
+          "source": "1EdTech SECQ4 + Common Sense 8.2",
+          "evaluation": {
+            "meets": "2FA, SSO, LTI, or school/district-managed accounts supported",
+            "partial": "Available as optional feature but not default or well-promoted",
+            "doesNotMeet": "No enhanced authentication options"
+          }
+        },
+        {
+          "id": "sec_006",
+          "question": "Are employees with data access bound by confidentiality agreements?",
+          "policyCharacteristic": "employeeConfidentiality",
+          "requiredFinding": "yes",
+          "source": "SDPC NDPA",
+          "evaluation": {
+            "meets": "Employees with access to student data are bound by confidentiality agreements and data protection obligations",
+            "partial": "General mention of employee training but no specific confidentiality requirements",
+            "doesNotMeet": "No mention of employee data access controls or confidentiality"
+          }
+        }
+      ]
+    },
+    {
+      "id": "third_party",
+      "name": "Third-Party Data Sharing",
+      "description": "How data is shared with external parties and subprocessors",
+      "weight": "critical",
+      "criteria": [
+        {
+          "id": "tp_001",
+          "question": "Does the policy list all third parties that receive data?",
+          "policyCharacteristic": "thirdPartyList",
+          "requiredFinding": "yes",
+          "source": "1EdTech SHRQ1 + Common Sense 3.1",
+          "evaluation": {
+            "meets": "Individual listing of each third party with functionality justification (e.g., 'Amazon AWS for hosting', 'Google Analytics for usage metrics')",
+            "partial": "Some third parties listed but vague categories ('service providers', 'partners')",
+            "doesNotMeet": "No third parties listed or only says 'we may share with partners'"
+          }
+        },
+        {
+          "id": "tp_002",
+          "question": "Does the policy specify what data is shared with each third party?",
+          "policyCharacteristic": "thirdPartyDataTypes",
+          "requiredFinding": "yes",
+          "source": "1EdTech SHRQ2 + Common Sense 3.1.2",
+          "evaluation": {
+            "meets": "Specific data types shared with each third party separately documented",
+            "partial": "General categories of shared data but not tied to specific third parties",
+            "doesNotMeet": "No detail on what data is shared"
+          }
+        },
+        {
+          "id": "tp_003",
+          "question": "Can users opt out of non-essential third-party data sharing?",
+          "policyCharacteristic": "sharingOptOut",
+          "requiredFinding": "yes",
+          "source": "1EdTech SHRQ3 + CCPA",
+          "evaluation": {
+            "meets": "Simple, accessible opt-out process for non-essential third-party sharing",
+            "partial": "Opt-out available but difficult or only for some third parties",
+            "doesNotMeet": "No opt-out option for third-party sharing"
+          }
+        },
+        {
+          "id": "tp_004",
+          "question": "Are third parties contractually bound to maintain equivalent privacy protections?",
+          "policyCharacteristic": "thirdPartyContracts",
+          "requiredFinding": "yes",
+          "source": "1EdTech SHRQ4 + Common Sense 3.16",
+          "evaluation": {
+            "meets": "Policy states vendor accountability for third-party privacy compliance through contracts",
+            "partial": "Some mention of third-party obligations but not explicit contractual requirements",
+            "doesNotMeet": "No assurance of third-party privacy protection"
+          }
+        },
+        {
+          "id": "tp_005",
+          "question": "Will users be notified of changes to third-party relationships?",
+          "policyCharacteristic": "thirdPartyChangeNotice",
+          "requiredFinding": "yes",
+          "source": "1EdTech SHRQ5",
+          "evaluation": {
+            "meets": "Commitment to notify users when third-party relationships change",
+            "partial": "Policy update notification may cover this but not explicit",
+            "doesNotMeet": "No commitment to notify about third-party changes"
+          }
+        },
+        {
+          "id": "tp_006",
+          "question": "Are subprocessors disclosed and contractually bound to the same data protection obligations?",
+          "policyCharacteristic": "subprocessorGovernance",
+          "requiredFinding": "yes",
+          "source": "SDPC NDPA",
+          "evaluation": {
+            "meets": "Subprocessors identified, contractually bound to same protections, and schools notified before changes",
+            "partial": "Subprocessors mentioned but governance details unclear",
+            "doesNotMeet": "No mention of subprocessors or their data obligations"
+          }
+        }
+      ]
+    },
+    {
+      "id": "monetization",
+      "name": "Data Monetization & Commercial Use",
+      "description": "Whether and how data is used for commercial purposes",
+      "weight": "critical",
+      "criteria": [
+        {
+          "id": "mon_001",
+          "question": "Does the policy prohibit selling user data?",
+          "policyCharacteristic": "dataSaleProhibited",
+          "requiredFinding": "yes",
+          "source": "Common Sense + SOPIPA + CCPA",
+          "evaluation": {
+            "meets": "Explicit statement: 'We do not sell user data' or 'We never sell student information'",
+            "partial": "Ambiguous language or loopholes (e.g., 'we don't sell for money but may share for value')",
+            "doesNotMeet": "Policy allows data sales or does not address selling"
+          }
+        },
+        {
+          "id": "mon_002",
+          "question": "Does the policy prohibit targeted or behavioral advertising?",
+          "policyCharacteristic": "targetedAdProhibited",
+          "requiredFinding": "yes",
+          "source": "Common Sense 10.3 + 1EdTech ADVQ2 + SOPIPA",
+          "evaluation": {
+            "meets": "No targeted advertising; no ads at all is optimal; explicitly prohibits behavioral ads",
+            "partial": "Contextual ads only or ads with unclear targeting",
+            "doesNotMeet": "Interest-based or behavioral advertising using user data"
+          }
+        },
+        {
+          "id": "mon_003",
+          "question": "Does the policy prohibit third-party tracking for advertising?",
+          "policyCharacteristic": "adTrackingProhibited",
+          "requiredFinding": "yes",
+          "source": "Common Sense 10.4 + 1EdTech ADVQ3-4",
+          "evaluation": {
+            "meets": "Third parties explicitly prohibited from tracking users for ad purposes; no web beacons for ads",
+            "partial": "Some third-party tracking limitations but not comprehensive",
+            "doesNotMeet": "Third-party ad tracking allowed"
+          }
+        },
+        {
+          "id": "mon_004",
+          "question": "Does the policy prohibit cross-site or cross-app tracking?",
+          "policyCharacteristic": "crossTrackingProhibited",
+          "requiredFinding": "yes",
+          "source": "Common Sense 10.4.2 + SOPIPA",
+          "evaluation": {
+            "meets": "No tracking across apps or websites; no cross-context profiling",
+            "partial": "Limited cross-context tracking for specific purposes",
+            "doesNotMeet": "Cross-app/site tracking allowed"
+          }
+        },
+        {
+          "id": "mon_005",
+          "question": "Does the policy prohibit commercial profiling of students?",
+          "policyCharacteristic": "commercialProfilingProhibited",
+          "requiredFinding": "yes",
+          "source": "Common Sense 10.4.3 + SOPIPA",
+          "evaluation": {
+            "meets": "No creation of user profiles for commercial purposes; no data enhancement for advertising",
+            "partial": "Profiling for 'service improvement' with unclear boundaries",
+            "doesNotMeet": "Commercial profiling allowed"
+          }
+        },
+        {
+          "id": "mon_006",
+          "question": "Are tracking technologies (cookies, beacons, pixels) fully documented?",
+          "policyCharacteristic": "trackingDocumented",
+          "requiredFinding": "yes",
+          "source": "1EdTech SECQ5 + ADVQ4",
+          "evaluation": {
+            "meets": "Complete cookie/tracker list with each technology's specific functionality documented",
+            "partial": "General cookie information but not comprehensive listing",
+            "doesNotMeet": "No tracking technology disclosure"
+          }
+        }
+      ]
+    },
+    {
+      "id": "child_protection",
+      "name": "Child & Student Protection",
+      "description": "Special protections for children and students",
+      "weight": "critical",
+      "criteria": [
+        {
+          "id": "child_001",
+          "question": "Does the policy address age restrictions?",
+          "policyCharacteristic": "ageRestrictions",
+          "requiredFinding": "yes",
+          "source": "COPPA + Common Sense 1.8",
+          "evaluation": {
+            "meets": "Clear age requirements stated (e.g., '13+' or 'all ages with school consent') with enforcement mechanism",
+            "partial": "Age mentioned but unclear enforcement",
+            "doesNotMeet": "No age requirements or restrictions mentioned"
+          }
+        },
+        {
+          "id": "child_002",
+          "question": "Does the service obtain verifiable parental consent or operate under school official exception?",
+          "policyCharacteristic": "parentalConsent",
+          "requiredFinding": "yes",
+          "source": "COPPA + Common Sense 2.2",
+          "evaluation": {
+            "meets": "Either verifiable parental consent process OR operates under school official exception with proper documentation",
+            "partial": "Mentions COPPA compliance but mechanism unclear",
+            "doesNotMeet": "Allows under-13 without proper consent or exception"
+          }
+        },
+        {
+          "id": "child_003",
+          "question": "Are there special protections for children's data?",
+          "policyCharacteristic": "childProtections",
+          "requiredFinding": "yes",
+          "source": "COPPA + Common Sense",
+          "evaluation": {
+            "meets": "Enhanced protections for children (stricter retention, no ads, no selling, limited sharing, parental review rights)",
+            "partial": "Some child-specific protections but not comprehensive",
+            "doesNotMeet": "Children treated identically to adults without special protections"
+          }
+        },
+        {
+          "id": "child_004",
+          "question": "Does the policy disclose its intended audience (K-12, under 13, teachers)?",
+          "policyCharacteristic": "intendedAudience",
+          "requiredFinding": "yes",
+          "source": "Common Sense 1.8.1-1.8.6",
+          "evaluation": {
+            "meets": "Explicitly states whether intended for children under 13, K-12 students, teens 13-18, teachers, or general audience",
+            "partial": "Some audience information but incomplete",
+            "doesNotMeet": "No indication of intended audience or age group"
+          }
+        },
+        {
+          "id": "child_005",
+          "question": "Does the policy prohibit re-identification of de-identified student data?",
+          "policyCharacteristic": "reidentificationProhibited",
+          "requiredFinding": "yes",
+          "source": "SDPC NDPA + SOPIPA",
+          "evaluation": {
+            "meets": "Explicitly prohibits attempts to re-identify de-identified or anonymized student data",
+            "partial": "Mentions de-identification but no re-identification prohibition",
+            "doesNotMeet": "No mention of re-identification restrictions"
+          }
+        }
+      ]
+    },
+    {
+      "id": "breach_response",
+      "name": "Breach Response",
+      "description": "How data breaches are handled and communicated",
+      "weight": "critical",
+      "criteria": [
+        {
+          "id": "breach_001",
+          "question": "Does the policy describe breach notification procedures?",
+          "policyCharacteristic": "breachNotification",
+          "requiredFinding": "yes",
+          "source": "Common Sense 8.7 + State Laws",
+          "evaluation": {
+            "meets": "Clear commitment to notify affected users and schools of breaches with defined process",
+            "partial": "Breach notification mentioned but vague on process",
+            "doesNotMeet": "No breach notification policy"
+          }
+        },
+        {
+          "id": "breach_002",
+          "question": "Does the policy commit to a specific breach notification timeframe?",
+          "policyCharacteristic": "breachTimeframe",
+          "requiredFinding": "yes",
+          "source": "SDPC NDPA (72-hour standard)",
+          "evaluation": {
+            "meets": "Commits to notifying schools/users within a specific timeframe (e.g., 72 hours) of confirmed breach",
+            "partial": "Mentions timely notification but no specific timeframe",
+            "doesNotMeet": "No breach notification timeframe commitment"
+          }
+        }
+      ]
+    },
+    {
+      "id": "transparency",
+      "name": "Transparency & Communication",
+      "description": "How clearly policies are written and communicated",
+      "weight": "important",
+      "criteria": [
+        {
+          "id": "trans_001",
+          "question": "Is the privacy policy written in plain language?",
+          "policyCharacteristic": "plainLanguagePolicy",
+          "requiredFinding": "yes",
+          "source": "Common Sense 1.x + ISTE",
+          "evaluation": {
+            "meets": "Policy understandable by non-technical audience (teachers, parents); avoids excessive legalese",
+            "partial": "Mostly clear but some sections overly technical",
+            "doesNotMeet": "Dense legal language throughout; inaccessible to average reader"
+          }
+        },
+        {
+          "id": "trans_002",
+          "question": "Does the policy provide contact information for privacy questions?",
+          "policyCharacteristic": "privacyContact",
+          "requiredFinding": "yes",
+          "source": "1EdTech + Common Sense",
+          "evaluation": {
+            "meets": "Specific privacy contact provided (email, form, or dedicated privacy officer)",
+            "partial": "General contact info but not privacy-specific",
+            "doesNotMeet": "No contact information provided"
+          }
+        },
+        {
+          "id": "trans_003",
+          "question": "Will users be notified of material policy changes?",
+          "policyCharacteristic": "policyChangeNotice",
+          "requiredFinding": "yes",
+          "source": "Common Sense 1.2 + 1EdTech",
+          "evaluation": {
+            "meets": "Active notification (email, dashboard alert) before material changes take effect",
+            "partial": "Passive notification (updated date on policy page) or notification after changes",
+            "doesNotMeet": "No commitment to notify users of changes"
+          }
+        },
+        {
+          "id": "trans_004",
+          "question": "Are policy changes available for review before taking effect?",
+          "policyCharacteristic": "policyChangeReview",
+          "requiredFinding": "yes",
+          "source": "Common Sense 1.3",
+          "evaluation": {
+            "meets": "Changes published for review before effective date; users can review and opt out before new terms apply",
+            "partial": "Changes posted but take effect immediately or with minimal notice",
+            "doesNotMeet": "No advance review of policy changes; continued use constitutes acceptance"
+          }
+        }
+      ]
+    },
+    {
+      "id": "education_specific",
+      "name": "Education-Specific Provisions",
+      "description": "Protections tailored to educational contexts",
+      "weight": "important",
+      "criteria": [
+        {
+          "id": "ed_001",
+          "question": "Is there an education-specific version of the policy or terms?",
+          "policyCharacteristic": "educationPolicy",
+          "requiredFinding": "yes",
+          "source": "ISTE + Best Practice",
+          "evaluation": {
+            "meets": "Separate education/school privacy policy or terms with enhanced protections",
+            "partial": "Education context mentioned within general consumer policy",
+            "doesNotMeet": "Only consumer-focused policy; no education provisions"
+          }
+        },
+        {
+          "id": "ed_002",
+          "question": "Does the policy reference FERPA compliance or school official role?",
+          "policyCharacteristic": "ferpaCompliance",
+          "requiredFinding": "yes",
+          "source": "FERPA + EdTech Best Practice",
+          "evaluation": {
+            "meets": "Explicit FERPA compliance commitment and operates as school official or under school official exception",
+            "partial": "FERPA mentioned but obligations or role unclear",
+            "doesNotMeet": "No FERPA reference (significant gap for K-12)"
+          }
+        },
+        {
+          "id": "ed_003",
+          "question": "Is student data used only for educational purposes?",
+          "policyCharacteristic": "educationalPurposeOnly",
+          "requiredFinding": "yes",
+          "source": "Common Sense + SOPIPA + FERPA",
+          "evaluation": {
+            "meets": "Data used solely to provide educational service; no repurposing for marketing or product development unrelated to education",
+            "partial": "Primary use educational but some secondary uses allowed",
+            "doesNotMeet": "Student data used for non-educational commercial purposes"
+          }
+        },
+        {
+          "id": "ed_004",
+          "question": "Is the product designed and marketed for K-12 school purposes?",
+          "policyCharacteristic": "k12Designed",
+          "requiredFinding": "yes",
+          "source": "SOPIPA",
+          "evaluation": {
+            "meets": "Product explicitly designed for K-12 use with education-specific features and marketing",
+            "partial": "General product with some education features or marketing",
+            "doesNotMeet": "Consumer product without K-12 specific design or marketing"
+          }
+        }
+      ]
+    },
+    {
+      "id": "data_governance",
+      "name": "Data Transfer & Governance",
+      "description": "Data handling during business changes and governance rights",
+      "weight": "important",
+      "criteria": [
+        {
+          "id": "gov_001",
+          "question": "Does the policy address data handling in merger, acquisition, or bankruptcy?",
+          "policyCharacteristic": "mergerDataPolicy",
+          "requiredFinding": "yes",
+          "source": "Common Sense 7.1",
+          "evaluation": {
+            "meets": "Clearly states data protections survive business changes; users notified and can delete data before transfer",
+            "partial": "Mentions data transfer in business changes but protections unclear",
+            "doesNotMeet": "No mention of data handling during business changes or allows unrestricted transfer"
+          }
+        },
+        {
+          "id": "gov_002",
+          "question": "Do schools have the right to audit the vendor's data handling practices?",
+          "policyCharacteristic": "auditRights",
+          "requiredFinding": "yes",
+          "source": "SDPC NDPA",
+          "evaluation": {
+            "meets": "Schools explicitly granted right to audit or inspect vendor's data handling and security practices",
+            "partial": "General compliance certifications offered but no direct audit rights",
+            "doesNotMeet": "No audit or inspection rights for schools"
+          }
+        },
+        {
+          "id": "gov_003",
+          "question": "Does the policy prohibit data mining student data for commercial compensation?",
+          "policyCharacteristic": "dataMiningProhibited",
+          "requiredFinding": "yes",
+          "source": "FERPA + SDPC NDPA",
+          "evaluation": {
+            "meets": "Explicitly prohibits data mining of student data as a form of compensation or commercial gain",
+            "partial": "General prohibition on commercial use but data mining not specifically addressed",
+            "doesNotMeet": "No restriction on data mining student data for commercial purposes"
+          }
+        }
+      ]
+    }
+  ],
+  "complianceMappings": {
+    "FERPA": [
+      "do_001",
+      "do_002",
+      "do_003",
+      "do_004",
+      "ed_002",
+      "ed_003",
+      "gov_003"
+    ],
+    "COPPA": [
+      "child_001",
+      "child_002",
+      "child_003",
+      "child_004",
+      "mon_001",
+      "mon_002",
+      "dc_005"
+    ],
+    "PPRA": [
+      "dc_003",
+      "child_002"
+    ],
+    "SOPIPA": [
+      "mon_001",
+      "mon_002",
+      "mon_005",
+      "ed_003",
+      "ed_004",
+      "dr_001",
+      "child_005"
+    ],
+    "GDPR": [
+      "do_002",
+      "do_003",
+      "do_004",
+      "trans_002",
+      "trans_003",
+      "breach_001",
+      "breach_002"
+    ],
+    "CCPA": [
+      "do_002",
+      "do_003",
+      "mon_001",
+      "tp_003",
+      "dc_001"
+    ]
+  }
+}

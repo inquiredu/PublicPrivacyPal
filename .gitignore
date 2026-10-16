@@ -1,0 +1,21 @@
+# Private upstream material and audit evidence are never part of the public source.
+/.private/
+/.local/
+/firebase-export-*/
+/config/local.json
+
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+.firebase/
+.firebaserc
+*service-account*.json
+*serviceAccount*.json
+*-adminsdk-*.json
+*.pem
+*.key

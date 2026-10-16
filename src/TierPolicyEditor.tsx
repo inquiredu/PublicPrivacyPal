@@ -1,0 +1,9 @@
+import { tiers, exampleTierPolicy, type TierPolicy } from '../shared/service-policy';
+export function TierPolicyEditor({ value, onChange }: { value?: TierPolicy; onChange: (value: TierPolicy | undefined) => void }) {
+  return <section className="tier-policy-settings"><h3>Service tier requirements</h3><p>Optional district policy for the complete service workflow. These checks govern approval and publication, independently of the score. Saved reviews retain their adopted version.</p>
+    <label className="check-option"><input type="checkbox" checked={!!value} onChange={e => onChange(e.target.checked ? exampleTierPolicy() : undefined)}/>Adopt a configurable local tier-policy example</label>
+    {value && <><label>Policy name<input maxLength={120} value={value.name} onChange={e => onChange({ ...value, name: e.target.value })}/></label><label>Policy version<input maxLength={80} value={value.version} onChange={e => onChange({ ...value, version: e.target.value })}/></label>
+      {tiers.filter(t => t !== 'Pending').map(tier => <details key={tier}><summary>{tier}</summary>{([['dpa', 'Current signed DPA'], ['rostering', 'Automated rostering and SSO'], ['noPersonalData', 'No student personal data'], ['parentPermission', 'Parent-permission guidance and alternative']] as const).map(([key, label]) => <label className="check-option" key={key}><input type="checkbox" checked={value.rules[tier][key]} onChange={e => onChange({ ...value, rules: { ...value.rules, [tier]: { ...value.rules[tier], [key]: e.target.checked } } })}/>{label}</label>)}<label>Additional district requirements<textarea maxLength={1500} value={value.rules[tier].requirements} onChange={e => onChange({ ...value, rules: { ...value.rules, [tier]: { ...value.rules[tier], requirements: e.target.value } } })}/></label></details>)}
+      <p className="subtle">This is a synthetic starter, not a legal certification or a universal district policy.</p></>}
+  </section>;
+}

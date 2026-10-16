@@ -1,0 +1,50 @@
+{
+  "name": "public-privacy-pal",
+  "version": "0.1.0-local",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "local:init": "node --import tsx scripts/init.ts",
+    "local:bootstrap": "node --import tsx scripts/operator.ts bootstrap",
+    "local:user": "node --import tsx scripts/operator.ts user",
+    "dev": "node --import tsx scripts/local.ts dev",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test test/isolation.test.mjs test/unit/*.test.ts",
+    "test:integration": "node --import tsx scripts/local.ts test",
+    "build": "vite build && node scripts/check-bundle.mjs",
+    "check:isolation": "node scripts/check-isolation.mjs",
+    "ci": "npm run typecheck && npm test && npm run build && npm run check:isolation",
+    "deploy": "node scripts/block-deploy.mjs",
+    "local:backup": "node --import tsx scripts/backup.ts save",
+    "local:backup:verify": "node --import tsx scripts/backup.ts verify",
+    "local:resume": "node --import tsx scripts/backup.ts resume",
+    "test:recovery": "node --import tsx scripts/test-recovery.ts",
+    "local:migrate-reviews": "node --import tsx scripts/migrate-reviews.ts"
+  },
+  "dependencies": {
+    "firebase": "13.0.0",
+    "firebase-admin": "14.5.0",
+    "pdfjs-dist": "6.4.299",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "6.0.0",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "firebase-tools": "15.34.0",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vite": "8.3.4"
+  },
+  "overrides": {
+    "@grpc/grpc-js": "1.14.6"
+  }
+}

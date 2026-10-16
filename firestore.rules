@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function verified() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+    function member(districtId) {
+      return get(/databases/$(database)/documents/districts/$(districtId)/members/$(request.auth.uid)).data;
+    }
+    function hasRole(districtId, roles) {
+      return verified() && member(districtId).active == true
+        && member(districtId).email == request.auth.token.email
+        && member(districtId).role in roles;
+    }
+    function belongs(districtId) { return hasRole(districtId, ['admin', 'reviewer', 'viewer', 'staff']); }
+    function reviews(districtId) { return hasRole(districtId, ['admin', 'reviewer']); }
+    function text(value, max) { return value is string && value.size() > 0 && value.size() <= max; }
+    function writable() { return !exists(/databases/$(database)/documents/installation/maintenance); }
+
+    // All public documents are written by trusted server code, never browser clients.
+    match /publicDistricts/{districtId} {
+      allow read: if true;
+      match /tools/{toolId} { allow read: if true; }
+    }
+    match /districts/{districtId} {
+      allow read: if hasRole(districtId, ['admin']);
+      match /members/{uid} {
+        allow read: if hasRole(districtId, ['admin']) || (verified() && request.auth.uid == uid);
+        // Memberships, including acceptance and role changes, are server-managed.
+      }
+      match /settings/{id} {
+        allow read: if hasRole(districtId, ['admin']);
+        match /versions/{revision} { allow read: if hasRole(districtId, ['admin']); }
+      }
+      match /staffTools/{id} { allow read: if belongs(districtId); }
+      match /tools/{toolId} {
+        allow read: if hasRole(districtId, ['admin', 'reviewer', 'viewer']);
+        allow create: if writable() && reviews(districtId) && validTool()
+          && request.resource.data.createdAt == request.time;
+        allow update: if writable() && reviews(districtId) && validTool()
+          && request.resource.data.createdAt == resource.data.createdAt;
+        function validTool() {
+          let d = request.resource.data;
+          return d.keys().hasAll(['name', 'url', 'notes', 'createdAt', 'updatedAt', 'updatedBy'])
+            && d.keys().hasOnly(['name', 'url', 'notes', 'createdAt', 'updatedAt', 'updatedBy'])
+            && text(d.name, 120) && d.url is string && d.url.size() <= 2000
+            && d.notes is string && d.notes.size() <= 5000
+            && d.updatedAt == request.time && d.updatedBy == request.auth.uid;
+        }
+      }
+      match /requests/{id} {
+        allow read: if reviews(districtId) || (belongs(districtId) && resource.data.requestedBy == request.auth.uid);
+        allow create: if writable() && belongs(districtId)
+          && request.resource.data.keys().hasAll(['toolName', 'purpose', 'requestedBy', 'status', 'createdAt', 'archived'])
+          && request.resource.data.keys().hasOnly(['toolName', 'purpose', 'requestedBy', 'status', 'createdAt', 'archived'])
+          && text(request.resource.data.toolName, 120) && text(request.resource.data.purpose, 2000)
+          && request.resource.data.requestedBy == request.auth.uid
+          && request.resource.data.status == 'pending'
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.archived == false;
+        allow update: if writable() && belongs(districtId) && resource.data.requestedBy == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['archived'])
+          && request.resource.data.archived is bool;
+        // Review decisions and attributed history will use a server command in milestone 2.
+      }
+      match /reviews/{reviewId} {
+        allow get: if hasRole(districtId, ['admin', 'reviewer', 'viewer']);
+        allow list: if hasRole(districtId, ['admin', 'reviewer', 'viewer']) && request.query.limit <= 21;
+        match /history/{eventId} {
+          allow get: if hasRole(districtId, ['admin', 'reviewer', 'viewer']);
+          allow list: if hasRole(districtId, ['admin', 'reviewer', 'viewer']) && request.query.limit <= 21;
+        }
+        // Versioned sources, definitions, findings, evaluations and decisions are API-only.
+        // All mutations, jobs, history and public projections are server commands.
+      }
+      match /audit/{eventId} { allow read: if hasRole(districtId, ['admin']); }
+    }
+    // Includes installation/bootstrap, legacy org registries/invites, and unknown paths.
+    match /{path=**} { allow read, write: if false; }
+  }
+}

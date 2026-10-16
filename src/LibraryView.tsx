@@ -1,0 +1,24 @@
+import { ServiceNotice } from './ServiceNotice';
+import { useEffect, useState } from 'react';
+import { DEFAULT_NOTICE, accentText, tiers, visibleProfiles, type LibraryProfile, type LibrarySettings } from '../shared/settings';
+
+export const previewProfiles: LibraryProfile[] = [
+  { id: 'fictional-reading', name: 'Reading Garden', category: 'Literacy', summary: 'A fictional reading tool for trying your library design.', tierLevel: 'Tier 2: Site/Department Approved', sortOrder: 0 },
+  { id: 'fictional-maths', name: 'Number Studio', category: 'Mathematics', summary: 'A fictional mathematics workspace. No student records are included.', tierLevel: 'Tier 1: Core System Tool', sortOrder: 1 },
+  { id: 'fictional-creative', name: 'Creative Atlas', category: 'Creative learning', summary: 'A fictional creative learning resource for testing filters.', tierLevel: 'Tier 3B: No Account Required', sortOrder: 2 },
+];
+export function LibraryView({ settings, profiles, preview = false, onCustomize }: { settings: LibrarySettings; profiles: LibraryProfile[]; preview?: boolean; onCustomize?: () => void }) {
+  const [search, setSearch] = useState(''); const [tier, setTier] = useState<string>(settings.defaultFilterTier);
+  const [view, setView] = useState(settings.defaultViewMode); const [sort, setSort] = useState(settings.defaultSortMode);
+  useEffect(() => { setTier(settings.defaultFilterTier); setView(settings.defaultViewMode); setSort(settings.defaultSortMode); }, [settings.defaultFilterTier, settings.defaultViewMode, settings.defaultSortMode]);
+  const shown = visibleProfiles(profiles, search, tier, sort);
+  return <section className={`configured-library ${preview ? 'preview' : ''}`} aria-label={preview ? 'Example library' : 'Public resource library'}>
+    <div className="library-banner" style={{ borderColor: settings.themeColor }}><div className="library-title-row">{settings.logo && <img src={settings.logo} alt="District logo"/>}<div>{preview ? <h3>{settings.title}</h3> : <h1>{settings.title}</h1>}<p>{settings.customDisclaimer || DEFAULT_NOTICE}</p></div>{onCustomize && <button type="button" className="secondary" onClick={onCustomize}>Customize Library</button>}</div></div>
+    <div className="library-controls"><label>Search tools<input type="search" value={search} onKeyDown={e => { if (preview && e.key === 'Enter') e.preventDefault(); }} onChange={e => setSearch(e.target.value)} placeholder="Search tools or subjects…"/></label><label>Approval tier<select value={tier} onChange={e => setTier(e.target.value)}><option value="all">All tiers</option>{tiers.map(t => <option key={t}>{t}</option>)}</select></label><label>Sort by<select value={sort} onChange={e => setSort(e.target.value as LibrarySettings['defaultSortMode'])}><option value="library_order">District order</option><option value="name_asc">A → Z</option><option value="tier_asc">Approval tier</option></select></label><label>View<select value={view} onChange={e => setView(e.target.value as LibrarySettings['defaultViewMode'])}><option value="cards">Cards</option><option value="compact">Compact</option></select></label></div>
+    <p className="library-count" role="status">{shown.length} {shown.length === 1 ? 'resource' : 'resources'}{tier !== 'all' ? ' in this tier' : ''}</p>
+    {view === 'cards' ? <div className="catalogue">{shown.map(p => <article className="tool-card" key={p.id}><span className="category">{p.category}</span><h2>{p.name}</h2>{p.tierLevel && <span className="library-tier" style={{ background: settings.themeColor, color: accentText(settings.themeColor) }}>{p.tierLevel}</span>}<ServiceNotice profile={p} showTier={false}/><div className="card-footer">{preview ? 'Fictional preview record' : p.outcome ? `Local ${p.outcome === 'conditional' ? 'conditional approval' : 'approval'}` : 'Example library record'}</div></article>)}</div> : <div className="table-wrap"><table><caption className="sr-only">Digital resources in compact view</caption><thead><tr><th>Resource</th><th>Approval tier</th><th>Summary and conditions</th></tr></thead><tbody>{shown.map(p => <tr key={p.id}><td><strong>{p.name}</strong><small>{p.category}</small></td><td>{p.tierLevel || 'Pending'}</td><td><ServiceNotice profile={p} showTier={false}/></td></tr>)}</tbody></table></div>}
+    {!shown.length && <p className="notice">No resources match these filters. Try all tiers or a different search.</p>}
+    {!!settings.footerSections.length && <section className="library-footer"><h2>{settings.footerHeading || 'Important information'}</h2>{settings.footerSections.map(f => <section key={f.id}><h3>{f.heading}</h3><p>{f.body.replaceAll('{email}', settings.contactEmail || 'your district contact')}</p></section>)}</section>}
+    {settings.contactEmail && <p className="library-contact">Contact: <a href={`mailto:${settings.contactEmail}`}>{settings.contactEmail}</a></p>}
+  </section>;
+}
