@@ -21,6 +21,7 @@ function fixture() {
 test('a complete backup verifies against the exact configuration and has private file modes', t => {
   const root = fixture(); t.after(() => rmSync(root, { recursive: true }));
   const manifest = sealBackup(root, config, randomUUID());
+  assert.equal(manifest.dataSchema, 3);
   assert.deepEqual(verifyBackup(root, config), manifest);
   assert.equal(statSync(root).mode & 0o777, 0o700);
   for (const file of manifest.files) assert.equal(statSync(join(root, file.path)).mode & 0o777, 0o600);
@@ -48,4 +49,13 @@ test('incomplete native exports cannot receive a completion manifest', t => {
   rmSync(join(root, 'auth_export/accounts.json'));
   assert.throws(() => sealBackup(root, config, randomUUID()), /Incomplete/);
   assert.throws(() => verifyBackup(root, config), /ENOENT/);
+});
+
+test('current reader accepts baseline schema-1 archives without relabeling them', t => {
+  const root = fixture(); t.after(() => rmSync(root, { recursive: true }));
+  const manifest = sealBackup(root, config, randomUUID());
+  const path = join(root, 'privacypal-backup.json');
+  writeFileSync(path, JSON.stringify({ ...manifest, dataSchema: 1 }));
+  assert.equal(verifyBackup(root, config).dataSchema, 1);
+  assert.equal(JSON.parse(readFileSync(path, 'utf8')).dataSchema, 1);
 });

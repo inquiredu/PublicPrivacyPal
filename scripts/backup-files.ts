@@ -10,7 +10,7 @@ const fingerprint = () => sha(readFileSync('package-lock.json'));
 const cliVersion = () => JSON.parse(readFileSync('package.json', 'utf8')).devDependencies['firebase-tools'] as string;
 const entrySchema = z.object({ path: z.string().min(1).max(300), bytes: z.number().int().nonnegative(), sha256: z.string().regex(/^[a-f0-9]{64}$/) }).strict();
 const manifestSchema = z.object({
-  format: z.literal('privacypal-local-backup-v1'), dataSchema: z.literal(1),
+  format: z.literal('privacypal-local-backup-v1'), dataSchema: z.union([z.literal(1), z.literal(2), z.literal(3)]),
   backupId: z.uuid(), createdAt: z.iso.datetime(), config: configSchema,
   dependencyHash: z.string().regex(/^[a-f0-9]{64}$/), files: z.array(entrySchema).min(4).max(10000),
 }).strict();
@@ -58,9 +58,9 @@ function checkNative(root: string, files: z.infer<typeof entrySchema>[]) {
   if (!files.some(f => f.path.startsWith('firestore_export/') && f.path !== metadata.firestore.metadata_file)) throw new Error('Incomplete Firestore export.');
   if (!Array.isArray(JSON.parse(readFileSync(join(root, 'auth_export/accounts.json'), 'utf8')).users)) throw new Error('Invalid account export.');
 }
-export function sealBackup(root: string, config: LocalConfig, backupId: string): BackupManifest {
+export function sealBackup(root: string, config: LocalConfig, backupId: string, dataSchema: 2 | 3 = 3): BackupManifest {
   const files = inventory(root); checkNative(root, files);
-  const manifest = manifestSchema.parse({ format: 'privacypal-local-backup-v1', dataSchema: 1, backupId, createdAt: new Date().toISOString(), config, dependencyHash: fingerprint(), files });
+  const manifest = manifestSchema.parse({ format: 'privacypal-local-backup-v1', dataSchema, backupId, createdAt: new Date().toISOString(), config, dependencyHash: fingerprint(), files });
   for (const f of files) chmodSync(join(root, f.path), 0o600);
   function protect(dir: string) {
     chmodSync(dir, 0o700);

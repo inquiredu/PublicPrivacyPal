@@ -56,6 +56,12 @@ Reviewers can edit internal sample notes. Read-only reviewers can inspect notes 
 changes. Staff cannot read internal notes or district settings. Review decisions, analysis jobs,
 and publication are available in **Policy reviews**; see `review-workflow.md`. Document workflows remain deferred.
 
+Administrators can open **Settings** for the original six-part district setup and **Customize
+Library** for appearance, notices, footer sections and display preferences. PDF context import
+works locally; live law discovery and external integrations remain unavailable. See
+`district-setup.md` for the workflow. Pasted reviews may explicitly adopt the saved full rubric;
+practice reviews keep their own definitions. See `review-storage.md` for versioning and local migration.
+
 ## Try another district
 
 Stop the first local server. Use the second synthetic configuration for both the development and

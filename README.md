@@ -2,7 +2,7 @@
 
 A community edition of PrivacyPal, intended for school districts to install and control themselves.
 
-**Status: local review workflow with tested backup/recovery.** This milestone uses Auth and Firestore emulators, synthetic
+**Status: local district setup, library customization, pasted-policy review, and tested backup/recovery.** This milestone uses Auth and Firestore emulators, synthetic
 districts, and a local API. It is not a production deployment or a release for district adoption.
 
 The first release will focus on reviewing educational tools, extracting evidence from privacy
@@ -50,6 +50,13 @@ restored together. There is no automatic save; starting without `--restore` crea
 Use synthetic data and local passwords only.
 See the [local setup guide](docs/local-development.md) and [permission model](docs/permissions.md).
 
+Administrators can open **Settings** for the original six-part district setup and **Customize
+Library** for appearance, notice/footer text and display defaults. See the [district settings
+guide](docs/district-setup.md). The optional original 50-measure framework can be previewed and
+saved and explicitly adopted for a new pasted review. Source, rubric and evaluation versions are
+preserved in bounded records; see [review storage](docs/review-storage.md). Existing eight-measure
+practice reviews keep their own scoring profiles. The original four-tab detail is the next increment.
+
 ## Checks
 
 ```sh
@@ -61,12 +68,12 @@ npm run test:recovery
 Stop `npm run dev` before running integration tests: they need the same loopback ports. Tests use a
 separate demo project, synthetic accounts, and negative authorization cases. CI runs all three checks.
 Deployment is disabled: `npm run deploy` exits with an explanation. No hosting or Functions target
-is configured. **Policy reviews** supports synthetic analysis, evidence inspection, recorded decisions,
+is configured. **Policy reviews** supports pasted-text manual review, synthetic analysis, evidence corrections, recorded decisions,
 and atomic publish/unpublish actions in the local library. See the [workflow guide](docs/review-workflow.md).
 New reviews use a versioned evidence-first scoring candidate; earlier reviews retain their formula.
 Start with the [independent trial guide](docs/independent-trial.md), [rubric review](docs/scoring-rubric.md),
 and [backup/recovery runbook](docs/backup-recovery.md). Live AI, real-policy fetching, production
-provisioning, district rubric approval, encrypted operational backups and schema upgrades remain future work.
+provisioning, district rubric approval, encrypted operational backups and production upgrade/rollback remain future work.
 
 ## Private reference copy
 

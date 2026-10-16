@@ -20,6 +20,16 @@ material only. The user explicitly requires that the district instance remain un
 
 ## Engineering direction
 
+- Refine the existing PrivacyPal product experience. Preserve its setup, cards, four-tab service
+  detail, staff catalogue and public notice; read the original implementation before changing them.
+  Use `docs/design-continuity-plan.md` for the source-based feature map and proposed next milestone.
+- Reliability takes priority over restoration. Interrogate original and newly written approaches
+  before carrying them forward. Preserve useful workflow continuity, but justify changes with
+  failure cases and usability evidence. Follow the reliability gate in the design continuity plan:
+  protect drafts, make retries unambiguous, and establish bounded/versioned review storage before
+  expanding the eight-measure prototype into the full service-detail experience.
+- Treat the simplified local screens and eight-criterion profiles as development/test slices,
+  not a replacement design or a universal district rubric. Record intentional behavior changes.
 - Preserve evidence-based extraction and deterministic scoring, with synthetic regression tests.
 - Run model calls on the server; never return provider secrets to browsers.
 - Keep district review decisions separate from policy findings and calculated scores.

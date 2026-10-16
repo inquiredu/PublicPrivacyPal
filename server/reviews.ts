@@ -1,11 +1,18 @@
+import { FieldPath } from 'firebase-admin/firestore';
+import { PAGE_SIZE } from '../shared/evaluation.ts';
+import type { SavedSettings, EvaluationSettings } from '../shared/settings.ts';
+import { districtContract, practiceContract } from './evaluation.ts';
+import { readReview, readEvaluation, writeReview, summary, bounded, decodeCursor, encodeCursor, historyPage, type ReviewHead } from './review-storage.ts';
+import { replayCommand, recordCommand, type CommandIdentity } from './commands.ts';
 import { randomUUID } from 'node:crypto';
 import type { DecodedIdToken } from 'firebase-admin/auth';
 import type { Transaction } from 'firebase-admin/firestore';
 import { z } from 'zod';
-import { createReviewSchema, actionSchema, type Review } from '../shared/review.ts';
+import { createReviewSchema, fixtureReviewSchema, pastedReviewSchema, actionSchema, currentAnalysis, isPastedReview, evidenceComplete, type Review } from '../shared/review.ts';
 import type { Services } from './firebase.ts';
 import { HttpError, membersRef, requireMember, assertWritable } from './operations.ts';
 import { fixtures, analyzeSynthetic } from './synthetic-analysis.ts';
+import { editAnalysis, sourceHash } from './evidence.ts';
 
 const readers = ['admin', 'reviewer', 'viewer'] as const;
 const editors = ['admin', 'reviewer'] as const;
@@ -23,7 +30,7 @@ async function authorize(s: Services, tx: Transaction, actor: DecodedIdToken, ed
   if (edit) await assertWritable(s, tx);
 }
 function event(s: Services, tx: Transaction, r: Review, action: string, actorUid: string, details: unknown = null) {
-  tx.create(reviews(s).doc(r.id).collection('history').doc(), { action, actorUid, at: nowISO(), revision: r.revision, details });
+  tx.create(reviews(s).doc(r.id).collection('history').doc(), bounded('history', { action, actorUid, at: nowISO(), revision: r.revision, details }));
 }
 function unpublish(s: Services, tx: Transaction, id: string) { tx.delete(publicRef(s, id)); tx.delete(staffRef(s, id)); }
 async function quota(s: Services, tx: Transaction) {
@@ -36,39 +43,75 @@ async function quota(s: Services, tx: Transaction) {
 function job(actor: DecodedIdToken, attempt = 1): Review['job'] {
   return { id: randomUUID(), status: 'queued', actorUid: actor.uid, actorEmail: actor.email!, attempt, leaseUntil: 0, error: null };
 }
-export async function listReviews(s: Services, actor: DecodedIdToken) {
+export async function listReviews(s: Services, actor: DecodedIdToken, cursor?: string) {
   return s.db.runTransaction(async tx => {
     await authorize(s, tx, actor);
-    const rows = await tx.get(reviews(s).orderBy('updatedAt', 'desc').limit(100));
-    return rows.docs.map(d => d.data());
+    const scope = `reviews:${s.config.districtId}`; const after = decodeCursor(cursor, scope);
+    let q = reviews(s).orderBy('createdAt', 'desc').orderBy(FieldPath.documentId(), 'desc').limit(PAGE_SIZE + 1);
+    if (after) q = q.startAfter(after.at, after.id);
+    const rows = await tx.get(q); const page = rows.docs.slice(0, PAGE_SIZE); const last = page.at(-1);
+    if (page.some(d => d.get('storageVersion') !== 3)) throw new HttpError(409, 'Run the local review storage migration.');
+    return { items: page.map(d => summary(d.data() as ReviewHead)), nextCursor: rows.size > PAGE_SIZE && last ? encodeCursor(scope, last.get('createdAt'), last.id) : null };
   });
 }
-export async function createReview(s: Services, actor: DecodedIdToken, raw: unknown, imported = false) {
+export async function reviewDetail(s: Services, actor: DecodedIdToken, id: string, evaluationId?: string) {
+  return s.db.runTransaction(async tx => { await authorize(s, tx, actor); return evaluationId ? readEvaluation(s, tx, id, evaluationId) : readReview(s, tx, id); });
+}
+export async function rubricStatus(s: Services, actor: DecodedIdToken) {
+  return s.db.runTransaction(async tx => {
+    await authorize(s, tx, actor);
+    const saved = await tx.get(s.db.doc(`districts/${s.config.districtId}/settings/evaluation`));
+    const available = saved.get('complete') === true && saved.get('values.starterProfile') === 'pef-2.0';
+    return { available, revision: saved.get('revision') || 0, measureCount: available ? 50 : 0 };
+  });
+}
+export async function createReview(s: Services, actor: DecodedIdToken, raw: unknown, imported = false, command?: CommandIdentity) {
   const input = parse(createReviewSchema, raw);
   const id = randomUUID();
   return s.db.runTransaction(async tx => {
     await authorize(s, tx, actor, true);
-    const count = await tx.get(reviews(s).limit(100));
-    if (count.size >= 100) throw new HttpError(429, 'This local sandbox is limited to 100 reviews.');
-    const spend = await quota(s, tx);
-    const r: Review = { id, ...input, sourceText: fixtures[input.fixtureId].text, revision: 1, analysis: null, decision: null, published: false, job: job(actor), createdAt: nowISO(), updatedAt: nowISO() };
-    spend(); tx.create(reviews(s).doc(id), r);
-    event(s, tx, r, imported ? 'imported_as_draft' : 'analysis_queued', actor.uid);
+    const replay = await replayCommand(s, tx, actor, command); if (replay) return replay;
+    const counter = s.db.doc(`districts/${s.config.districtId}/reviewCounters/current`);
+    const count = await tx.get(counter);
+    if (!count.exists && !(await tx.get(reviews(s).limit(1))).empty) throw new HttpError(409, 'Run the local review storage migration.');
+    const total = count.get('count') || 0;
+    if (total >= 1000) throw new HttpError(429, 'This local sandbox is limited to 1000 reviews.');
+    const contract = 'rubricMode' in input ? districtContract((await tx.get(s.db.doc(`districts/${s.config.districtId}/settings/evaluation`))).data() as SavedSettings<EvaluationSettings> | undefined, input.settingsRevision, input.engineVersion) : practiceContract(input.profileVersion);
+    const pasted = 'sourceKind' in input;
+    const spend = pasted ? undefined : await quota(s, tx);
+    const text = 'sourceKind' in input ? input.sourceText : fixtures[input.fixtureId].text;
+    const capturedAt = nowISO();
+    const r: Review = {
+      id, name: input.name, contract, profileVersion: input.profileVersion,
+      fixtureId: 'fixtureId' in input ? input.fixtureId : null, sourceKind: pasted ? 'pasted' : 'fixture',
+      sourceLabel: 'sourceKind' in input ? input.sourceLabel : fixtures[input.fixtureId].label,
+      sourceText: text, sourceHash: sourceHash(text), sourceVersion: 1, sourceCapturedAt: capturedAt,
+      revision: 1, analysis: null, decision: null, published: false,
+      job: { ...job(actor), ...(pasted ? { status: 'awaiting_review' as const, attempt: 0 } : {}) },
+      createdAt: capturedAt, updatedAt: capturedAt,
+    };
+    spend?.(); tx.set(counter, { count: total + 1 }); writeReview(s, tx, r);
+    event(s, tx, r, imported ? 'imported_as_draft' : pasted ? 'policy_captured' : 'analysis_queued', actor.uid, { sourceHash: r.sourceHash, sourceVersion: r.sourceVersion, sourceLabel: r.sourceLabel });
+    recordCommand(s, tx, actor, r, command);
     return r;
   });
 }
-export async function reviewAction(s: Services, actor: DecodedIdToken, id: string, raw: unknown) {
+export async function reviewAction(s: Services, actor: DecodedIdToken, id: string, raw: unknown, command?: CommandIdentity) {
   const input = parse(actionSchema, raw);
   return s.db.runTransaction(async tx => {
     await authorize(s, tx, actor, true);
+    const replay = await replayCommand(s, tx, actor, command); if (replay) return replay;
     const ref = reviews(s).doc(id);
     const snap = await tx.get(ref);
     if (!snap.exists) throw new HttpError(404, 'Review not found.');
-    const r = snap.data() as Review;
+    const r = await readReview(s, tx, id, snap);
+    const previousReview = structuredClone(r);
     if (r.revision !== input.revision) throw new HttpError(409, 'This review changed. Refresh it before trying again.');
     const active = ['queued', 'running'].includes(r.job.status);
     let spend: (() => unknown) | undefined;
+    let details: unknown = null;
     if (input.action === 'retry' || input.action === 'reanalyze') {
+      if (isPastedReview(r)) throw new HttpError(409, 'Pasted policies are reviewed manually. Edit the evidence for each criterion.');
       if (active || (input.action === 'retry' && r.job.status !== 'failed')) throw new HttpError(409, 'The analysis is not ready for that action.');
       if (input.action === 'retry' && r.job.attempt >= 3) throw new HttpError(409, 'Retry limit reached. Start a new analysis.');
       spend = await quota(s, tx);
@@ -78,63 +121,95 @@ export async function reviewAction(s: Services, actor: DecodedIdToken, id: strin
     } else if (input.action === 'cancel') {
       if (!active) throw new HttpError(409, 'There is no active analysis to cancel.');
       r.job.status = 'cancelled'; r.job.leaseUntil = 0;
+    } else if (input.action === 'edit_evidence') {
+      if (!['awaiting_review', 'succeeded'].includes(r.job.status)) throw new HttpError(409, 'Finish the current analysis before editing its evidence.');
+      const previous = r.analysis;
+      const at = nowISO(); const analysisId = randomUUID();
+      try { r.analysis = editAnalysis(r.sourceText, r.profileVersion || 'community-demo-v1', previous, input.evidence, analysisId, actor.uid, at, r.contract); }
+      catch (error) { throw new HttpError(400, error instanceof Error ? error.message : 'Invalid evidence.'); }
+      r.job = { id: analysisId, status: evidenceComplete(r) ? 'succeeded' : 'awaiting_review', attempt: 0, actorUid: actor.uid, actorEmail: actor.email!, leaseUntil: 0, error: null };
+      r.published = false;
+      details = { criterionId: input.evidence.criterionId,
+        before: previous?.findings.find(f => f.id === input.evidence.criterionId) || null,
+        after: r.analysis.findings.find(f => f.id === input.evidence.criterionId),
+        beforeAnalysisId: previous?.id || null, afterAnalysisId: analysisId,
+        beforeScore: previous?.score.total ?? null, afterScore: r.analysis.score.total,
+        sourceHash: r.analysis.sourceHash, profileVersion: r.analysis.profileVersion,
+      };
     } else if (input.action === 'decide') {
-      if (r.job.status !== 'succeeded' || r.analysis?.id !== r.job.id) throw new HttpError(409, 'Complete the current analysis before deciding.');
-      r.decision = { ...input.decision, analysisId: r.analysis.id, actorUid: actor.uid, at: nowISO() };
+      if (!currentAnalysis(r)) throw new HttpError(409, 'Complete the current evidence review before deciding. Each pasted-policy criterion needs an explicit finding and rationale.');
+      r.decision = { ...input.decision, analysisId: r.analysis!.id, actorUid: actor.uid, at: nowISO() };
       r.published = false;
     } else if (input.action === 'publish') {
-      if (r.job.status !== 'succeeded' || !r.analysis || r.analysis.id !== r.job.id || r.decision?.analysisId !== r.analysis.id || !['approved', 'conditional'].includes(r.decision.outcome)) throw new HttpError(409, 'A current approved or conditional human decision is required before publishing.');
+      if (!currentAnalysis(r) || !r.analysis || r.decision?.analysisId !== r.analysis.id || !['approved', 'conditional'].includes(r.decision.outcome)) throw new HttpError(409, 'A current approved or conditional human decision is required before publishing.');
       r.published = true;
     } else { r.published = false; }
-    const before = snap.get('decision') ?? null;
+    const before = previousReview.decision;
     r.revision++; r.updatedAt = nowISO();
     spend?.();
     if (r.published) {
       // Explicit projection only: never copy source, evidence, rationale, identity, or job errors.
       const d = r.decision!;
-      const profile = { name: r.name, category: d.category, summary: d.summary, outcome: d.outcome, conditions: d.conditions, reviewedAt: d.at, synthetic: true };
+      const profile = { name: r.name, category: d.category, summary: d.summary, outcome: d.outcome, conditions: d.conditions, reviewedAt: d.at, synthetic: !isPastedReview(r) };
       tx.set(publicRef(s, id), profile); tx.set(staffRef(s, id), profile);
     } else { unpublish(s, tx, id); }
-    tx.set(ref, r);
-    event(s, tx, r, input.action, actor.uid, input.action === 'decide' ? { before, after: r.decision } : null);
+    writeReview(s, tx, r, previousReview);
+    event(s, tx, r, input.action, actor.uid, input.action === 'decide' ? { before, after: r.decision } : details);
+    recordCommand(s, tx, actor, r, command);
     return r;
   });
 }
-export async function reviewHistory(s: Services, actor: DecodedIdToken, id: string) {
+export async function reviewHistory(s: Services, actor: DecodedIdToken, id: string, cursor?: string) {
   return s.db.runTransaction(async tx => {
     await authorize(s, tx, actor);
-    const rows = await tx.get(reviews(s).doc(id).collection('history').orderBy('at'));
-    return rows.docs.map(d => ({ id: d.id, ...d.data() }));
+    const scope = `history:${s.config.districtId}:${id}`; const after = decodeCursor(cursor, scope);
+    let q = reviews(s).doc(id).collection('history').orderBy('at', 'desc').orderBy(FieldPath.documentId(), 'desc').limit(PAGE_SIZE + 1);
+    if (after) q = q.startAfter(after.at, after.id);
+    return historyPage((await tx.get(q)).docs, scope);
   });
 }
 export async function exportReview(s: Services, actor: DecodedIdToken, id: string) {
+  // Current snapshot and one bounded history page. The cursor permits explicit continuation.
   return s.db.runTransaction(async tx => {
     await authorize(s, tx, actor);
-    const ref = reviews(s).doc(id);
-    const [snap, history] = await Promise.all([tx.get(ref), tx.get(ref.collection('history').orderBy('at'))]);
-    if (!snap.exists) throw new HttpError(404, 'Review not found.');
-    const r = snap.data() as Review;
-    return { format: 'privacypal-synthetic-v1', draft: { name: r.name, fixtureId: r.fixtureId, profileVersion: r.profileVersion || 'community-demo-v1' }, sourceText: r.sourceText, snapshot: { analysis: r.analysis, decision: r.decision, history: history.docs.map(d => d.data()) } };
+    const r = await readReview(s, tx, id);
+    const rows = (await tx.get(reviews(s).doc(id).collection('history').orderBy('at', 'desc').orderBy(FieldPath.documentId(), 'desc').limit(PAGE_SIZE + 1))).docs;
+    const page = historyPage(rows, `history:${s.config.districtId}:${id}`);
+    const bundle = { format: r.contract?.kind === 'district' ? 'privacypal-district-v1' : isPastedReview(r) ? 'privacypal-pasted-v1' : 'privacypal-synthetic-v1',
+      draft: isPastedReview(r) ? { name: r.name, sourceKind: 'pasted', sourceLabel: r.sourceLabel, sourceText: r.sourceText, profileVersion: r.profileVersion } : { name: r.name, fixtureId: r.fixtureId, profileVersion: r.profileVersion || 'community-demo-v1' },
+      ...(!isPastedReview(r) ? { sourceText: r.sourceText } : {}), snapshot: { contract: r.contract, analysis: r.analysis, decision: r.decision, history: page.items, historyNextCursor: page.nextCursor } };
+    while (Buffer.byteLength(JSON.stringify(bundle)) > 2 * 1024 * 1024 && bundle.snapshot.history.length) {
+      bundle.snapshot.history.pop(); const last = bundle.snapshot.history.at(-1);
+      bundle.snapshot.historyNextCursor = last ? encodeCursor(`history:${s.config.districtId}:${id}`, last.at, last.id) : null;
+    }
+    if ((!bundle.snapshot.history.length && rows.length) || Buffer.byteLength(JSON.stringify(bundle)) > 2 * 1024 * 1024) throw new HttpError(413, 'Snapshot exceeds the export limit. Use the paged review endpoints or installation backup.');
+    return bundle;
   });
 }
-export async function importReview(s: Services, actor: DecodedIdToken, raw: unknown) {
-  const data = parse(z.object({ format: z.literal('privacypal-synthetic-v1'), draft: createReviewSchema, sourceText: z.string().max(8000), snapshot: z.unknown() }).strict(), raw);
+export async function importReview(s: Services, actor: DecodedIdToken, raw: unknown, command?: CommandIdentity) {
+  if (raw && typeof raw === 'object' && 'format' in raw && raw.format === 'privacypal-district-v1') throw new HttpError(400, 'This district-rubric export is an archive. Paste its source as a new review and explicitly select your current saved rubric.');
+  const data = parse(z.discriminatedUnion('format', [
+    z.object({ format: z.literal('privacypal-synthetic-v1'), draft: fixtureReviewSchema, sourceText: z.string().max(8000), snapshot: z.unknown() }).strict(),
+    z.object({ format: z.literal('privacypal-pasted-v1'), draft: pastedReviewSchema, snapshot: z.unknown() }).strict(),
+  ]), raw);
+  if (data.format === 'privacypal-pasted-v1') return createReview(s, actor, data.draft, true, command);
   if (data.sourceText !== fixtures[data.draft.fixtureId].text) throw new HttpError(400, 'Imported policy must match a bundled synthetic fixture.');
   // Historical exports are evidence for a human; they cannot confer a new district's approval.
-  return createReview(s, actor, data.draft, true);
+  return createReview(s, actor, data.draft, true, command);
 }
 
 /** Claims one job using a lease. Queued and expired running jobs survive browser/API restarts. */
 export async function processNextReview(s: Services, clock = Date.now()) {
-  const candidates = await reviews(s).where('job.status', 'in', ['queued', 'running']).limit(100).get();
+  const candidates = await reviews(s).where('job.status', 'in', ['queued', 'running']).limit(20).get();
   for (const candidate of candidates.docs) {
     const claimed = await s.db.runTransaction(async tx => {
       if ((await tx.get(s.db.doc('installation/maintenance'))).exists) return null;
       const snap = await tx.get(candidate.ref);
-      const r = snap.data() as Review;
+      const r = await readReview(s, tx, candidate.id, snap);
+      const previousReview = structuredClone(r);
       if (!['queued', 'running'].includes(r.job.status) || r.job.leaseUntil > clock) return null;
       r.job.status = 'running'; r.job.leaseUntil = clock + 30_000; r.revision++; r.updatedAt = nowISO();
-      tx.set(candidate.ref, r); return r;
+      writeReview(s, tx, r, previousReview); return r;
     });
     if (!claimed) continue;
     let analysis: Review['analysis'] = null;
@@ -143,20 +218,22 @@ export async function processNextReview(s: Services, clock = Date.now()) {
       const user = await s.auth.getUser(claimed.job.actorUid);
       if (user.disabled || !user.emailVerified || user.email !== claimed.job.actorEmail) throw new Error('Account unavailable.');
       if (claimed.fixtureId === 'retry' && claimed.job.attempt === 1) throw new Error('Synthetic temporary failure. Retry this analysis.');
+      if (!claimed.fixtureId || isPastedReview(claimed)) throw new Error('Pasted text cannot be sent to the fixture adapter.');
       analysis = analyzeSynthetic(claimed.fixtureId, claimed.sourceText, claimed.job.id, claimed.profileVersion || 'community-demo-v1');
     } catch { error = claimed.fixtureId === 'retry' && claimed.job.attempt === 1 ? 'Synthetic temporary failure. Retry this analysis.' : 'Analysis failed. Check the source and account, then retry.'; }
     await s.db.runTransaction(async tx => {
       if ((await tx.get(s.db.doc('installation/maintenance'))).exists) return;
       const [snap, member] = await Promise.all([tx.get(candidate.ref), tx.get(membersRef(s).doc(claimed.job.actorUid))]);
-      const r = snap.data() as Review;
+      const r = await readReview(s, tx, candidate.id, snap);
+      const previousReview = structuredClone(r);
       if (r.job.id !== claimed.job.id || r.job.status !== 'running' || r.job.leaseUntil !== claimed.job.leaseUntil) return;
       try { requireMember(member.data(), { uid: r.job.actorUid, email: r.job.actorEmail } as DecodedIdToken, editors); }
       catch { error = 'The requesting reviewer no longer has access. An active reviewer can retry.'; }
       r.job.status = error ? 'failed' : 'succeeded'; r.job.error = error; r.job.leaseUntil = 0;
       if (!error) r.analysis = analysis;
       r.revision++; r.updatedAt = nowISO();
-      tx.set(candidate.ref, r);
-      event(s, tx, r, error ? 'analysis_failed' : 'analysis_completed', r.job.actorUid, error ? { error } : { analysis });
+      writeReview(s, tx, r, previousReview);
+      event(s, tx, r, error ? 'analysis_failed' : 'analysis_completed', r.job.actorUid, error ? { error } : { analysisId: analysis!.id, sourceHash: analysis!.sourceHash, definitionId: r.contract!.id, score: analysis!.score.total });
     });
     return true;
   }

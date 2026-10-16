@@ -72,3 +72,26 @@ definitions, add jurisdiction/contract requirements, and record the adopted vers
 Test those decisions on new synthetic edge cases, including conflicting statements and exceptions.
 There is no recorded district sign-off yet. The software tests validate arithmetic, provenance and
 workflow boundaries; they cannot supply that approval.
+
+## Manual evidence editing
+
+Pasted text is a fixed snapshot reviewed criterion by criterion. Reviewers provide an explicit
+finding and rationale for all eight criteria, including “not addressed.” Findings other than
+“not addressed” need one to three exact passages; contradictions and exceptions can be cited
+together. The server verifies offsets and computes the pinned formula. It does not determine
+semantic relevance or validate the human interpretation. Untouched criteria keep the review
+incomplete even if a provisional score is available.
+
+The authored pasted-policy regression combines a sale exception (zero credit), qualified deletion
+and vague safeguards (half credit each), four supported findings, and missing change notice.
+The resulting 27 of 42 points rounds to 64 under the candidate; inherited silence credit produces
+69. Correcting collection from meets to partial yields 57 under the candidate. Every correction
+requires a fresh decision before republication, irrespective of the score change.
+
+## Optional full-rubric reviews
+
+The candidate described above remains the eight-measure practice profile. New pasted reviews can
+explicitly adopt the original 50-measure starter framework saved in Settings, along with an explicit
+scoring engine. Each evaluation pins its definition, context, priorities and engine. Zero-weight
+areas are excluded; every enabled measure needs a human finding. Neither adoption nor a high score
+constitutes district approval. See [review storage](review-storage.md).

@@ -1,0 +1,6 @@
+import { z } from 'zod';
+import { citationSchema, MAX_POLICY_LENGTH } from './review';
+import { profileVersions } from './scoring/profiles';
+export const captureDraftSchema = z.object({ rubricMode: z.enum(['practice','district']).optional(), settingsRevision: z.number().int().positive().optional(), sourceKind: z.enum(['pasted','fixture']), name: z.string().max(120), sourceLabel: z.string().max(160), sourceText: z.string().max(MAX_POLICY_LENGTH), fixtureId: z.enum(['complete','gaps','retry']), profileVersion: z.enum(profileVersions) }).strict();
+export const decisionDraftSchema = z.object({ revision: z.number().int().positive(), values: z.object({ outcome: z.enum(['approved','conditional','declined']), rationale: z.string().max(2000), conditions: z.string().max(1500), summary: z.string().max(1000), category: z.string().max(80) }).strict() }).strict();
+export const evidenceDraftSchema = z.object({ revision: z.number().int().positive(), criterionId: z.string(), finding: z.enum(['','yes','no','partial','not_specified']), citations: z.array(citationSchema).max(3), rationale: z.string().max(1000), quoteText: z.string().max(2000) }).strict();

@@ -22,11 +22,13 @@
     "local:backup": "node --import tsx scripts/backup.ts save",
     "local:backup:verify": "node --import tsx scripts/backup.ts verify",
     "local:resume": "node --import tsx scripts/backup.ts resume",
-    "test:recovery": "node --import tsx scripts/test-recovery.ts"
+    "test:recovery": "node --import tsx scripts/test-recovery.ts",
+    "local:migrate-reviews": "node --import tsx scripts/migrate-reviews.ts"
   },
   "dependencies": {
     "firebase": "13.0.0",
     "firebase-admin": "14.5.0",
+    "pdfjs-dist": "6.4.299",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "zod": "4.6.7"

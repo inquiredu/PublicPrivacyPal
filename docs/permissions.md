@@ -15,15 +15,30 @@ the correct district are required for private access.
 | Read own requests / archive own request | No | Yes | Yes | Yes | Yes |
 | Read all district requests | No | No | No | Yes | Yes |
 | Read private district settings | No | No | No | No | Yes |
+| Save evaluation/library settings through API; read saved versions | No | No | No | No | Yes |
 | List/manage memberships through API | No | No | No | No | Yes |
 | Read analysis, decisions, history / export review | No | No | Yes | Yes | Yes |
-| Analyze, decide, publish/unpublish, import draft | No | No | No | Yes | Yes |
+| Capture policy, edit evidence, analyze, decide, publish/unpublish, import draft | No | No | No | Yes | Yes |
+| Reconcile/retry own review command through the API | No | No | No | Yes | Yes |
 | Write public records directly | No | No | No | No | No |
 | Write a role, audit event, bootstrap, or domain registry directly | No | No | No | No | No |
 
 All other data paths are denied. Public documents have no catch-all grant into private records.
 Sample seeding and the local review publication API pick public fields individually. Publication,
 unpublication, private state, and history updates commit in one transaction. See `review-workflow.md`.
+Library customization uses the same explicit projection boundary: only validated appearance and
+notice fields are public. The live evaluation settings and settings author/history fields remain administrator-only.
+An explicitly adopted copy of evaluation context becomes private review data, readable by review
+readers through the API. It is never in a public or staff projection.
+Settings saves enforce expected revisions, recheck membership inside the write transaction, and
+commit the private record, immutable version, audit event and public appearance together. See
+`district-setup.md`.
+
+Review command receipts are private server records. All direct browser reads and writes to them
+are denied. API lookup is scoped to the authenticated actor and current district and requires
+active reviewer/admin membership. Retries recheck current authorization and maintenance before
+replaying a receipt. Read-only reconciliation remains available during maintenance. Receipts bind
+the command ID to a canonical request hash and route; they cannot authorize different content.
 
 ## Trust boundaries
 
@@ -75,3 +90,18 @@ independent configuration. They do not rely on hidden or disabled UI controls to
 
 The previous private snapshot and its rules remain unchanged. No part of these tests contacts the
 existing district instance. This local foundation does not claim production readiness.
+
+## Pasted sources and evidence commands
+
+Pasted text uses the same private reader/editor roles as fixture reviews. Only the local server can
+write the source snapshot, findings, scores, reviewer attribution and history. Each evidence edit
+checks exact source offsets, required rationale, known criteria and the current revision, then
+withdraws both publications and invalidates the previous decision atomically. Every enabled measure in the adopted rubric
+requires explicit review before deciding. Source text is immutable through the API; quotes
+and rationales remain private. No HTML execution, URL fetch, model call or client-provided authority
+is involved. Imports require fresh review and cannot restore an archived approval.
+
+Review heads/history permit only bounded client lists (at most 21 including lookahead). Source,
+definition, evaluation, finding and decision subcollections deny direct client access for every
+role. Private API reads recheck current membership and return one selected review/version. See
+[review storage](review-storage.md) for the format and limits.

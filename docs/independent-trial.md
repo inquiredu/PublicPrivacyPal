@@ -63,7 +63,7 @@ Return to the admin account for the rest of the rehearsal.
 
 ## Complete a review and recover it
 
-1. Open **Policy reviews**, choose a fictional name and **Missing and conflicting commitments**.
+1. Open **Policy reviews**, choose **Bundled synthetic policy**, a fictional name, and **Missing and conflicting commitments**.
    Keep **Evidence-first candidate** selected. Analyze, then inspect the score and exact quotations.
 2. Expand **Review the scoring rubric**. Compare a separate review using the inherited profile.
    Expect 36 and 66 with the same evidence. Record unresolved policy questions using the
@@ -98,3 +98,20 @@ questions, and whether sign-in, role checks, publication/removal and recovery ma
 Do not include passwords or backup files in feedback. One successful automated rehearsal does not
 replace this independent user trial. Live hosting, real-policy extraction, a district-approved profile,
 accessibility review, encrypted operational backups and upgrade recovery remain release work.
+
+## Try pasted text and corrections
+
+Use **Paste policy text** with an authored fictional policy. A copyable example and suggested
+findings are in [the synthetic paste walkthrough](synthetic-paste-walkthrough.md). Confirm that:
+
+- The new review begins with zero completed criteria and cannot be approved or published.
+- Exact source selection and pasted quotations both work; ambiguous quotes require selection.
+- Multiple passages can capture a promise and its exception. A fabricated quotation is rejected.
+- Completing all eight findings enables a decision. Saving an evidence correction after publication
+  removes the public entry and requires a fresh decision before publishing again.
+- History records the old and new findings and authenticated reviewer. Source text and rationales
+  do not appear in the anonymous library.
+- Export/import creates a new unreviewed draft; backup/restore preserves the original review.
+
+These interactions passed the local browser walkthrough recorded in `provenance.md` on 2026-10-15.
+Repeat them during an independent adopter trial; that broader acceptance remains outstanding.

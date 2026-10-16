@@ -101,3 +101,17 @@ fresh session, compares every Firestore document and timestamp, verifies origina
 disabled/revoked accounts, role denials, and public projections, resumes a queued analysis, then
 saves and restores again. The permission suite additionally tests the maintenance boundary, an
 already-running worker, concurrent locks and a failed export. Unit tests reject damaged archives.
+
+## Review storage schema compatibility
+
+New converted archives use `dataSchema: 3` for bounded review heads, fixed source/definition records,
+immutable findings/evaluations/decisions and paged history. The reader accepts schema 1, 2 and 3
+with matching configuration and dependency lockfile. Legacy or mixed records cause a newly saved
+pre-migration archive to use schema 2; restore converts those reviews before releasing maintenance.
+Schema-3 restore keeps every document unchanged. Older readers reject schema 3; never relabel an
+archive to force a rollback. Preserve the original archive and compatible source/toolchain.
+
+See [review storage](review-storage.md) for the resumable local migration, bounds and failure
+handling. The recovery rehearsal includes a mixed schema-2 archive, exact migrated-document
+comparison, 50 maximum-length Unicode findings, earlier evaluation versions and publication, then
+another complete schema-3 restore. This is a specific local upgrade, not a general migration system.

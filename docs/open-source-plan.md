@@ -2,6 +2,19 @@
 
 Decision recorded 2026-10-15: **each district installs and controls its own instance**.
 
+Product direction clarified 2026-10-15: **refine the existing PrivacyPal experience**. Its setup,
+service cards, four-tab detail view, staff catalogue and public notice are the baseline. The local
+foundation screens and eight-criterion trial prove mechanics; they are not a replacement product
+design. See [the source-based design continuity proposal](design-continuity-plan.md) for the
+feature map, concrete improvements and next milestone.
+
+**Reliability direction, 2026-10-15:** the owner has explicitly asked to interrogate every approach
+before restoring more screens. Original design and new foundation code are both subject to review.
+The immediate next work is the reliability gate in `design-continuity-plan.md`: draft protection,
+acknowledged/retry-safe commands, bounded review storage and explicit evaluation context. Feature
+continuity does not require copying unreliable behavior. This supersedes proceeding directly to
+service-card restoration.
+
 ## Product scope
 
 Deliver a reliable tool-review workflow and a public library that a district can operate without
@@ -20,6 +33,8 @@ The first release should support:
 DPA generation/signature collection, Gmail/Drive integrations, automated policy monitoring,
 and cross-district sharing are later modules. Their current implementations add permissions,
 operational costs, and review work that should not block a trustworthy first release.
+This does not defer manual DPA status, tier requirements, conditions of use, or their display in
+service details; those are part of preserving the existing review experience.
 
 ## Isolation and architecture
 
@@ -96,7 +111,7 @@ versions alongside each result so changes can be evaluated and explained.
 synthetic district config works; neither setup references the original district; access tests reject
 unrelated users, forged ownership, privilege changes, and unauthorized public fields.
 
-### 2. Deliver the core review-to-publication workflow — local synthetic slice implemented
+### 2. Deliver the core review-to-publication workflow — local synthetic and pasted-text slices implemented
 
 - Extract and pin the deterministic scoring engine using new synthetic golden fixtures.
 - Implement server-side analysis jobs with authorization, quotas, bounded fetches, and durable state.
@@ -157,4 +172,29 @@ and an independent local trial guide. See `scoring-rubric.md`, `backup-recovery.
 independent district pilot. Real-policy extraction, district policy sign-off, bounded outbound
 retrieval, production provisioning, accessibility verification, encrypted retention and schema
 upgrade/rollback remain ahead.
+The tested baseline was committed locally as `9523fbd` before the pasted-text work. The next slice
+now supports immutable pasted source capture, explicit review of all eight criteria, multiple exact
+quotations and private evidence rationales, deterministic recalculation, and atomic withdrawal of
+publication after a correction. Fresh decisions are required after every evidence edit. Synthetic
+regressions cover contradictions, exceptions, omissions, authorization, concurrency and recovery.
+The interactive browser walkthrough passed on 2026-10-15, including source capture, exact quotes,
+64-to-57 correction, automatic withdrawal, stale decision handling and fresh-decision republication.
+See `provenance.md` for evidence and `synthetic-paste-walkthrough.md` to repeat the exercise.
+
+The next proposed milestone restores the existing Setup / Settings flow, reviewer cards and
+four-tab service detail on the tested local foundation, then connects the original staff and family
+view patterns. It includes optional starter evaluation profiles, versioned district choices, manual
+correction preservation and truthful publication feedback. The implementation sequence and
+synthetic acceptance criteria are in `design-continuity-plan.md`. The simplified editor and rubric
+are development fixtures, not an accepted replacement for the original product experience.
+An independent adoption pilot follows that local acceptance. Live extraction and hosting still
+require separate design and validation; they are not enabled by this local milestone.
 The original district repository, source snapshot, and deployment remain unchanged.
+
+The reliability review now takes precedence over further screen restoration. The first gate is
+implemented for policy reviews: tab-scoped drafts with original revisions, bounded API requests,
+and durable actor-scoped receipts for safe create/import/action reconciliation and retries.
+See `review-workflow.md` for draft retention and sign-out limits, and `provenance.md` for automated
+and browser evidence. The versioned full-evaluation contract is now implemented with bounded source,
+findings and history storage, explicit saved-rubric adoption, and legacy migration/recovery tests.
+See `review-storage.md`. Restore the original complete service detail on that contract next.

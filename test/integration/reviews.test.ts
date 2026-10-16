@@ -1,8 +1,9 @@
+import { readReview } from '../../server/review-storage.ts';
 import { before, after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
 import { readFileSync } from 'node:fs';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { initializeTestEnvironment, assertFails, assertSucceeds, type RulesTestEnvironment } from '@firebase/rules-unit-testing';
 import { doc, getDoc, setDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { loadConfig } from '../../server/config.ts';
@@ -20,11 +21,11 @@ const pass = randomBytes(24).toString('hex');
 let s: Services; let env: RulesTestEnvironment; let server: ReturnType<typeof apiServer>;
 const tokens: Record<string, string> = {}; const uids: Record<string, string> = {};
 async function call(path: string, role = 'reviewer', body?: unknown) {
-  const res = await fetch(`http://127.0.0.1:8787/api/reviews${path}`, { method: body === undefined ? 'GET' : 'POST', headers: { Connection: 'close', Origin: 'http://127.0.0.1:5173', ...(tokens[role] ? { Authorization: `Bearer ${tokens[role]}` } : {}), 'Content-Type': 'application/json' }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
+  const res = await fetch(`http://127.0.0.1:8787/api/reviews${path}`, { method: body === undefined ? 'GET' : 'POST', headers: { 'Idempotency-Key': randomUUID(), Connection: 'close', Origin: 'http://127.0.0.1:5173', ...(tokens[role] ? { Authorization: `Bearer ${tokens[role]}` } : {}), 'Content-Type': 'application/json' }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
   return { status: res.status, data: await res.json() };
 }
 async function create(fixtureId = 'complete') { const out = await call('', 'reviewer', { name: 'Fictional Orchard', fixtureId }); assert.equal(out.status, 201); return out.data as Review; }
-const get = async (id: string) => (await s.db.doc(`${base}/reviews/${id}`).get()).data() as Review;
+const get = async (id: string) => s.db.runTransaction(tx => readReview(s, tx, id));
 async function action(r: Review, action: string, extra = {}) { return call(`/${r.id}`, 'reviewer', { action, revision: r.revision, ...extra }); }
 const decision = { outcome: 'conditional', rationale: 'Private review reasoning', conditions: 'Use only with teacher supervision.', summary: 'Fictional classroom learning resource.', category: 'Learning' };
 async function reviewed() {
@@ -74,7 +75,7 @@ test('browser/API restart preserves queued jobs and recovers an expired worker l
   const r = await create();
   server.close(); await once(server, 'close');
   server = apiServer(s); server.listen(8787, '127.0.0.1'); await once(server, 'listening');
-  assert.equal((await call('')).data.find((x: Review) => x.id === r.id).job.status, 'queued');
+  assert.equal((await call(`/${r.id}`)).data.job.status, 'queued');
   await s.db.doc(`${base}/reviews/${r.id}`).update({ 'job.status': 'running', 'job.leaseUntil': 1 });
   const fresh = localServices(config);
   try { assert.equal(await processNextReview(fresh), true); } finally { await fresh.close(); }
@@ -128,7 +129,7 @@ test('changing a decision or starting analysis removes publication; prior decisi
   assert.equal((await action(r, 'publish')).status, 409);
   r = (await action(r, 'decide', { decision: { ...decision, outcome: 'declined' } })).data;
   assert.equal((await action(r, 'publish')).status, 409);
-  const events = (await call(`/${r.id}/history`)).data;
+  const events = (await call(`/${r.id}/history`)).data.items;
   assert.equal(events.filter((e: { action: string }) => e.action === 'decide').length, 2);
   for (const e of events) assert.equal(e.actorUid, uids.reviewer);
   const db = env.authenticatedContext(uids.admin, { email: 'admin-workflow@school.example', email_verified: true }).firestore();
@@ -161,7 +162,7 @@ test('profiles remain pinned across retries, exports and legacy review records',
     assert.equal(r.analysis?.score.total, profileVersion === 'community-demo-v1' ? 66 : 36);
     if (profileVersion === 'community-demo-v1') {
       // Milestone 2 records predate the top-level profile field; keep their original formula.
-      const legacy = { ...r }; delete legacy.profileVersion; await s.db.doc(`${base}/reviews/${r.id}`).set(legacy);
+      await s.db.doc(`${base}/reviews/${r.id}`).update({ profileVersion: (await import('firebase-admin/firestore')).FieldValue.delete() });
       assert.equal((await action(r, 'reanalyze')).status, 200); await processNextReview(s); r = await get(r.id);
       assert.equal(r.analysis?.score.total, 66);
     }

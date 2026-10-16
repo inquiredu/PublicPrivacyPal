@@ -32,7 +32,7 @@ export function validateFindings(source: string, raw: unknown): Finding[] {
   return criteria.map(c => findings.find(f => f.id === c.id)!);
 }
 /** Offline fixture adapter, not general-purpose extraction. The server selects all findings. */
-export function analyzeSynthetic(fixtureId: Review['fixtureId'], source: string, id: string, profileVersion: string = PROFILE_VERSION): Analysis {
+export function analyzeSynthetic(fixtureId: NonNullable<Review['fixtureId']>, source: string, id: string, profileVersion: string = PROFILE_VERSION): Analysis {
   const profile = getProfile(profileVersion);
   if (source !== fixtures[fixtureId].text) throw new Error('Only the bundled synthetic policies are supported.');
   const findings = validateFindings(source, criteria.map((c, i) => {

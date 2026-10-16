@@ -28,7 +28,10 @@ service cloud.firestore {
         allow read: if hasRole(districtId, ['admin']) || (verified() && request.auth.uid == uid);
         // Memberships, including acceptance and role changes, are server-managed.
       }
-      match /settings/{id} { allow read: if hasRole(districtId, ['admin']); }
+      match /settings/{id} {
+        allow read: if hasRole(districtId, ['admin']);
+        match /versions/{revision} { allow read: if hasRole(districtId, ['admin']); }
+      }
       match /staffTools/{id} { allow read: if belongs(districtId); }
       match /tools/{toolId} {
         allow read: if hasRole(districtId, ['admin', 'reviewer', 'viewer']);
@@ -61,8 +64,13 @@ service cloud.firestore {
         // Review decisions and attributed history will use a server command in milestone 2.
       }
       match /reviews/{reviewId} {
-        allow read: if hasRole(districtId, ['admin', 'reviewer', 'viewer']);
-        match /history/{eventId} { allow read: if hasRole(districtId, ['admin', 'reviewer', 'viewer']); }
+        allow get: if hasRole(districtId, ['admin', 'reviewer', 'viewer']);
+        allow list: if hasRole(districtId, ['admin', 'reviewer', 'viewer']) && request.query.limit <= 21;
+        match /history/{eventId} {
+          allow get: if hasRole(districtId, ['admin', 'reviewer', 'viewer']);
+          allow list: if hasRole(districtId, ['admin', 'reviewer', 'viewer']) && request.query.limit <= 21;
+        }
+        // Versioned sources, definitions, findings, evaluations and decisions are API-only.
         // All mutations, jobs, history and public projections are server commands.
       }
       match /audit/{eventId} { allow read: if hasRole(districtId, ['admin']); }

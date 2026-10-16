@@ -1,12 +1,17 @@
+import { DraftProvider } from './ReviewDrafts';
+import { browserDraftStore, clearReviewDrafts, type DraftStore } from './draft-store';
 import { api } from './api';
 import { Reviews } from './Reviews';
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { Settings } from './Settings';
+import { LibraryView } from './LibraryView';
+import { defaultLibrary, librarySettingsSchema, type LibrarySettings, type LibraryProfile } from '../shared/settings';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, type User } from 'firebase/auth';
 import { addDoc, collection, doc, onSnapshot, query, where, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { connectLocal, type Client } from './firebase';
 import { roles, type Role } from '../shared/config';
 
-type Profile = { id: string; name: string; summary: string; category: string; outcome?: string; conditions?: string };
+type Profile = LibraryProfile;
 type Member = { uid: string; email: string; role: Role; active: boolean; protected?: boolean };
 type Tool = { id: string; name: string; url: string; notes: string };
 type RequestRow = { id: string; toolName: string; purpose: string; status: string; requestedBy: string; archived: boolean };
@@ -38,13 +43,21 @@ export function App() {
 
 function Workspace({ client }: { client: Client }) {
   const [user, setUser] = useState<User | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [drafts, setDrafts] = useState<DraftStore | null>(null);
+  const [confirmSignOut, setConfirmSignOut] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const signOutDialog = useRef<HTMLDialogElement>(null);
+  const draftOwner = useRef('');
   const [member, setMember] = useState<Member | null>(null);
   const [accountReady, setAccountReady] = useState(false);
-  const [tab, setTab] = useState<'library' | 'workspace' | 'people' | 'reviews'>('library');
+  const [tab, setTab] = useState<'library' | 'workspace' | 'people' | 'reviews' | 'settings'>('library');
   const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [search, setSearch] = useState('');
+  const [library, setLibrary] = useState<LibrarySettings>();
+  const [libraryError, setLibraryError] = useState('');
+  const [customizeRequest, setCustomizeRequest] = useState(0);
   const [error, setError] = useState('');
-  useEffect(() => onAuthStateChanged(client.auth, next => { setUser(next); setMember(null); setAccountReady(!next); setTab('library'); }), [client]);
+  useEffect(() => onAuthStateChanged(client.auth, next => { setAuthReady(true); setUser(next); setMember(null); setAccountReady(!next); setTab('library'); }), [client]);
   useEffect(() => {
     if (!user) return;
     return onSnapshot(doc(client.db, `districts/${client.config.districtId}/members/${user.uid}`), snap => {
@@ -58,26 +71,57 @@ function Workspace({ client }: { client: Client }) {
     setProfiles(snap.docs.map(d => ({ id: d.id, ...d.data() } as Profile)).sort((a, b) => a.name.localeCompare(b.name)));
     setError('');
   }, () => { setProfiles([]); setError('The library could not be loaded. Check the local emulators.'); }), [client]);
-  const shown = profiles.filter(p => `${p.name} ${p.category}`.toLowerCase().includes(search.toLowerCase()));
+  useEffect(() => onSnapshot(doc(client.db, `publicDistricts/${client.config.districtId}`), snap => {
+    const values = snap.get('librarySettings');
+    const parsed = librarySettingsSchema.safeParse(values ?? defaultLibrary(client.config.districtName));
+    if (parsed.success) { setLibrary(parsed.data); setLibraryError(''); }
+    else { setLibrary(undefined); setLibraryError('Library settings could not be read. Ask your local administrator to check them.'); }
+  }, () => { setLibrary(undefined); setLibraryError('Library settings are unavailable. Check the local services.'); }), [client]);
   const canReview = member && ['admin', 'reviewer', 'viewer'].includes(member.role);
-  const currentTab = (tab === 'reviews' && !canReview) || (tab === 'people' && member?.role !== 'admin') || (tab === 'workspace' && !member) ? 'library' : tab;
-  return <div className="app-shell"><a className="skip-link" href="#main-content">Skip to main content</a>
+  useEffect(() => {
+    if (!authReady || (user && !accountReady)) return;
+    const owner = user && canReview ? `${client.config.projectId}/${client.config.districtId}/${user.uid}/${member!.role}` : '';
+    if (owner === draftOwner.current) { if (!owner) clearReviewDrafts(); return; }
+    if (draftOwner.current) clearReviewDrafts();
+    draftOwner.current = owner;
+    setDrafts(owner ? browserDraftStore(owner) : null);
+  }, [authReady, accountReady, user?.uid, member?.role, canReview, client]);
+  useEffect(() => { if (confirmSignOut && !signOutDialog.current?.open) signOutDialog.current?.showModal(); }, [confirmSignOut, drafts]);
+  function keepEditing() { signOutDialog.current?.close(); setConfirmSignOut(false); }
+  async function leaveAccount(confirmed = false) {
+    if (signingOut) return;
+    if (!confirmed && drafts?.has()) { setConfirmSignOut(true); return; }
+    setSigningOut(true);
+    try { await signOut(client.auth); clearReviewDrafts(); setConfirmSignOut(false); }
+    catch (e) { setError(message(e)); setConfirmSignOut(false); }
+    finally { setSigningOut(false); }
+  }
+  const currentTab = (tab === 'reviews' && !canReview) || (['people', 'settings'].includes(tab) && member?.role !== 'admin') || (tab === 'workspace' && !member) ? 'library' : tab;
+  const content = <div className="app-shell"><a className="skip-link" href="#main-content">Skip to main content</a>
     <aside className="sidebar"><Brand/><div className="district-label"><span className="eyebrow">DISTRICT WORKSPACE</span><strong>{client.config.districtName}</strong></div><nav aria-label="Main navigation">
       <button className={currentTab === 'library' ? 'nav active' : 'nav'} onClick={() => setTab('library')}><span aria-hidden="true">▦</span>Public library</button>
       {member && <button className={currentTab === 'workspace' ? 'nav active' : 'nav'} onClick={() => setTab('workspace')}><span aria-hidden="true">▤</span>My workspace</button>}
       {canReview && <button className={currentTab === 'reviews' ? 'nav active' : 'nav'} onClick={() => setTab('reviews')}><span aria-hidden="true">✓</span>Policy reviews</button>}
       {member?.role === 'admin' && <button className={currentTab === 'people' ? 'nav active' : 'nav'} onClick={() => setTab('people')}><span aria-hidden="true">♧</span>People & access</button>}
+      {member?.role === 'admin' && <button className={currentTab === 'settings' ? 'nav active' : 'nav'} onClick={() => setTab('settings')}><span aria-hidden="true">⚙</span>Settings</button>}
     </nav><div className="sidebar-bottom"><span className="sandbox-dot"/>Local sandbox<p>Independent by design.<br/>Built for district ownership.</p></div></aside>
-    <div className="main-shell"><header className="topbar"><span>Community edition <span className="divider">/</span> {currentTab === 'library' ? 'Public library' : currentTab === 'people' ? 'People & access' : currentTab === 'reviews' ? 'Policy reviews' : 'My workspace'}</span><span className="pill">Synthetic data</span></header>
-      <main id="main-content"><div className="page-heading"><div><p className="eyebrow">{currentTab === 'library' ? 'TRANSPARENCY STARTS HERE' : currentTab === 'people' ? 'THE RIGHT ACCESS FOR EACH PERSON' : 'YOUR DISTRICT REVIEW SPACE'}</p><h1>{currentTab === 'library' ? 'A clearer view of your digital tools.' : currentTab === 'people' ? 'People & access' : currentTab === 'reviews' ? 'Evidence. Review. Publication.' : `Welcome to your workspace.`}</h1><p>{currentTab === 'library' ? 'Explore the resources in your district’s library. Clear information, in one place.' : currentTab === 'people' ? 'Give each colleague the access they need. Membership is always explicit.' : `You’re signed in as ${member ? roleLabels[member.role].toLowerCase() : 'a district user'}.`}</p></div></div>
+    <div className="main-shell"><header className="topbar"><span>Community edition <span className="divider">/</span> {currentTab === 'library' ? 'Public library' : currentTab === 'people' ? 'People & access' : currentTab === 'reviews' ? 'Policy reviews' : currentTab === 'settings' ? 'Settings' : 'My workspace'}</span><span className="pill">Local sandbox</span></header>
+      <main id="main-content">{currentTab !== 'library' && currentTab !== 'settings' && <div className="page-heading"><div><p className="eyebrow">YOUR DISTRICT WORKSPACE</p><h1>{currentTab === 'people' ? 'People & access' : currentTab === 'reviews' ? 'Evidence. Review. Publication.' : 'Welcome to your workspace.'}</h1><p>{currentTab === 'people' ? 'Give each colleague the access they need.' : `You’re signed in as ${member ? roleLabels[member.role].toLowerCase() : 'a district user'}.`}</p></div></div>}
         {error && <Notice>{error}</Notice>}
-        <section className="session-bar" aria-label="Account"><div><strong>{user ? user.email : 'You’re viewing the public library'}</strong><p>{member ? roleLabels[member.role] : user ? accountReady ? 'No active membership. Ask your local administrator to assign access.' : 'Checking your membership…' : 'Anyone can browse. District team members can sign in below.'}</p></div>{user && <button className="secondary" onClick={() => { void signOut(client.auth).catch(e => setError(message(e))); }}>Sign out</button>}</section>
-        {currentTab === 'library' && <><div className="library-tools"><label className="search"><span aria-hidden="true">⌕</span><input type="search" aria-label="Search tools" placeholder="Search tools or subjects…" value={search} onChange={e => setSearch(e.target.value)}/></label><span className="subtle">{shown.length} {shown.length === 1 ? 'resource' : 'resources'}</span></div><div className="catalogue">{shown.map((p, i) => <article className="tool-card" key={p.id}><div className={`tool-initial tone-${i % 3}`} aria-hidden="true">{p.name.split(' ').map(n => n[0]).slice(0, 2).join('')}</div><span className="category">{p.category}</span><h2>{p.name}</h2><p>{p.summary}</p><div className="card-footer"><span className="status-dot"/>{p.outcome ? p.outcome === 'conditional' ? 'Synthetic approval with conditions' : 'Synthetic approval' : 'Example library record'}{p.conditions && <p><strong>Conditions: </strong>{p.conditions}</p>}</div></article>)}</div>{!shown.length && <Notice>No tools match your search.</Notice>}<p className="library-note">These fictional examples demonstrate public access. They are not vendor evaluations or district approvals.</p>{!user && <Login client={client}/>}</>}
-        {currentTab === 'reviews' && canReview && user && <Reviews key={`${user.uid}-${member.role}`} client={client} user={user} readOnly={member.role === 'viewer'}/>}
+        <section className="session-bar" aria-label="Account"><div><strong>{user ? user.email : 'You’re viewing the public library'}</strong><p>{member ? roleLabels[member.role] : user ? accountReady ? 'No active membership. Ask your local administrator to assign access.' : 'Checking your membership…' : 'Anyone can browse. District team members can sign in below.'}</p></div>{user && <button className="secondary" disabled={signingOut} onClick={() => { void leaveAccount(); }}>Sign out</button>}</section>
+        {confirmSignOut && <dialog ref={signOutDialog} className="draft-signout-dialog" aria-labelledby="draft-signout-title" aria-describedby="draft-signout-description" onCancel={e => { e.preventDefault(); if (!signingOut) keepEditing(); }}>
+          <h2 id="draft-signout-title">Sign out and erase this tab’s drafts?</h2>
+          <p id="draft-signout-description">Unsaved policy text, evidence and decision drafts will be erased. An unconfirmed save may still complete; check review history when you return.</p>
+          <div className="actions"><button type="button" className="secondary" autoFocus disabled={signingOut} onClick={keepEditing}>Keep editing</button><button type="button" disabled={signingOut} onClick={() => void leaveAccount(true)}>{signingOut ? 'Signing out…' : 'Erase drafts and sign out'}</button></div>
+        </dialog>}
+        {currentTab === 'library' && <>{libraryError && <Notice>{libraryError}</Notice>}{library ? <LibraryView settings={library} profiles={profiles} onCustomize={member?.role === 'admin' ? () => { setTab('settings'); setCustomizeRequest(n => n + 1); } : undefined}/> : !libraryError && <p role="status">Loading library settings…</p>}{!user && <Login client={client}/>}</>}
+        {member?.role === 'admin' && user && <div hidden={currentTab !== 'settings'}><Settings key={user.uid} user={user} openLibraryRequest={customizeRequest}/></div>}
+        {currentTab === 'reviews' && canReview && user && drafts && <Reviews key={`${user.uid}-${member.role}`} client={client} user={user} readOnly={member.role === 'viewer'}/>}
         {currentTab === 'workspace' && member && user && <DistrictWork key={`${user.uid}-${member.role}`} client={client} user={user} member={member}/>}
         {currentTab === 'people' && member?.role === 'admin' && user && <People client={client} user={user}/>}
         <footer>PrivacyPal Community <span>District-owned tools. Informed decisions.</span></footer>
       </main></div></div>;
+  return drafts ? <DraftProvider store={drafts}>{content}</DraftProvider> : content;
 }
 
 function Login({ client }: { client: Client }) {
