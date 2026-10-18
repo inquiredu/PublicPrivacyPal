@@ -91,3 +91,21 @@ private-file imports. It is not a full secret scanner or proof that a future dep
 The upstream project supplies the GNU Affero General Public License v3.0. Its [LICENSE](LICENSE)
 is preserved here, together with [provenance](docs/provenance.md). Retain upstream notices when
 bringing reviewed code into this repository.
+
+## Portable policy-analysis infrastructure
+
+The original prompt system was designed with Google Gemini. This rewrite defines a server-side
+contract for any hosted or local AI system and includes a recorded Cedar example for offline
+review, citation validation, job recovery and human correction. It does not enable live inference.
+See [provider adoption](docs/ai-provider-adoption.md), [local suggestions](docs/policy-suggestions.md),
+and [the modernization plan](docs/ai-analysis-plan.md).
+
+The review refinement preserves [scope, questions and suggestion provenance](docs/review-context.md)
+through drafts and human saves. Unresolved findings withhold the aggregate score and district decision
+while retaining their scoring weight. Historical scores remain fixed; precision-profile archives use schema 7.
+
+The [rubric precision candidate](docs/rubric-precision.md) makes 14 difficult measures executable as
+26 subrequirements with 91 synthetic boundary cases. `npm run rubric:lab -- check|export|grade`
+supports offline review and testing with any system. A separately selectable [precision pilot](docs/rubric-adoption.md)
+now uses those clauses in prompts and human review. Existing reviews and the default profile remain
+unchanged; the synthetic labels still require independent adjudication.

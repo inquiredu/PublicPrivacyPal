@@ -36,7 +36,7 @@ export const evaluationSettingsSchema = z.object({
   laws: selections(laws.map(l => l.id)).refine(a => a.length > 0, 'Select at least one law reference.'),
   customEvaluationContext: plainText(6000), districtMission: plainText(4000), strategicPlan: plainText(12000),
   tierPolicy: tierPolicySchema.optional(),
-  starterProfile: z.enum(['pef-2.0', 'none']), evaluationWeights: z.record(z.string(), priority),
+  starterProfile: z.enum(['pef-2.0', 'pef-precision-v1', 'none']), evaluationWeights: z.record(z.string(), priority),
 }).strict().superRefine((s, ctx) => {
   const keys = Object.keys(s.evaluationWeights);
   if (s.starterProfile === 'none') {

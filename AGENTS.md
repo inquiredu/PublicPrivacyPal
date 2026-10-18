@@ -46,3 +46,13 @@ security certification. The repository now has a runnable emulator-only foundati
 release-ready or deployable. Read `docs/local-development.md` and `docs/permissions.md` before
 changing configuration, bootstrap, or authorization. Run `npm run ci` and `npm run test:integration`
 for authorization changes; these require Node 24, and integration tests need Java 21+.
+
+## Coordinated parallel work
+
+When the owner invokes the prepared parallel-work session, use `START_PARALLEL_WORK.md` and
+`docs/parallel-work/README.md`. Verify local main, fresh remote main and the working-tree baseline
+before implementation; see `docs/parallel-work/main-readiness.md` for the latest audit. The coordinator assigns
+up to three subagents, owns shared contracts and integration, and serializes emulator/recovery
+and shared-browser work through `docs/parallel-work/workboard.json`. Follow the scoped briefs;
+workers do not delegate further or modify another worker's files without coordinator reassignment.
+This workflow does not authorize a main merge, live provider calls, publication or deployment.

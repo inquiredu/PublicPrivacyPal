@@ -20,6 +20,9 @@ the correct district are required for private access.
 | Read analysis, decisions, history / export review | No | No | Yes | Yes | Yes |
 | Capture policy, edit evidence, analyze, decide, publish/unpublish, import draft | No | No | No | Yes | Yes |
 | Reconcile/retry own review command through the API | No | No | No | Yes | Yes |
+| Read private suggestions and prompt preview through API | No | No | Yes | Yes | Yes |
+| Start/cancel suggestion jobs through API | No | No | No | Yes | Yes |
+| Read/write suggestion jobs, budgets, keys or results directly | No | No | No | No | No |
 | Write public records directly | No | No | No | No | No |
 | Write a role, audit event, bootstrap, or domain registry directly | No | No | No | No | No |
 
@@ -115,3 +118,15 @@ publication enforce its requirements, including current signed DPA facts when re
 The family projection has no score or private document fields. The staff projection now explicitly
 includes score/coverage and usage guidance; this is supporting information, never authorization.
 See [service detail](service-detail.md) for the field map and failure semantics.
+
+Bundle capture and evidence use the same reader/editor role matrix and transaction-time membership,
+receipt and maintenance checks. Direct source access remains denied. The server owns bundle hashes,
+document ranges and required-coverage metadata; a browser cannot submit readiness or override a
+missing required document with a resolution note. See [source bundles](source-bundles.md).
+
+Long-source `sourceParts` use the existing default-deny direct-storage boundary for every role.
+Private reads reconstruct all parts through the same authorized API transaction. Versioned long
+capture requests accept up to 512 KiB; other capture requests retain 128 KiB. Source writes,
+command receipts, human range acknowledgments and publication withdrawal remain atomic and
+maintenance-fenced. Offline qualification packets contain private source material and have no
+application write/import authority. See [source segments](source-segments.md).
