@@ -107,12 +107,39 @@ already-running worker, concurrent locks and a failed export. Unit tests reject 
 Bounded reviews without service records continue to use schema 3; legacy/mixed archives without
 services use schema 2. **Any archive containing the new service records uses schema 4**, including
 mixed legacy/service archives. This prevents the prior checkpoint build from restoring data whose
-tier requirements it cannot enforce. The current reader accepts schemas 1–4 with matching
-configuration and dependency lockfile. Restores of schemas 1/2 and 4 run the idempotent legacy
+tier requirements it cannot enforce. **Archives containing suggestion jobs use schema 5**, so
+older readers cannot silently discard their semantics. The current reader accepts schemas 1–7 with
+matching configuration and dependency lockfile. Restores of schemas 1/2 and 4–7 run the idempotent legacy
 conversion under maintenance before releasing the lock. Existing bounded records remain unchanged.
 
 Never relabel an archive to force a rollback. Preserve the original archive and compatible source.
-The recovery rehearsal now includes a mixed legacy/schema-4 archive, exact migrated-document
+The recovery rehearsal now includes a mixed legacy/schema-7 archive, exact migrated-document
 comparison, 50 maximum-length Unicode findings, service facts and tier policy, an earlier evaluation,
-and publication, then a second full schema-4 restore. This is a specific local upgrade, not a general
+and publication, recorded suggestions and a queued suggestion job, then a second full schema-7 restore. This is a specific local upgrade, not a general
 migration system. See [service detail](service-detail.md) and [review storage](review-storage.md).
+
+New human evidence saves mark the head `evidenceVersion: 3`; installation archives containing them
+use **schema 6**, including if a later fixture run replaces the current evaluation. They preserve
+scope, open questions, immutable suggestion references, reviewer resolutions and null unresolved
+scores. Older readers reject schema 6; keep an earlier archive with its matching code for rollback.
+The recovery rehearsal compares every document across two cycles, including retained, resolved and
+unresolved finding context. See [review context](review-context.md).
+
+Precision-profile reviews mark `evidenceVersion: 4` and require **schema 7**. The writer also
+checks current and historical settings, so selecting the pilot then reverting still preserves its
+version requirement. Schema 7 retains adopted clauses, human assessments, original proposal clauses
+and unresolved questions. The two-cycle rehearsal compares these records exactly alongside older
+review formats. Earlier archives remain readable; never relabel a new archive for an old reader.
+See [precision adoption](rubric-adoption.md).
+
+Source-bundle reviews require **schema 8** from initial capture, including before the first finding.
+They preserve document identity, declared scope/dependencies, missing documents and server-derived
+human coverage. The current reader accepts schemas 1–8. Two-cycle recovery includes a precision
+bundle alongside previous formats. See [source bundles](source-bundles.md).
+
+Long v2 bundles require **schema 9** as soon as they are captured (`sourceVersion: 3` /
+`evidenceVersion: 6`). It preserves bounded immutable source parts, frozen segment plans and human
+range acknowledgments. The reader accepts schemas 1–9. The two-cycle rehearsal reconstructs a
+long Unicode source with a late exception and missing addendum and compares every stored document.
+Offline qualification packets saved as local files are separate operator artifacts, not part of
+Firestore/Auth installation archives; preserve them separately. See [source segments](source-segments.md).

@@ -36,14 +36,14 @@ and leave space below Firestore's document limit for its field/path encoding.
 | Review head | Identity, revisions, job, publication state, counts and version references | 8 KiB |
 | `sources/{hash}` | Fixed policy text, capture metadata and source version | 128 KiB |
 | `definitions/{hash}` | Adopted measures, context, priorities and scoring version | 256 KiB |
-| `findings/{hash}` | One finding, up to three exact citations, rationale and attribution | 32 KiB |
+| `findings/{hash}` | One finding, assessment/resolution citations, qualifications and attribution | 64 KiB |
 | `evaluations/{id}` | Score/breakdown and references to at most 50 findings and fixed source/rubric | 64 KiB |
 | `decisions/{hash}` | Attributed human decision tied to an evaluation | 32 KiB |
-| `history/{id}` | One attributed transition or before/after correction | 96 KiB |
-| Assembled detail response | One selected current or historical evaluation | 3 MiB |
+| `history/{id}` | One attributed transition or before/after correction | 160 KiB |
+| Assembled detail response | One selected current or historical evaluation | 4 MiB |
 
 Source text remains limited to 32,000 UTF-16 code units; each quotation to 2,000, with at most three
-per finding; each evidence rationale to 1,000. Hashes use deterministic canonical JSON for structured
+per ordinary finding (precision clauses have separate bounded evidence below); each evidence rationale to 1,000. Hashes use deterministic canonical JSON for structured
 records and SHA-256 of the exact normalized text for sources. Reads check content-addressed references.
 Unchanged findings are shared across versions and are not rewritten on each correction.
 
@@ -115,3 +115,55 @@ production transfer, render-time and cost budgets remain future pilot work.
 The service workflow adds an immutable service snapshot, a lightweight head reference/summary and
 a service-revision binding on decisions. Existing evaluations remain unchanged. See
 [complete service review](service-detail.md) for fields, commands, projections and schema-4 backups.
+
+## Policy-suggestion extension
+
+Suggestions remain separate from evaluations and human corrections. A review head stores only
+`assistanceId` and a bounded request counter. Private `suggestions/{hash}` records store at most
+256 KiB of output plus 8 KiB of metadata; `assistanceKeys/{hash}` tracks exact-request reuse.
+District-level `assistanceJobs/{id}` records have a 16 KiB bound. Jobs/results are limited to
+20 requests per review, three uncached attempts per exact request and 100 requests per UTC day.
+The installation-wide backup limit still applies; there is no silent retention/deletion job.
+
+All direct client reads/writes to these paths and `assistanceBudgets/{day}` are denied. Private
+readers receive the current validated result through the API; prompts/results never appear in
+staff or public projections. Completed suggestions do not advance the review revision or overwrite
+a draft. Human acceptance uses the existing evidence command, creates an attributed evaluation,
+and withdraws publication under existing rules. Results and jobs are included in schema-5 whole
+installation backups; portable review exports currently exclude them. See
+[policy suggestions](policy-suggestions.md) and [provider adoption](ai-provider-adoption.md).
+
+## Review-context extension
+
+New human saves preserve scope, questions, suggestion provenance and attributed resolutions in
+`findings-v3`. Unresolved measures retain their maximum but withhold the aggregate score under
+`review-coverage-v1`; decisions/publication remain blocked. Prior evaluations keep their saved
+arithmetic. Archives with this evidence use schema 6. See [durable review context](review-context.md)
+for draft behavior, correction rules, storage limits and compatibility.
+
+## Precision-profile extension
+
+The optional [precision pilot](rubric-adoption.md) adopts a version-2 evaluation contract with
+14 refined measures and 26 clauses. Human `findings-v4` records retain clause interpretations,
+evidence roles and original proposals; the server derives aggregate findings. The head marks
+`evidenceVersion: 4` from creation. The 64 KiB finding, 160 KiB history and 4 MiB detail bounds stay
+unchanged. Clause evidence permits up to three quotes each, with a nine-passage editor pool.
+Schema-7 installation backups preserve adoption even if the current settings later revert.
+Prior contracts, evaluation arithmetic, prompt identities and archived data remain unchanged.
+
+## Bounded source bundles
+
+Explicit bundle captures use source version 2 and head evidenceVersion 5. Documents are stored once
+in an immutable manifest; combined canonical text is reconstructed and verified on reads. Human
+saves use human-evidence-v4 / findings-v5 and bind server-owned per-requirement coverage to the
+bundle identity. Existing byte bounds and unresolved arithmetic remain unchanged. See
+[source bundles](source-bundles.md) for the source/request contract and schema-8 backups.
+
+## Long source parts
+
+Explicit v2 source bundles use a version-3 `sources` manifest and hashed `sourceParts` records,
+each still within the 128 KiB source cap. The server reconstructs and validates every part,
+order, full-source hash and frozen segment plan on reads. Heads mark `evidenceVersion: 6`; human
+`findings-v6` retains `human-source-review-v1` acknowledgments. Existing finding/history/detail
+bounds remain unchanged. Schema-9 backups identify this format before any finding is saved.
+See [source segments](source-segments.md) for request, coverage, offline packet and recovery contracts.

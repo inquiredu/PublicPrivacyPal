@@ -1,3 +1,5 @@
+import { LONG_BUNDLE_VERSION } from '../shared/source-segments.ts';
+import { prepareAssistance, verifiedProposal } from './analysis/jobs.ts';
 import { FieldPath } from 'firebase-admin/firestore';
 import { PAGE_SIZE } from '../shared/evaluation.ts';
 import type { SavedSettings, EvaluationSettings } from '../shared/settings.ts';
@@ -15,6 +17,7 @@ import type { Services } from './firebase.ts';
 import { HttpError, membersRef, requireMember, assertWritable } from './operations.ts';
 import { fixtures, analyzeSynthetic } from './synthetic-analysis.ts';
 import { editAnalysis, sourceHash } from './evidence.ts';
+import { captureSourceBundle, bundleText } from './source-bundle.ts';
 
 const readers = ['admin', 'reviewer', 'viewer'] as const;
 const editors = ['admin', 'reviewer'] as const;
@@ -69,8 +72,8 @@ export async function rubricStatus(s: Services, actor: DecodedIdToken) {
   return s.db.runTransaction(async tx => {
     await authorize(s, tx, actor);
     const saved = await tx.get(s.db.doc(`districts/${s.config.districtId}/settings/evaluation`));
-    const available = saved.get('complete') === true && saved.get('values.starterProfile') === 'pef-2.0';
-    return { servicePolicyAvailable: !!saved.get('values.tierPolicy'), available, revision: saved.get('revision') || 0, measureCount: available ? 50 : 0 };
+    const available = saved.get('complete') === true && ['pef-2.0', 'pef-precision-v1'].includes(saved.get('values.starterProfile'));
+    return { servicePolicyAvailable: !!saved.get('values.tierPolicy'), available, revision: saved.get('revision') || 0, measureCount: available ? 50 : 0, profile: available ? saved.get('values.starterProfile') : null };
   });
 }
 export async function createReview(s: Services, actor: DecodedIdToken, raw: unknown, imported = false, command?: CommandIdentity) {
@@ -88,13 +91,16 @@ export async function createReview(s: Services, actor: DecodedIdToken, raw: unkn
     const service = input.serviceSettingsRevision ? await adoptService(s, tx, actor, input.serviceSettingsRevision) : undefined;
     const pasted = 'sourceKind' in input;
     const spend = pasted ? undefined : await quota(s, tx);
-    const text = 'sourceKind' in input ? input.sourceText : fixtures[input.fixtureId].text;
     const capturedAt = nowISO();
+    let sourceBundle;
+    try { sourceBundle = 'sourceBundle' in input ? captureSourceBundle(input.sourceBundle, contract, capturedAt) : undefined; }
+    catch (error) { throw new HttpError(400, error instanceof Error ? error.message : 'Invalid source bundle.'); }
+    const text = sourceBundle ? bundleText(sourceBundle) : 'sourceText' in input ? input.sourceText : fixtures['fixtureId' in input ? input.fixtureId : 'complete'].text;
     const r: Review = {
       id, name: input.name, contract, ...(service ? { service } : {}), profileVersion: input.profileVersion,
-      fixtureId: 'fixtureId' in input ? input.fixtureId : null, sourceKind: pasted ? 'pasted' : 'fixture',
+      fixtureId: 'fixtureId' in input ? input.fixtureId : null, sourceKind: sourceBundle ? 'bundle' : pasted ? 'pasted' : 'fixture',
       sourceLabel: 'sourceKind' in input ? input.sourceLabel : fixtures[input.fixtureId].label,
-      sourceText: text, sourceHash: sourceHash(text), sourceVersion: 1, sourceCapturedAt: capturedAt,
+      ...(sourceBundle ? { sourceBundle } : {}), sourceText: text, sourceHash: sourceBundle?.id || sourceHash(text), sourceVersion: sourceBundle?.version === LONG_BUNDLE_VERSION ? 3 : sourceBundle ? 2 : 1, sourceCapturedAt: capturedAt,
       revision: 1, analysis: null, decision: null, published: false,
       job: { ...job(actor), ...(pasted ? { status: 'awaiting_review' as const, attempt: 0 } : {}) },
       createdAt: capturedAt, updatedAt: capturedAt,
@@ -119,7 +125,10 @@ export async function reviewAction(s: Services, actor: DecodedIdToken, id: strin
     const active = ['queued', 'running'].includes(r.job.status);
     let spend: (() => unknown) | undefined;
     let details: unknown = null;
-    if (input.action === 'adopt_service') {
+    if (input.action === 'start_assistance' || input.action === 'cancel_assistance') {
+      await prepareAssistance(s, tx, actor, r, input.action === 'cancel_assistance');
+      details = { assistanceId: r.assistanceId };
+    } else if (input.action === 'adopt_service') {
       if (r.service) throw new HttpError(409, 'This review already has an adopted tier policy. Create a new review to adopt different requirements.');
       r.service = await adoptService(s, tx, actor, input.settingsRevision); r.published = false;
       details = { serviceRevision: r.service.revision, policyVersion: r.service.policy.version, settingsRevision: r.service.settingsRevision };
@@ -145,7 +154,8 @@ export async function reviewAction(s: Services, actor: DecodedIdToken, id: strin
       if (!['awaiting_review', 'succeeded'].includes(r.job.status)) throw new HttpError(409, 'Finish the current analysis before editing its evidence.');
       const previous = r.analysis;
       const at = nowISO(); const analysisId = randomUUID();
-      try { r.analysis = editAnalysis(r.sourceText, r.profileVersion || 'community-demo-v1', previous, input.evidence, analysisId, actor.uid, at, r.contract); }
+      const proposal = input.evidence.proposalId ? await verifiedProposal(s, tx, r, input.evidence.proposalId, input.evidence.criterionId) : undefined;
+      try { r.analysis = editAnalysis(r.sourceText, r.profileVersion || 'community-demo-v1', previous, input.evidence, analysisId, actor.uid, at, r.contract, proposal, isPastedReview(r), r.sourceBundle); }
       catch (error) { throw new HttpError(400, error instanceof Error ? error.message : 'Invalid evidence.'); }
       r.job = { id: analysisId, status: evidenceComplete(r) ? 'succeeded' : 'awaiting_review', attempt: 0, actorUid: actor.uid, actorEmail: actor.email!, leaseUntil: 0, error: null };
       r.published = false;
@@ -195,9 +205,9 @@ export async function exportReview(s: Services, actor: DecodedIdToken, id: strin
     const r = await readReview(s, tx, id);
     const rows = (await tx.get(reviews(s).doc(id).collection('history').orderBy('at', 'desc').orderBy(FieldPath.documentId(), 'desc').limit(PAGE_SIZE + 1))).docs;
     const page = historyPage(rows, `history:${s.config.districtId}:${id}`);
-    const bundle = { format: r.contract?.kind === 'district' ? 'privacypal-district-v1' : isPastedReview(r) ? 'privacypal-pasted-v1' : 'privacypal-synthetic-v1',
+    const bundle = { format: r.sourceBundle?.version === LONG_BUNDLE_VERSION ? 'privacypal-source-bundle-v2' : r.sourceBundle ? 'privacypal-source-bundle-v1' : r.contract?.kind === 'district' ? 'privacypal-district-v1' : isPastedReview(r) ? 'privacypal-pasted-v1' : 'privacypal-synthetic-v1',
       draft: isPastedReview(r) ? { name: r.name, sourceKind: 'pasted', sourceLabel: r.sourceLabel, sourceText: r.sourceText, profileVersion: r.profileVersion } : { name: r.name, fixtureId: r.fixtureId, profileVersion: r.profileVersion || 'community-demo-v1' },
-      ...(!isPastedReview(r) ? { sourceText: r.sourceText } : {}), snapshot: { ...(r.service ? { service: r.service } : {}), contract: r.contract, analysis: r.analysis, decision: r.decision, history: page.items, historyNextCursor: page.nextCursor } };
+      ...(r.sourceBundle ? { sourceBundle: r.sourceBundle } : {}), ...(!isPastedReview(r) ? { sourceText: r.sourceText } : {}), snapshot: { ...(r.service ? { service: r.service } : {}), contract: r.contract, analysis: r.analysis, decision: r.decision, history: page.items, historyNextCursor: page.nextCursor } };
     while (Buffer.byteLength(JSON.stringify(bundle)) > 2 * 1024 * 1024 && bundle.snapshot.history.length) {
       bundle.snapshot.history.pop(); const last = bundle.snapshot.history.at(-1);
       bundle.snapshot.historyNextCursor = last ? encodeCursor(`history:${s.config.districtId}:${id}`, last.at, last.id) : null;
@@ -207,6 +217,7 @@ export async function exportReview(s: Services, actor: DecodedIdToken, id: strin
   });
 }
 export async function importReview(s: Services, actor: DecodedIdToken, raw: unknown, command?: CommandIdentity) {
+  if (raw && typeof raw === 'object' && 'format' in raw && ['privacypal-source-bundle-v1', 'privacypal-source-bundle-v2'].includes(String(raw.format))) throw new HttpError(400, 'This source-bundle export is an archive. Explicitly capture a new bundle and adopt its required documents and rubric.');
   if (raw && typeof raw === 'object' && 'format' in raw && raw.format === 'privacypal-district-v1') throw new HttpError(400, 'This district-rubric export is an archive. Paste its source as a new review and explicitly select your current saved rubric.');
   const data = parse(z.discriminatedUnion('format', [
     z.object({ format: z.literal('privacypal-synthetic-v1'), draft: fixtureReviewSchema, sourceText: z.string().max(8000), snapshot: z.unknown() }).strict(),

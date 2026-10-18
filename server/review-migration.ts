@@ -3,7 +3,7 @@ import type { Services } from './firebase.ts';
 import type { Review, Analysis } from '../shared/review.ts';
 import { citationsFor } from '../shared/review.ts';
 import { practiceContract, digest } from './evaluation.ts';
-import { editAnalysis } from './evidence.ts';
+import { editLegacyAnalysis } from './legacy-evidence.ts';
 import { bounded, reviewCollection, writeReview, writeEvaluation } from './review-storage.ts';
 
 /** Operator-only, resumable per review. The maintenance lock survives any failed conversion. */
@@ -36,7 +36,7 @@ export async function migrateReviews(s: Services, lockId: string) {
           if (data.action === 'edit_evidence') {
             const before = d.beforeAnalysisId ? versions.get(d.beforeAnalysisId) : null;
             if (d.beforeAnalysisId && !before) throw new Error('Legacy evidence history is incomplete.');
-            const analysis = editAnalysis(r.sourceText, r.profileVersion || 'community-demo-v1', before || null, { criterionId: d.criterionId, finding: d.after.finding, citations: citationsFor(d.after), rationale: d.after.rationale }, d.afterAnalysisId, d.after.reviewedBy, d.after.reviewedAt, r.contract);
+            const analysis = editLegacyAnalysis(r.sourceText, r.profileVersion || 'community-demo-v1', before || null, { criterionId: d.criterionId, finding: d.after.finding, citations: citationsFor(d.after), rationale: d.after.rationale }, d.afterAnalysisId, d.after.reviewedBy, d.after.reviewedAt, r.contract);
             if (analysis.score.total !== d.afterScore || (before?.score.total ?? null) !== d.beforeScore || digest(before?.findings.find(f => f.id === d.criterionId) || null) !== digest(d.before)) throw new Error('Legacy evidence history cannot be reproduced.');
             versions.set(analysis.id, analysis);
           }

@@ -22,10 +22,11 @@ test('50 maximum-length Unicode findings exceed one broad record but fit bounded
   const contract = districtContract(saved,1,'evidence-weighted-v1');
   const source = '測'.repeat(32000); const citations=[0,2000,4000].map(start=>({start,end:start+2000,quote:source.slice(start,start+2000)}));
   let analysis: Analysis|null=null;
-  for(const c of contract.criteria) analysis=editAnalysis(source,'community-evidence-v1',analysis,{criterionId:c.id,finding:'partial',citations,rationale:'証'.repeat(1000)},'synthetic-id','synthetic-actor','2026-10-15T12:00:00.000Z',contract);
+  for(const c of contract.criteria) analysis=editAnalysis(source,'community-evidence-v1',analysis,{criterionId:c.id,finding:'partial',citations,rationale:'証'.repeat(1000),context:{scope:'域'.repeat(400),uncertainty:'scope',question:'問'.repeat(500),resolution:'resolved',note:'証'.repeat(1000),citations}},'synthetic-id','synthetic-actor','2026-10-15T12:00:00.000Z',contract);
   assert.ok(Buffer.byteLength(JSON.stringify({source,analysis,contract}))>1024*1024);
   assert.equal(analysis!.score.total,50); assert.equal(analysis!.findings.length,50);
-  for(const f of analysis!.findings) bounded('finding',f);
+  for(const f of analysis!.findings) { bounded('finding',f); bounded('history',{before:f,after:f}); }
+  bounded('detail',{source,analysis,contract});
   bounded('source',{text:source}); bounded('definition',contract);
   assert.throws(()=>bounded('finding',{text:'測'.repeat(BYTE_LIMITS.finding/2)}),/byte limit/);
   assert.throws(()=>editAnalysis(source,'community-evidence-v1',analysis,{criterionId:'forged',finding:'partial',citations,rationale:'Test'},'id','actor','date',contract),/known enabled/);

@@ -1,3 +1,8 @@
+import { longSyntheticBundle } from '../fixtures/source-segments.ts';
+import { suggestedEvidence } from '../../shared/assistance.ts';
+import { ANALYSIS_EXAMPLE } from '../../shared/analysis-example.ts';
+import { syntheticBundle } from '../fixtures/source-bundle.ts';
+import { processNextAssistance, assistanceDetail } from '../../server/analysis/jobs.ts';
 import { exampleTierPolicy } from '../../shared/service-policy.ts';
 import { serviceValues } from '../fixtures/service.ts';
 import { readReview, readEvaluation } from '../../server/review-storage.ts';
@@ -84,6 +89,49 @@ try {
     pasted = await reviewAction(s, actor, pasted.id, { action: 'publish', revision: pasted.revision });
     let partial = await createReview(s, actor, { ...pastedDraft, name: 'Partly reviewed across recovery' });
     partial = await reviewAction(s, actor, partial.id, { action: 'edit_evidence', revision: partial.revision, evidence: evidenceEdits[2] });
+    let assisted = await createReview(s, actor, { ...pastedDraft, name: 'Recovered suggestions', sourceText: ANALYSIS_EXAMPLE });
+    assisted = await reviewAction(s, actor, assisted.id, { action: 'start_assistance', revision: assisted.revision });
+    await processNextAssistance(s);
+    assert.equal((await assistanceDetail(s, actor, assisted.id))?.status, 'succeeded');
+    const proposals=(await assistanceDetail(s,actor,assisted.id))!;
+    for(const measureId of ['collection','deletion','security']) {
+      const finding=proposals.result!.findings.find(f=>f.measureId===measureId)!;
+      const evidence={...suggestedEvidence(finding,proposals.result!)!,proposalId:proposals.id};
+      if(measureId==='security') evidence.finding='unresolved';
+      if(measureId==='deletion') { evidence.finding='partial'; evidence.context={...evidence.context!,resolution:'resolved',note:'School account deletion is supported with the recorded log-retention exception.',citations:evidence.citations}; }
+      assisted=await reviewAction(s,actor,assisted.id,{action:'edit_evidence',revision:assisted.revision,evidence});
+    }
+    assert.equal(assisted.analysis!.score.total,null);
+
+    const originalSettings = (await getSettings(s, settingsActor)).evaluation;
+    const precisionSettings = await saveSettings(s, settingsActor, { section: 'evaluation', revision: originalSettings.revision, values: { ...originalSettings.values, starterProfile: 'pef-precision-v1' } });
+    let precision = await createReview(s, actor, { name: 'Precision recovery', sourceKind: 'pasted', sourceLabel: 'Synthetic precision recording', sourceText: ANALYSIS_EXAMPLE, rubricMode: 'district', settingsRevision: precisionSettings.revision, engineVersion: 'evidence-weighted-v1' });
+    precision = await reviewAction(s, actor, precision.id, { action: 'start_assistance', revision: precision.revision });
+    await processNextAssistance(s);
+    const precisionProposals = (await assistanceDetail(s, actor, precision.id))!;
+    assert.equal(precisionProposals.result!.schemaVersion, 'policy-suggestions-v3');
+    for (const measureId of ['do_003', 'sec_003']) {
+      const f = precisionProposals.result!.findings.find(f => f.measureId === measureId)!;
+      const evidence = { ...suggestedEvidence(f, precisionProposals.result!)!, proposalId: precisionProposals.id };
+      if (measureId === 'sec_003') { evidence.finding = 'unresolved'; evidence.requirements!.requirements[1] = { ...evidence.requirements!.requirements[1], status: 'unavailable', question: 'Supply applicable security terms.', rationale: 'Required security evidence remains unavailable.' }; }
+      precision = await reviewAction(s, actor, precision.id, { action: 'edit_evidence', revision: precision.revision, evidence });
+    }
+    assert.equal(precision.analysis!.schemaVersion, 'findings-v4'); assert.equal(precision.evidenceVersion, 4);
+    const sourceBundle = syntheticBundle(); sourceBundle.documents[0].text = ANALYSIS_EXAMPLE; sourceBundle.documents[1].requiredFor = ['sec_003'];
+    let bundled = await createReview(s, actor, { name: 'Bounded source recovery', sourceKind: 'bundle', sourceLabel: 'Synthetic school policy and missing addendum', sourceBundle, rubricMode: 'district', settingsRevision: precisionSettings.revision, engineVersion: 'evidence-weighted-v1' });
+    const security = precision.analysis!.findings.find(f => f.id === 'sec_003')!;
+    bundled = await reviewAction(s, actor, bundled.id, { action: 'edit_evidence', revision: bundled.revision, evidence: { criterionId: security.id, finding: 'unresolved', citations: [{ quote: security.quote, start: security.start, end: security.end }], rationale: 'Retain known evidence across bundle recovery.', requirements: security.requirements } });
+    assert.equal(bundled.evidenceVersion, 5); assert.equal(bundled.analysis!.schemaVersion, 'findings-v5');
+    await saveSettings(s, settingsActor, { section: 'evaluation', revision: precisionSettings.revision, values: originalSettings.values });
+
+    const longInput = longSyntheticBundle(); longInput.documents[0].text = '測'.repeat(100000) + '\nBackups are retained for seven years after termination.';
+    let longReview = await createReview(s, actor, { name: 'Segmented source recovery', sourceKind: 'bundle', sourceLabel: 'Synthetic long Unicode policy', sourceBundle: longInput, profileVersion: 'community-evidence-v1' });
+    const lateQuote = 'Backups are retained for seven years after termination.', lateStart = longReview.sourceText.indexOf(lateQuote);
+    longReview = await reviewAction(s, actor, longReview.id, { action: 'edit_evidence', revision: longReview.revision, evidence: { criterionId: 'deletion', finding: 'unresolved', citations: [{ quote: lateQuote, start: lateStart, end: lateStart + lateQuote.length }], rationale: 'Late exception and missing addendum survive source parts and recovery.', sourceReview: { version: 'human-source-review-v1', bundleId: longReview.sourceBundle!.id, segmentIds: ['s1'] } } });
+    assert.equal(longReview.sourceVersion, 3); assert.equal(longReview.evidenceVersion, 6);
+
+    let pendingAssisted = await createReview(s, actor, { ...pastedDraft, name: 'Queued suggestions across restore', sourceText: ANALYSIS_EXAMPLE });
+    pendingAssisted = await reviewAction(s, actor, pendingAssisted.id, { action: 'start_assistance', revision: pendingAssisted.revision });
     const failed = await createReview(s, actor, { name: 'Retry preserved', fixtureId: 'retry' }); await processNextReview(s);
     const pending = await createReview(s, actor, { name: 'Queued across recovery', fixtureId: 'gaps' });
     await s.db.doc(`${base}/requests/recovery-request`).set({ toolName: 'Synthetic request', purpose: 'Recovery rehearsal', requestedBy: identities.staff.uid, archived: false, status: 'pending' });
@@ -96,16 +144,41 @@ try {
     const { contract: _contract, ...legacy } = review; await root.set(legacy);
     const completed = (await root.collection('history').where('action', '==', 'analysis_completed').get()).docs[0];
     await completed.ref.update({ details: { analysis: review.analysis } });
-    const backup = await saveBackup(s); assert.equal(verifyBackup(backup, config).dataSchema, 4);
+    const backup = await saveBackup(s); assert.equal(verifyBackup(backup, config).dataSchema, 9);
     const lock = await acquireMaintenance(s, 'Establish synthetic migration expectation');
     await migrateReviews(s, lock); await releaseMaintenance(s, lock);
-    writeFileSync(receiptPath, JSON.stringify({ password, identities, commandId, fullId: full.id, firstEvaluation, reviewId: review.id, pastedId: pasted.id, partialId: partial.id, failedId: failed.id, pendingId: pending.id, backup, documents: await allDocuments() }), { mode: 0o600 });
+    writeFileSync(receiptPath, JSON.stringify({ password, identities, commandId, longId: longReview.id, bundleId: bundled.id, precisionId: precision.id, assistedId: assisted.id, pendingAssistedId: pendingAssisted.id, fullId: full.id, firstEvaluation, reviewId: review.id, pastedId: pasted.id, partialId: partial.id, failedId: failed.id, pendingId: pending.id, backup, documents: await allDocuments() }), { mode: 0o600 });
     console.log('Recovery seed saved: synthetic identities, published decision, failed and queued analyses, requests and audit history.');
   } else {
     const receipt = JSON.parse(readFileSync(receiptPath, 'utf8'));
     const manifest = verifyBackup(process.env.PRIVACYPAL_RESTORE!, config);
     await finishRestore(s, manifest);
     assert.deepEqual(await allDocuments(), receipt.documents, 'Every Firestore document must survive exactly, including history, timestamps, quota and projections.');
+    const longReview = await s.db.runTransaction(tx => readReview(s, tx, receipt.longId));
+    assert.equal(longReview.sourceVersion, 3); assert.equal(longReview.evidenceVersion, 6); assert.equal(longReview.analysis!.schemaVersion, 'findings-v6');
+    assert.ok(longReview.sourceText.length > 100000); assert.equal(longReview.analysis!.score.total, null);
+    assert.equal(longReview.analysis!.findings.find(f => f.id === 'deletion')!.quote, 'Backups are retained for seven years after termination.');
+    assert.deepEqual(longReview.analysis!.findings.find(f => f.id === 'deletion')!.sourceReview!.segmentIds, ['s1']);
+    const bundled = await s.db.runTransaction(tx => readReview(s, tx, receipt.bundleId));
+    assert.equal(bundled.evidenceVersion, 5); assert.equal(bundled.sourceVersion, 2); assert.equal(bundled.analysis!.schemaVersion, 'findings-v5');
+    assert.equal(bundled.sourceBundle!.documents[1].capture, 'missing'); assert.equal(bundled.analysis!.score.total, null);
+    assert.equal(bundled.analysis!.findings.find(f => f.id === 'sec_003')!.coverage!.targets[0].ready, false);
+    const assistance = await assistanceDetail(s, receipt.identities.reviewer as DecodedIdToken, receipt.assistedId);
+    assert.equal(assistance?.status, 'succeeded'); assert.equal(assistance?.result?.findings.length, 8);
+    const restoredContext=await s.db.runTransaction(tx=>readReview(s,tx,receipt.assistedId));
+    assert.equal(restoredContext.analysis!.schemaVersion,'findings-v3');assert.equal(restoredContext.analysis!.score.total,null);
+    const recovered=restoredContext.analysis!.findings;
+    assert.equal(recovered.find(f=>f.id==='collection')!.context!.resolution,'retained');
+    assert.equal(recovered.find(f=>f.id==='deletion')!.context!.resolvedBy,receipt.identities.reviewer.uid);
+    assert.equal(recovered.find(f=>f.id==='security')!.finding,'unresolved');
+    assert.equal(recovered.find(f=>f.id==='deletion')!.provenance!.jobId,assistance!.id);
+    const precision = await s.db.runTransaction(tx => readReview(s, tx, receipt.precisionId));
+    assert.equal(precision.evidenceVersion, 4); assert.equal(precision.analysis!.schemaVersion, 'findings-v4');
+    assert.equal(precision.contract!.definitionVersion, 'pef-precision-snapshot-v1'); assert.equal(precision.analysis!.score.total, null);
+    const precisionProposals = (await assistanceDetail(s, receipt.identities.reviewer as DecodedIdToken, receipt.precisionId))!;
+    assert.equal(precisionProposals.result!.schemaVersion, 'policy-suggestions-v3');
+    assert.equal(precision.analysis!.findings.find(f => f.id === 'sec_003')!.requirements!.requirements[1].question, 'Supply applicable security terms.');
+    assert.equal(precision.analysis!.findings.find(f => f.id === 'sec_003')!.proposalRequirements!.requirements[1].status, 'established');
     const full = await s.db.runTransaction(tx => readReview(s, tx, receipt.fullId));
     assert.equal(full.published, true); assert.equal(full.analysis?.findings.length, 50); assert.equal(full.analysis?.score.total, 50);
     assert.deepEqual(full.service?.values, serviceValues); assert.equal(full.service?.policy.version, 'local-tier-example-v1'); assert.equal(full.decision?.serviceRevision, full.service?.revision);
@@ -152,13 +225,15 @@ try {
       await assertFails(getDoc(doc(db, 'installation/maintenance')));
     } finally { await rules.cleanup(); server.close(); await once(server, 'close'); }
     if (process.env.PRIVACYPAL_RECOVERY_PHASE === 'restore') {
+      assert.equal(await processNextAssistance(s), true);
+      assert.equal((await assistanceDetail(s, receipt.identities.reviewer as DecodedIdToken, receipt.pendingAssistedId))?.status, 'succeeded');
       assert.equal(await processNextReview(s), true);
       const pending = await s.db.runTransaction(tx => readReview(s, tx, receipt.pendingId));
       assert.equal(pending.job.status, 'succeeded'); assert.equal(pending.analysis?.score.total, 36);
       assert.equal((await s.db.doc(`${base}/reviews/${receipt.failedId}`).get()).get('job.status'), 'failed');
       const originalManifest = readFileSync(resolve(receipt.backup, 'privacypal-backup.json'), 'utf8');
       const nextBackup = await saveBackup(s); assert.notEqual(nextBackup, receipt.backup);
-      assert.equal(verifyBackup(nextBackup, config).dataSchema, 4);
+      assert.equal(verifyBackup(nextBackup, config).dataSchema, 9);
       assert.equal(readFileSync(resolve(receipt.backup, 'privacypal-backup.json'), 'utf8'), originalManifest);
       receipt.backup = nextBackup; receipt.documents = await allDocuments(); writeFileSync(receiptPath, JSON.stringify(receipt), { mode: 0o600 });
     }

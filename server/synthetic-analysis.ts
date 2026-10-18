@@ -42,6 +42,6 @@ export function analyzeSynthetic(fixtureId: NonNullable<Review['fixtureId']>, so
   }));
   return { id, profileVersion: profile.version, adapterVersion: 'synthetic-fixtures-v1', schemaVersion: 'findings-v1', sourceHash: createHash('sha256').update(source).digest('hex'), findings,
     evidenceCount: findings.filter(f => f.finding !== 'not_specified').length,
-    score: calculateScore(criteria.map((c, i) => ({ id: c.id, weight: c.weight, assessment: ({ yes: 'meets', no: 'does_not_meet', partial: 'partial', not_specified: 'not_addressed' } as const)[findings[i].finding] })), profile.engineVersion),
+    score: calculateScore(criteria.map((c, i) => ({ id: c.id, weight: c.weight, assessment: ({ yes: 'meets', no: 'does_not_meet', partial: 'partial', not_specified: 'not_addressed', unresolved: 'unresolved' } as const)[findings[i].finding] })), profile.engineVersion),
   };
 }

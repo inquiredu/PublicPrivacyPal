@@ -1,3 +1,4 @@
+import { editLegacyAnalysis } from '../../server/legacy-evidence.ts';
 import { before, after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
@@ -113,7 +114,7 @@ test('legacy migration preserves source, historical evaluations, decisions and p
   const id=randomUUID();const at='2026-10-15T12:00:00.000Z';const text=fixtures.complete.text;
   const initial=analyzeSynthetic('complete',text,randomUUID(),'community-demo-v1');
   const f=initial.findings[0];const edit={criterionId:f.id,finding:'partial' as const,citations:[{quote:f.quote,start:f.start!,end:f.end!}],rationale:'Synthetic legacy correction.'};
-  const changed=editAnalysis(text,'community-demo-v1',initial,edit,randomUUID(),actors.reviewer.uid,at);
+  const changed=editLegacyAnalysis(text,'community-demo-v1',initial,edit,randomUUID(),actors.reviewer.uid,at);
   const r:Review={id,name:'Legacy synthetic fixture',fixtureId:'complete',sourceKind:'fixture',sourceText:text,revision:5,analysis:changed,decision:{...decision,outcome:'conditional',analysisId:changed.id,actorUid:actors.reviewer.uid,at},published:true,createdAt:at,updatedAt:at,job:{id:changed.id,status:'succeeded',attempt:0,actorUid:actors.reviewer.uid,actorEmail:actors.reviewer.email!,leaseUntil:0,error:null}};
   const root=s.db.doc(`${base}/reviews/${id}`);await root.set(r);
   await root.collection('history').doc('analysis').set({action:'analysis_completed',actorUid:actors.reviewer.uid,at,revision:2,details:{analysis:initial}});

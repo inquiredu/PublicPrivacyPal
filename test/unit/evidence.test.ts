@@ -55,7 +55,7 @@ test('contradictions, exceptions, vague promises and missing evidence score dete
   assert.deepEqual(citationsFor(result.findings[2]), evidenceEdits[2].citations);
   assert.equal(result.findings[7].finding, 'not_specified'); assert.equal(citationsFor(result.findings[7]).length, 0);
   assert.equal(result.findings[0].reviewedBy, 'reviewer-test'); assert.equal(result.findings[0].reviewedAt, at);
-  assert.equal(result.sourceHash, sourceHash(pastedPolicy)); assert.equal(result.schemaVersion, 'findings-v2');
+  assert.equal(result.sourceHash, sourceHash(pastedPolicy)); assert.equal(result.schemaVersion, 'findings-v3');
   assert.equal(analyze('community-demo-v1').score.total, 69);
 });
 test('no default finding counts as reviewed; every pasted criterion needs explicit evidence review', () => {

@@ -7,7 +7,7 @@ import goldens from '../fixtures/scoring-golden.json' with { type: 'json' };
 for (const g of goldens) test(`scoring golden: ${g.name}`, () => {
   const score = calculateScore(g.assessments.map((a, i) => ({ id: `${i}`, weight: g.weights[i], assessment: a as Assessment })));
   assert.equal(score.total, g.expected);
-  assert.equal(score.points, score.breakdown.reduce((n, c) => n + c.points, 0));
+  assert.equal(score.points, score.breakdown.reduce((n, c) => n + (c.points ?? 0), 0));
 });
 test('reject invalid weights, unknown assessments and duplicates', () => {
   for (const weight of [NaN, Infinity, -1, 0]) assert.throws(() => calculateScore([{ id: 'a', weight, assessment: 'meets' }]));

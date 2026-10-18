@@ -65,3 +65,33 @@ test('service-aware schema-4 archives remain distinct from earlier formats', t =
   const manifest = sealBackup(root, config, randomUUID(), 4);
   assert.equal(manifest.dataSchema, 4); assert.equal(verifyBackup(root, config).dataSchema, 4);
 });
+test('suggestion-aware schema-5 archives identify their new private records', t => {
+  const root = fixture(); t.after(() => rmSync(root, { recursive: true }));
+  const manifest = sealBackup(root, config, randomUUID(), 5);
+  assert.equal(manifest.dataSchema, 5); assert.equal(verifyBackup(root, config).dataSchema, 5);
+});
+
+test('context-aware schema-6 archives are explicit and unknown future schemas fail closed', t => {
+  const root=fixture();t.after(()=>rmSync(root,{recursive:true}));
+  const manifest=sealBackup(root,config,randomUUID(),6);assert.equal(verifyBackup(root,config).dataSchema,6);
+  writeFileSync(join(root,'privacypal-backup.json'),JSON.stringify({...manifest,dataSchema:10}));
+  assert.throws(()=>verifyBackup(root,config));
+});
+
+test('precision-aware schema-7 archives preserve requirement review data', t => {
+  const root = fixture(); t.after(() => rmSync(root, { recursive: true }));
+  const manifest = sealBackup(root, config, randomUUID(), 7);
+  assert.equal(manifest.dataSchema, 7); assert.deepEqual(verifyBackup(root, config), manifest);
+});
+
+ test('source-bundle schema-8 archives retain manifest and coverage semantics', t => {
+  const root = fixture(); t.after(() => rmSync(root, { recursive: true }));
+  const manifest = sealBackup(root, config, randomUUID(), 8);
+  assert.equal(manifest.dataSchema, 8); assert.deepEqual(verifyBackup(root, config), manifest);
+});
+
+test('long-source schema-9 archives retain segmented sources and human range acknowledgments', t => {
+  const root = fixture(); t.after(() => rmSync(root, { recursive: true }));
+  const manifest = sealBackup(root, config, randomUUID(), 9);
+  assert.equal(manifest.dataSchema, 9); assert.deepEqual(verifyBackup(root, config), manifest);
+});

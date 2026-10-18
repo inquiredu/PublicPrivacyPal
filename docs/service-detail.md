@@ -96,3 +96,32 @@ allowlists, service write failure, concurrent corrections, command replay, maint
 retention. Recovery tests preserve a published 50-measure service and its adopted policy/decision
 through two whole-installation restore cycles. These checks do not establish production capacity,
 full screen-reader conformance, hosting readiness or legal sufficiency.
+
+## Reviewer hierarchy refinement — October 17, 2026
+
+The card now separates actual publication, district decision, saved evidence score, human review
+progress and analysis status. A practice summary does not carry a decision, so its card directs
+the reviewer to the detail instead of presenting job completion as a human decision. Requirement
+warnings explicitly describe the last save; detail checks still evaluate dates when rendered.
+
+Overview leads with navigation to the next review task, then saved district wording and use scope,
+resolved/unfinished/unreviewed counts, and current open questions. Earlier district wording is
+labeled when its decision is stale. Questions come from saved findings and current clause reviews;
+resolved questions and superseded original proposal qualifications do not become fresh blockers.
+Source documents and coverage retain their existing destination below the overview. Tier, support
+and service fact editing is grouped in a disclosure; Classification and Publish & Documents keep
+their established controls. Shortcuts select and focus the destination tab.
+
+The overview describes saved facts while an unsaved draft is present, offers a return to that draft,
+and uses the existing draft store. Guidance is navigation only: no new approval, evidence, provider,
+storage, scoring or publication authority is introduced. A published service with unmet current
+requirements remains visibly published and directs the reviewer to its publication controls.
+
+Validation: six presentation regression cases; **386 unit/isolation checks**, TypeScript and
+production build/bundle/isolation gates in the matching temporary checkout. Browser checks covered
+the published complete-service review, the unresolved long-policy review, next-step focus,
+Arrow/Home/End tabs, a service draft across review navigation, and 320px reflow. The temporary draft
+was discarded; no review, setting or publication was saved. Console checks returned no warnings or
+errors. Private evidence is in `.local/validation/reviewer-ux/`. The existing 163 integration tests
+and two recovery cycles remain the earlier backend checkpoint; they were not rerun for this UI-only
+change. Owner acceptance and broader assistive-technology testing remain pending.

@@ -1,0 +1,285 @@
+{
+  "version": 1,
+  "purpose": "Coordinator-owned ledger; planned assignments are not completed work or process locks.",
+  "preparedOn": "2026-10-17",
+  "coordinator": null,
+  "maxWorkers": 3,
+  "baseline": {
+    "status": "development_checkpoint_pending_main_review",
+    "intendedBranch": "main",
+    "observedMainAtPreparation": "91ce51f948c18f206e75621c1e03b014d9543d52",
+    "observedDevelopmentHead": "5de75d386a6f3d146195fb8b5ab9036c0a43e2da",
+    "developmentWorkingTreeWasDirty": true,
+    "acceptedCommit": null,
+    "acceptedSnapshot": null,
+    "manifestResult": {
+      "mode": "implementation-only",
+      "matching": 136,
+      "missing": 0,
+      "changed": 0,
+      "invalid": 0,
+      "mainKickoffAccepted": false
+    },
+    "reviewedInputDeltas": [],
+    "privateEvidenceDirectory": ".local/validation/main-readiness",
+    "latestBackupReference": ".local/backups/2026-10-17T22-53-59-091Z-432478de-83e6-497f-a4e0-18d975bb9a00",
+    "observedLocalMain": "a0e94ca6f8fd7b8b8d524b5ff8047a5116bd2f60",
+    "observedRemoteMain": "a0e94ca6f8fd7b8b8d524b5ff8047a5116bd2f60",
+    "readinessReport": "main-readiness.md",
+    "preservedSourceSnapshot": ".local/source-checkpoints/main-readiness-2026-10-18T02-42-13Z",
+    "validation": {
+      "cleanDependencyInstall": "passed; npm ci --offline from existing package cache in a separate copy",
+      "ci": "passed; 386 unit/isolation tests, TypeScript, build, bundle and source isolation",
+      "priorIntegrationAndRecovery": "retained evidence: 163 integration tests, two recovery cycles; 79 backend/integration/recovery inputs still match the recorded source-segments inventory; not rerun",
+      "requiresBeforeMerge": "CI, authorization and recovery on proposed source commit plus review"
+    }
+  },
+  "contractDecisions": {
+    "COV-001": "proposed",
+    "INT-001": "proposed"
+  },
+  "resources": [
+    {
+      "id": "emulator-ports",
+      "status": "observed_in_use",
+      "holder": "existing demo-privacypal-local preview",
+      "ports": [
+        5173,
+        5174,
+        8787,
+        9099,
+        8080,
+        4400,
+        4500,
+        9150
+      ],
+      "queue": [],
+      "observedRuntime": "/private/tmp/privacypal-segments-6dw8kzqf",
+      "note": "Observed during readiness audit; recheck before taking ownership. No stop/start authorization is implied by this ledger."
+    },
+    {
+      "id": "saved-preview-operator",
+      "status": "observed_in_use",
+      "holder": "existing demo-privacypal-local preview",
+      "queue": [],
+      "observedRuntime": "/private/tmp/privacypal-segments-6dw8kzqf",
+      "note": "Observed during readiness audit; recheck before taking ownership. No stop/start authorization is implied by this ledger."
+    },
+    {
+      "id": "shared-browser-writes",
+      "status": "inspect_before_use",
+      "holder": null,
+      "queue": []
+    }
+  ],
+  "coordinatorOwned": [
+    "AGENTS.md",
+    "HANDOFF.md",
+    "START_PARALLEL_WORK.md",
+    "docs/parallel-work/**",
+    "server/**",
+    "shared/**",
+    "firestore.rules",
+    "firebase.local.json",
+    "config/**",
+    "package.json",
+    "package-lock.json",
+    "vite.config.ts",
+    "tsconfig.json",
+    ".github/**",
+    "src/Reviews.tsx",
+    "src/ReviewDetail.tsx",
+    "src/EvidenceEditor.tsx",
+    "src/AssistancePanel.tsx",
+    "src/styles.css",
+    "scripts/backup*.ts",
+    "scripts/local.ts",
+    "scripts/test*.ts",
+    "test/integration/**",
+    "test/recovery/**"
+  ],
+  "ownershipRule": "Only coordinator may reassign files. Each task's exact report path is an exception to coordinator-owned docs/parallel-work/**. All unassigned files remain coordinator-owned.",
+  "tasks": [
+    {
+      "id": "UX-01",
+      "wave": 1,
+      "brief": "briefs/review-experience.md",
+      "status": "planned",
+      "worker": null,
+      "workspace": null,
+      "reviewer": null,
+      "prerequisites": [
+        "accepted baseline"
+      ],
+      "integrationDependencies": [
+        "COV-001 accepted and required API wiring assigned"
+      ],
+      "ownedFiles": [
+        "src/SourceBundleCapture.tsx",
+        "src/SourceBundleView.tsx",
+        "src/SourceDependencyEditor.tsx",
+        "src/source-dependencies.css",
+        "test/fixtures/source-dependency-editor.ts",
+        "test/unit/source-dependency-editor.test.ts",
+        "docs/parallel-work/reports/UX-01.md"
+      ],
+      "checks": [],
+      "reviewFindings": [],
+      "integratedCommitOrSnapshot": null
+    },
+    {
+      "id": "INT-01",
+      "wave": 1,
+      "brief": "briefs/intelligence-workflow.md",
+      "status": "planned",
+      "worker": null,
+      "workspace": null,
+      "reviewer": null,
+      "prerequisites": [
+        "accepted baseline"
+      ],
+      "integrationDependencies": [
+        "INT-001 accepted before any application write-path implementation"
+      ],
+      "ownedFiles": [
+        "docs/segmented-adoption.md",
+        "test/fixtures/segmented-adoption.ts",
+        "test/unit/segmented-adoption.test.ts",
+        "scripts/segmented-adoption-lab.ts",
+        "docs/parallel-work/reports/INT-01.md"
+      ],
+      "checks": [],
+      "reviewFindings": [],
+      "integratedCommitOrSnapshot": null
+    },
+    {
+      "id": "DOC-01",
+      "wave": 1,
+      "brief": "briefs/independent-installation.md",
+      "status": "planned",
+      "worker": null,
+      "workspace": null,
+      "reviewer": null,
+      "prerequisites": [
+        "accepted baseline",
+        "disposable copy with its own writable dependencies"
+      ],
+      "integrationDependencies": [
+        "runtime reservation for emulator rehearsal",
+        "maintainer decision on private security-reporting channel before release"
+      ],
+      "ownedFiles": [
+        "README.md",
+        "docs/local-development.md",
+        "docs/independent-trial.md",
+        "CONTRIBUTING.md",
+        "SECURITY.md",
+        "docs/installation-readiness.md",
+        "docs/parallel-work/reports/DOC-01.md"
+      ],
+      "checks": [],
+      "reviewFindings": [],
+      "integratedCommitOrSnapshot": null
+    },
+    {
+      "id": "RUB-01",
+      "wave": 2,
+      "brief": "briefs/rubric-refinement.md",
+      "status": "planned",
+      "worker": null,
+      "workspace": null,
+      "reviewer": null,
+      "prerequisites": [
+        "coordinator assignment after first-wave checkpoint",
+        "frozen current candidate and batch selection"
+      ],
+      "integrationDependencies": [
+        "independent critique; human adjudication remains separate"
+      ],
+      "ownedFiles": [
+        "docs/rubric-next.md",
+        "scripts/rubric-lab/next-candidate.ts",
+        "scripts/rubric-lab/next-cases.ts",
+        "test/unit/rubric-next.test.ts",
+        "docs/parallel-work/reports/RUB-01.md"
+      ],
+      "checks": [],
+      "reviewFindings": [],
+      "integratedCommitOrSnapshot": null
+    },
+    {
+      "id": "A11Y-01",
+      "wave": 2,
+      "brief": "briefs/accessibility-review.md",
+      "status": "planned",
+      "worker": null,
+      "workspace": null,
+      "reviewer": null,
+      "prerequisites": [
+        "coordinator assignment",
+        "stable integrated UX-01 revision",
+        "browser reservation when needed"
+      ],
+      "integrationDependencies": [
+        "source-file reassignment before fixes"
+      ],
+      "ownedFiles": [
+        "docs/accessibility-review.md",
+        "docs/parallel-work/reports/A11Y-01.md"
+      ],
+      "checks": [],
+      "reviewFindings": [],
+      "integratedCommitOrSnapshot": null
+    },
+    {
+      "id": "PROV-01",
+      "wave": 2,
+      "brief": "briefs/provider-qualification.md",
+      "status": "planned",
+      "worker": null,
+      "workspace": null,
+      "reviewer": null,
+      "prerequisites": [
+        "coordinator assignment",
+        "accepted intelligence interfaces for this increment"
+      ],
+      "integrationDependencies": [
+        "separate scope required for provider setup or live calls"
+      ],
+      "ownedFiles": [
+        "docs/provider-qualification.md",
+        "test/fixtures/provider-qualification.ts",
+        "test/unit/provider-qualification.test.ts",
+        "docs/parallel-work/reports/PROV-01.md"
+      ],
+      "checks": [],
+      "reviewFindings": [],
+      "integratedCommitOrSnapshot": null
+    },
+    {
+      "id": "OPS-01",
+      "wave": 2,
+      "brief": "briefs/operations.md",
+      "status": "planned",
+      "worker": null,
+      "workspace": null,
+      "reviewer": null,
+      "prerequisites": [
+        "coordinator assignment",
+        "DOC-01 findings"
+      ],
+      "integrationDependencies": [
+        "rehearsals need runtime reservation",
+        "separate scope required for production changes"
+      ],
+      "ownedFiles": [
+        "docs/operations-readiness.md",
+        "docs/upgrade-rehearsal-plan.md",
+        "docs/parallel-work/reports/OPS-01.md"
+      ],
+      "checks": [],
+      "reviewFindings": [],
+      "integratedCommitOrSnapshot": null
+    }
+  ]
+}

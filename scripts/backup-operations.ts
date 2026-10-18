@@ -24,13 +24,20 @@ export async function saveBackup(s: Services) {
   const lock = await acquireMaintenance(s, 'Installation backup');
   try {
     // A pre-migration (or partly migrated) archive must request conversion on restore.
-    let legacy = false; let serviceRecords = false; let cursor: string | undefined;
+    const evaluationSettings = s.db.doc(`districts/${s.config.districtId}/settings/evaluation`);
+    let precision = (await evaluationSettings.get()).get('values.starterProfile') === 'pef-precision-v1' || !(await evaluationSettings.collection('versions').where('values.starterProfile', '==', 'pef-precision-v1').limit(1).get()).empty;
+    let segmented = false; let bundles = false; let evidenceV3 = false; let legacy = false; let serviceRecords = false; let assistanceRecords = false; let cursor: string | undefined;
     while (true) {
       let q = reviewCollection(s).orderBy(FieldPath.documentId()).limit(20);
       if (cursor) q = q.startAfter(cursor);
       const page = await q.get();
       if (page.docs.some(d => d.get('storageVersion') !== 3)) legacy = true;
       if (page.docs.some(d => !!d.get('serviceId'))) serviceRecords = true;
+      if (page.docs.some(d => !!d.get('assistanceId'))) assistanceRecords = true;
+      if (page.docs.some(d => d.get('evidenceVersion') === 3)) evidenceV3 = true;
+      if (page.docs.some(d => d.get('evidenceVersion') === 4)) precision = true;
+      if (page.docs.some(d => d.get('evidenceVersion') === 6 || d.get('sourceVersion') === 3)) segmented = true;
+      if (page.docs.some(d => d.get('evidenceVersion') === 5 || d.get('sourceVersion') === 2 || d.get('sourceKind') === 'bundle')) bundles = true;
       if (page.size < 20) break;
       cursor = page.docs.at(-1)!.id;
     }
@@ -40,7 +47,7 @@ export async function saveBackup(s: Services) {
       body: JSON.stringify({ path: paths.pending, initiatedBy: 'privacypal-local-backup', targets: ['auth', 'firestore'] }),
     });
     if (!res.ok) throw new Error('The emulator export did not complete successfully.');
-    sealBackup(paths.pending, s.config, lock, serviceRecords ? 4 : legacy ? 2 : 3);
+    sealBackup(paths.pending, s.config, lock, segmented ? 9 : bundles ? 8 : precision ? 7 : evidenceV3 ? 6 : assistanceRecords ? 5 : serviceRecords ? 4 : legacy ? 2 : 3);
     verifyBackup(paths.pending, s.config);
     finishBackup(paths.pending, paths.complete);
     await releaseMaintenance(s, lock);
@@ -58,6 +65,6 @@ export async function finishRestore(s: Services, manifest: BackupManifest) {
   if (admin.disabled || !admin.emailVerified || admin.email !== s.config.bootstrapAdminEmail || member.get('role') !== 'admin' || member.get('active') !== true || member.get('email') !== admin.email) {
     throw new Error('Restored administrator identity and membership do not agree. Recovery stopped.');
   }
-  if (manifest.dataSchema < 3 || manifest.dataSchema === 4) await migrateReviews(s, manifest.backupId);
+  if (manifest.dataSchema < 3 || manifest.dataSchema >= 4) await migrateReviews(s, manifest.backupId);
   await releaseMaintenance(s, manifest.backupId);
 }
