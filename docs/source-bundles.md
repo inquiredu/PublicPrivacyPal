@@ -15,7 +15,11 @@ its applicability to the intended scope. At least one document must contain text
 documents have no saved text. Changing to unavailable retains draft text until the reviewer clears
 it or chooses excerpt; drafts survive navigation and reload under the existing tab/account rules.
 
-The initial form conservatively requires **every listed document for every enabled measure**.
+The form starts with **every listed document required for every enabled measure**.
+The dependency editor can narrow this to explicit measures or clauses and record explained
+exclusions. Adopt the current measure definitions before editing; a refresh never replaces an
+existing draft snapshot or silently removes obsolete selections. Changes to review scope retain
+each document’s declaration until explicitly reconciled and reassessed.
 It does not discover links or decide that an annex is irrelevant. Include required linked material
 as another document, even when unavailable. “Full” is the reviewer's capture declaration for the
 selected source set, not an independent verification that every vendor statement was discovered.
@@ -102,8 +106,9 @@ hashes, document ranges and dependencies on every versioned source read. Old sou
 version 1. Existing command receipts, authorization, maintenance fencing and atomic publication
 withdrawal apply to captures and edits.
 
-Any installation containing bundle reviews requires **backup schema 8**, even before a human finding
-is saved. Readers accept schemas 1–8; earlier archives remain intact. Never relabel a new archive for
+Bounded v1 bundle reviews introduced **backup schema 8**, even before a human finding
+is saved. Long v2 bundles require schema 9; see the current [backup compatibility runbook](backup-recovery.md).
+Earlier archives remain intact. Never relabel a new archive for
 an older build. Portable exports use `privacypal-source-bundle-v1`, preserve the full captured manifest
 and saved findings, and are archives rather than imports that could lose coverage or restore approval.
 Recapture explicitly for a new review. Staff/family projections exclude documents, scope, quotations,
@@ -118,7 +123,7 @@ the [handoff](../HANDOFF.md).
 ## Remaining work
 
 Long-policy capture and offline multi-request coverage are implemented in [source segments](source-segments.md).
-Application adoption of segmented model results, a dependency editor with visible exclusion justifications, independently adjudicated labels, whole-policy provider comparisons, provider-specific
+Application adoption of segmented model results, independently adjudicated labels, whole-policy provider comparisons, provider-specific
 token budgeting and transport/billing reconciliation remain separate milestones. Website fetching
 requires its own reviewed network/capture boundary. No live provider or automatic publication is
 enabled by this source format.

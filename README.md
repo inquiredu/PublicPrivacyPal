@@ -16,7 +16,9 @@ See the [service workflow](docs/service-detail.md) and [accessibility and bundle
 ## Run locally
 
 Prerequisites: **Node 24**, **Java 21+**, and Git. No Firebase login, cloud project, or API key is needed.
-The first emulator run downloads Firebase's emulator binaries.
+Use a checkout of `inquiredu/PublicPrivacyPal` and open a terminal in its root directory.
+If you use nvm, `nvm use` selects Node 24; otherwise select Node 24 with your installed runtime manager.
+The first install and emulator run need access to package and emulator distributors.
 
 ```sh
 nvm use
@@ -56,7 +58,8 @@ Library** for appearance, notice/footer text and display defaults. See the [dist
 guide](docs/district-setup.md). The optional original 50-measure framework can be previewed and
 saved and explicitly adopted for a new pasted review. Source, rubric and evaluation versions are
 preserved in bounded records; see [review storage](docs/review-storage.md). Existing eight-measure
-practice reviews keep their own scoring profiles. The original four-tab detail is the next increment.
+practice reviews keep their own scoring profiles. Reviewer cards and the four-tab service detail
+are implemented locally; the [service workflow](docs/service-detail.md) describes their boundaries.
 
 ## Checks
 
@@ -66,7 +69,8 @@ npm run test:integration
 npm run test:recovery
 ```
 
-Stop `npm run dev` before running integration tests: they need the same loopback ports. Tests use a
+Save and verify your installation backup, then stop `npm run dev` before running integration or
+recovery tests: they need the same loopback ports. Run those suites one at a time. Tests use a
 separate demo project, synthetic accounts, and negative authorization cases. CI runs all three checks.
 Deployment is disabled: `npm run deploy` exits with an explanation. No hosting or Functions target
 is configured. **Policy reviews** supports pasted-text manual review, synthetic analysis, evidence corrections, recorded decisions,
@@ -75,6 +79,10 @@ New reviews use a versioned evidence-first scoring candidate; earlier reviews re
 Start with the [independent trial guide](docs/independent-trial.md), [rubric review](docs/scoring-rubric.md),
 and [backup/recovery runbook](docs/backup-recovery.md). Live AI, real-policy fetching, production
 provisioning, district rubric approval, encrypted operational backups and production upgrade/rollback remain future work.
+
+See [installation readiness](docs/installation-readiness.md) for the observed clean-install results
+and remaining trial gaps. [Contributing](CONTRIBUTING.md) covers small changes and synthetic tests;
+[security reporting](SECURITY.md) explains the current reporting-channel limitation.
 
 ## Private reference copy
 
@@ -102,10 +110,16 @@ and [the modernization plan](docs/ai-analysis-plan.md).
 
 The review refinement preserves [scope, questions and suggestion provenance](docs/review-context.md)
 through drafts and human saves. Unresolved findings withhold the aggregate score and district decision
-while retaining their scoring weight. Historical scores remain fixed; precision-profile archives use schema 7.
+while retaining their scoring weight. Historical scores remain fixed. Use the
+[backup compatibility runbook](docs/backup-recovery.md) for archive versions; newer source formats
+require newer archives.
 
 The [rubric precision candidate](docs/rubric-precision.md) makes 14 difficult measures executable as
 26 subrequirements with 91 synthetic boundary cases. `npm run rubric:lab -- check|export|grade`
 supports offline review and testing with any system. A separately selectable [precision pilot](docs/rubric-adoption.md)
 now uses those clauses in prompts and human review. Existing reviews and the default profile remain
 unchanged; the synthetic labels still require independent adjudication.
+
+Manual review also supports [document sets](docs/source-bundles.md) and
+[long-policy coverage](docs/source-segments.md). Offline segment packets preserve extraction and
+synthesis evidence but do not import model findings into the application or enable a provider.

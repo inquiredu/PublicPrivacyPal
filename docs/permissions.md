@@ -37,6 +37,14 @@ Settings saves enforce expected revisions, recheck membership inside the write t
 commit the private record, immutable version, audit event and public appearance together. See
 `district-setup.md`.
 
+The review-rubric API also returns a bounded `capture-definitions-v1` projection for review readers:
+exact measure/clause labels, enabled state and definition/settings identity. It excludes private
+settings context, author/history and weights. Bundle capture may bind `sourceDefinitionId`; the
+server verifies it against the adopted contract inside the existing authorized write transaction.
+Browser drafts preserve their chosen projection until explicit adoption. A stale definition cannot
+silently reassign document dependencies. Existing commands without this optional field retain their
+original validation and receipt behavior. See [contract decisions](parallel-work/contracts.md).
+
 Review command receipts are private server records. All direct browser reads and writes to them
 are denied. API lookup is scoped to the authenticated actor and current district and requires
 active reviewer/admin membership. Retries recheck current authorization and maintenance before

@@ -12,6 +12,11 @@ Keep a Git/source revision with your eventual backups. Install Node 24 and Java 
 If you use nvm, `nvm use` selects the repository's Node version. Verify with `node --version` and
 `java -version`. The first install/download requires internet access to dependency and emulator
 distributors; the application itself runs locally.
+Start from a fresh checkout with its own `node_modules`. Do not copy another installation's local
+configuration, accounts, backups, `.private` directory, deployment bindings or dependencies.
+The commands below use the default synthetic configuration. If choosing the second example,
+set `PRIVACYPAL_CONFIG=config/second-district.example.json` for every dev/operator command and use
+its `river.example` accounts instead of the Maple examples.
 
 ```sh
 npm ci
@@ -20,7 +25,8 @@ npm run local:init
 
 Inspect `config/local.json`. For this trial, keep the synthetic Maple Grove defaults, or use the
 provided `config/second-district.example.json`. Project IDs must begin `demo-`; allowed email domains
-must end `.example` or `.test`. These names deliberately cannot become a live district connection.
+must end `.example` or `.test`. The application rejects production project IDs and real email
+domains in this local mode.
 Do not substitute your district's real project IDs or accounts. The config contains no passwords.
 
 ## Start and enter the staff workspace
@@ -65,16 +71,18 @@ Return to the admin account for the rest of the rehearsal.
 
 1. Open **Policy reviews**, choose **Bundled synthetic policy**, a fictional name, and **Missing and conflicting commitments**.
    Keep **Evidence-first candidate** selected. Analyze, then inspect the score and exact quotations.
-2. Expand **Review the scoring rubric**. Compare a separate review using the inherited profile.
-   Expect 36 and 66 with the same evidence. Record unresolved policy questions using the
-   [rubric review](scoring-rubric.md); neither version has district sign-off.
+2. Expand **Review the scoring rubric**. Compare a separate practice review using the inherited profile.
+   The [scoring rubric](scoring-rubric.md) records the expected fixture scores and their meaning.
+   Record unresolved policy questions there; neither version has district sign-off.
 3. Record a conditional decision, internal rationale, public summary, category and conditions.
    Publish locally. Sign out and verify only the intended public wording appears. Sign back in
    and unpublish; verify the entry disappears. Try the temporary-failure fixture and retry it.
 4. Follow [backup and recovery](backup-recovery.md) to save the complete installation, stop the
-   services, restore it, and sign in with the same credentials. Check private history and role limits.
+   services, restore it, and sign in with the same credentials. Do not bootstrap the restored session.
+   Check private history and role limits. The archive preserves saved accounts and records, but does
+   not include browser drafts, plaintext sign-in files or separate offline qualification packets.
 
-To use the second example, stop the first session and consistently set
+To use the second example, save and verify the first session, stop it, and consistently set
 `PRIVACYPAL_CONFIG=config/second-district.example.json` for dev, bootstrap, user and backup commands.
 Its sample accounts use `river.example`. Each installation's backup is bound to its own configuration.
 
@@ -89,7 +97,8 @@ npm run test:recovery
 ```
 
 Then restart your sandbox using its backup. Port conflicts mean another local process still owns
-one of the required ports; stop that process deliberately rather than changing emulator addresses.
+one of the required ports; identify its owner and preserve its data before deliberately stopping it.
+Run integration and recovery one at a time, even when using different demo project names.
 If local source files repeatedly stall in a cloud-synced folder, keep a working copy on local disk
 and rerun the pinned install there. Never copy an old app's deployment settings into this project.
 
@@ -98,20 +107,44 @@ questions, and whether sign-in, role checks, publication/removal and recovery ma
 Do not include passwords or backup files in feedback. One successful automated rehearsal does not
 replace this independent user trial. Live hosting, real-policy extraction, a district-approved profile,
 accessibility review, encrypted operational backups and upgrade recovery remain release work.
+Use [installation readiness](installation-readiness.md) to distinguish the current automated
+installation rehearsal from an independent person's completed trial. See
+[setup troubleshooting](local-development.md#common-setup-failures) for common failures.
 
 ## Try pasted text and corrections
 
-Use **Paste policy text** with an authored fictional policy. A copyable example and suggested
-findings are in [the synthetic paste walkthrough](synthetic-paste-walkthrough.md). Confirm that:
+Use **Paste policy text** with an authored fictional policy and the eight-measure practice profile.
+A copyable example and suggested findings are in
+[the synthetic paste walkthrough](synthetic-paste-walkthrough.md). Confirm that:
 
 - The new review begins with zero completed criteria and cannot be approved or published.
 - Exact source selection and pasted quotations both work; ambiguous quotes require selection.
 - Multiple passages can capture a promise and its exception. A fabricated quotation is rejected.
-- Completing all eight findings enables a decision. Saving an evidence correction after publication
+- Completing all eight practice findings enables a decision, subject to any explicitly adopted
+  service requirements. Full-rubric reviews require all their enabled measures instead.
+  Saving an evidence correction after publication
   removes the public entry and requires a fresh decision before publishing again.
 - History records the old and new findings and authenticated reviewer. Source text and rationales
   do not appear in the anonymous library.
-- Export/import creates a new unreviewed draft; backup/restore preserves the original review.
+- A supported practice export/import creates a new unreviewed draft; backup/restore preserves the
+  original review. Full-rubric/bundle inspection archives require explicit recapture rather than
+  automatic import; see [review storage](review-storage.md) and [source bundles](source-bundles.md).
 
 These interactions passed the local browser walkthrough recorded in `provenance.md` on 2026-10-15.
 Repeat them during an independent adopter trial; that broader acceptance remains outstanding.
+
+## Explore the complete workflow separately
+
+Follow [service detail](service-detail.md) to explicitly adopt a synthetic district tier policy and
+use the four review tabs, staff catalogue and family notice. Keep policy findings, calculated score,
+district decision and publication status separate when recording the outcome. Settings and rubric
+changes do not rescore historical reviews.
+
+[Pasted document sets](source-bundles.md) and [long-policy coverage](source-segments.md) add explicit
+scope, dependencies and missing-material review. A missing required document or unreviewed range
+cannot be resolved by a generic note. Available evidence can be saved as unfinished work without
+an aggregate score or approval. Source and dependency changes require a new review.
+
+The recorded Cedar suggestions and offline segment tools demonstrate contracts and failure handling.
+They do not enable a live provider, automatic fetching or automatic acceptance of model findings.
+No production credentials or real policies are required for any step in this trial.

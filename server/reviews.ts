@@ -18,6 +18,8 @@ import { HttpError, membersRef, requireMember, assertWritable } from './operatio
 import { fixtures, analyzeSynthetic } from './synthetic-analysis.ts';
 import { editAnalysis, sourceHash } from './evidence.ts';
 import { captureSourceBundle, bundleText } from './source-bundle.ts';
+import { captureDefinitions } from './capture-definitions.ts';
+import { profileVersions } from '../shared/scoring/profiles.ts';
 
 const readers = ['admin', 'reviewer', 'viewer'] as const;
 const editors = ['admin', 'reviewer'] as const;
@@ -73,7 +75,9 @@ export async function rubricStatus(s: Services, actor: DecodedIdToken) {
     await authorize(s, tx, actor);
     const saved = await tx.get(s.db.doc(`districts/${s.config.districtId}/settings/evaluation`));
     const available = saved.get('complete') === true && ['pef-2.0', 'pef-precision-v1'].includes(saved.get('values.starterProfile'));
-    return { servicePolicyAvailable: !!saved.get('values.tierPolicy'), available, revision: saved.get('revision') || 0, measureCount: available ? 50 : 0, profile: available ? saved.get('values.starterProfile') : null };
+    return { servicePolicyAvailable: !!saved.get('values.tierPolicy'), available, revision: saved.get('revision') || 0, measureCount: available ? 50 : 0, profile: available ? saved.get('values.starterProfile') : null,
+      captureDefinitions: { practice: Object.fromEntries(profileVersions.map(version => [version, captureDefinitions(practiceContract(version))])),
+        district: available ? captureDefinitions(districtContract(saved.data() as SavedSettings<EvaluationSettings>, saved.get('revision'), 'evidence-weighted-v1')) : null } };
   });
 }
 export async function createReview(s: Services, actor: DecodedIdToken, raw: unknown, imported = false, command?: CommandIdentity) {
@@ -88,6 +92,7 @@ export async function createReview(s: Services, actor: DecodedIdToken, raw: unkn
     const total = count.get('count') || 0;
     if (total >= 1000) throw new HttpError(429, 'This local sandbox is limited to 1000 reviews.');
     const contract = 'rubricMode' in input ? districtContract((await tx.get(s.db.doc(`districts/${s.config.districtId}/settings/evaluation`))).data() as SavedSettings<EvaluationSettings> | undefined, input.settingsRevision, input.engineVersion) : practiceContract(input.profileVersion);
+    if ('sourceDefinitionId' in input && input.sourceDefinitionId && input.sourceDefinitionId !== captureDefinitions(contract).id) throw new HttpError(409, 'The source dependency definitions changed. Refresh and explicitly adopt the current definitions; your draft is retained.');
     const service = input.serviceSettingsRevision ? await adoptService(s, tx, actor, input.serviceSettingsRevision) : undefined;
     const pasted = 'sourceKind' in input;
     const spend = pasted ? undefined : await quota(s, tx);

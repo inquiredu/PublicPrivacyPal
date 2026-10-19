@@ -499,3 +499,38 @@ test('precision adoption preserves old reviews and binds clause evidence, retrie
     assert.equal((await call('/settings', 'admin', { section: 'evaluation', revision: latest.revision, values: settings.values })).status, 200);
   }
 });
+
+test('capture definition projection enforces roles, snapshot identity, receipts and maintenance', async () => {
+  for (const role of ['anonymous', 'nonmember', 'staff', 'viewer', 'reviewer', 'admin']) {
+    const result = await call('/review-rubric', role);
+    assert.equal(result.status, ['viewer', 'reviewer', 'admin'].includes(role) ? 200 : role === 'anonymous' ? 401 : 403);
+    if (result.status === 200) {
+      const projection = result.data.captureDefinitions;
+      assert.equal(projection.practice['community-evidence-v1'].measures.length, 8);
+      assert.equal(projection.district.measures.length, 50);
+      assert.ok(!JSON.stringify(projection).includes('Colorado'));
+      assert.ok(!JSON.stringify(projection).includes('updatedBy'));
+      assert.ok(!JSON.stringify(projection).includes('evaluationWeights'));
+    }
+  }
+  const status = (await call('/review-rubric', 'viewer')).data;
+  const body = { name: 'Definition-bound Cedar', sourceKind: 'bundle', sourceLabel: 'Synthetic set', sourceBundle: syntheticBundle(), profileVersion: 'community-evidence-v1', sourceDefinitionId: status.captureDefinitions.practice['community-evidence-v1'].id };
+  assert.equal((await call('/reviews', 'reviewer', { ...body, sourceDefinitionId: '0'.repeat(64) })).status, 409);
+  assert.equal((await call('/reviews', 'viewer', body)).status, 403);
+  const key = randomUUID(), first = await call('/reviews', 'reviewer', body, key);
+  assert.equal(first.status, 201, JSON.stringify(first.data));
+  assert.equal((await call('/reviews', 'reviewer', body, key)).data.id, first.data.id);
+  assert.equal((await call('/reviews', 'reviewer', { ...body, sourceDefinitionId: '0'.repeat(64) }, key)).status, 409);
+  const lock = await acquireMaintenance(s, 'Capture projection test');
+  try { assert.equal((await call('/review-rubric', 'viewer')).status, 200); assert.equal((await call('/reviews', 'reviewer', body)).status, 503); }
+  finally { await releaseMaintenance(s, lock); }
+  const settings = (await call('/settings', 'admin')).data.evaluation;
+  const bundle = syntheticBundle(); bundle.documents[1].requiredFor = ['*'];
+  const districtBody = { ...body, sourceBundle: bundle, profileVersion: undefined, rubricMode: 'district', settingsRevision: settings.revision, engineVersion: 'evidence-weighted-v1', sourceDefinitionId: status.captureDefinitions.district.id };
+  assert.equal((await call('/reviews', 'reviewer', districtBody)).status, 201);
+  const next = await call('/settings', 'admin', { section: 'evaluation', revision: settings.revision, values: settings.values }); assert.equal(next.status, 200);
+  assert.equal((await call('/reviews', 'reviewer', districtBody)).status, 409);
+  assert.equal((await call('/reviews', 'reviewer', { ...districtBody, settingsRevision: next.data.revision })).status, 409);
+  const refreshed = (await call('/review-rubric', 'viewer')).data.captureDefinitions.district;
+  assert.equal((await call('/reviews', 'reviewer', { ...districtBody, settingsRevision: next.data.revision, sourceDefinitionId: refreshed.id })).status, 201);
+});

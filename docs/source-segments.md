@@ -3,8 +3,9 @@
 October 17, 2026. Step 4 now has a versioned long-policy capture and an **offline** multi-request
 qualification path. Select **Long policy set** within **Paste a set of policy documents**. This
 explicitly adopts `pasted-source-bundle-v2`; existing v1 bundles and single-text reviews keep their
-limits, request identities and historical scores. The first form still requires every listed
-document for every enabled measure. The dependency/exclusion editor remains future work.
+limits, request identities and historical scores. The form starts with every listed document
+required for every enabled measure. The [dependency editor](source-bundles.md) supports explicit
+measure/clause choices and explained exclusions while preserving immutable saved captures.
 
 This path accepts pasted synthetic documents only. No automatic fetching, provider dispatch,
 credentials, spending, default-rubric change or automatic evidence adoption is included. The
@@ -147,6 +148,6 @@ every Firestore document and also checks the reconstructed long Unicode source, 
 partial acknowledgments, unavailable addendum and withheld score. File-round-trip tests separately
 verify original offline responses and derived ledger reconstruction.
 
-Provider qualification, direct application adoption of segmented model output, the visible
-per-measure dependency/exclusion editor, the remaining 36 precision definitions, independently
+Provider qualification, direct application adoption of segmented model output, the remaining
+36 precision definitions, independently
 adjudicated labels and whole-policy cross-provider trials remain future work.

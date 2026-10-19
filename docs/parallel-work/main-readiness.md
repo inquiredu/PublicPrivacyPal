@@ -1,5 +1,11 @@
 # Main readiness before parallel implementation
 
+> Superseded baseline note (October 18, 2026): the coordinated session independently verified
+> actual checkout, local main and fresh GitHub main at `cb5bb04` after PR #2 was already merged.
+> The application and packet were present; all 136 implementation inputs matched at kickoff.
+> See [the completed coordinator report](reports/coordinator-wave1.md) for current uncommitted
+> work, validation, preserved source and preview/backup references. The audit below is historical.
+
 Audit: October 17, 2026 (America/Chicago). This records a development baseline, not release approval.
 
 ## What is actually on main

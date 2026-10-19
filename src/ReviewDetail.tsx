@@ -1,3 +1,4 @@
+import type { CaptureDefinitions } from '../shared/capture-definitions';
 import { SourceBundleView } from './SourceBundleView';
 import { FindingContext } from './FindingContext';
 import { AssistancePanel } from './AssistancePanel';
@@ -20,7 +21,7 @@ import { ServiceFields } from './ServiceFields';
 import { ServiceNotice } from './ServiceNotice';
 import { api } from './api';
 const tabs = [{ id: 'overview', label: 'Overview' }, { id: 'compliance', label: 'Compliance' }, { id: 'classification', label: 'Classification' }, { id: 'publish', label: 'Publish & Documents' }] as const;
-export type RubricStatus = { available: boolean; revision: number; measureCount: number; servicePolicyAvailable: boolean; profile?: 'pef-2.0' | 'pef-precision-v1' | null };
+export type RubricStatus = { captureDefinitions?: { practice: Record<string, CaptureDefinitions>; district: CaptureDefinitions | null }; available: boolean; revision: number; measureCount: number; servicePolicyAvailable: boolean; profile?: 'pef-2.0' | 'pef-precision-v1' | null };
 export function ReviewDetail({ review: r, client, user, readOnly, commands, rubric }: { review: Review; client: Client; user: User; readOnly: boolean; commands: ReviewCommands; rubric?: RubricStatus }) {
   const titleRef = useRef<HTMLHeadingElement>(null);
   useEffect(() => { titleRef.current?.focus(); }, [r.id]);

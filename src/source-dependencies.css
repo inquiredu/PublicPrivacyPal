@@ -1,0 +1,21 @@
+.source-dependencies { min-width: 0; margin-block: 1.5rem; }
+.source-dependencies fieldset { min-width: 0; margin-block: 1rem; padding: 1rem; }
+.source-dependencies legend, .source-dependencies summary, .source-dependencies li,
+.source-dependencies label, .source-bundle-capture .source-scope { overflow-wrap: anywhere; }
+.source-dependencies label { display: block; margin-block: .65rem; }
+.source-dependencies .dependency-option { display: flex; align-items: flex-start; gap: .65rem; }
+.source-dependencies .dependency-option input { flex: 0 0 auto; width: auto; margin-top: .2rem; }
+.source-dependencies .dependency-option span { min-width: 0; }
+.source-dependencies .dependency-option small { display: block; }
+.source-dependencies input:not([type=checkbox]), .source-dependencies textarea,
+.source-dependencies select { width: 100%; max-width: 100%; box-sizing: border-box; }
+.source-dependencies .dependency-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.source-dependencies button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.source-dependencies details { margin-block: .65rem; }
+.source-dependencies summary { cursor: pointer; }
+.source-dependencies .dependency-feedback ul { padding-inline-start: 1.25rem; }
+.source-dependencies :focus-visible { outline: 3px solid #245da8; outline-offset: 3px; }
+@media (max-width: 420px) {
+  .source-dependencies fieldset { padding: .6rem; margin-inline: 0; }
+  .source-dependencies .dependency-actions > button { width: 100%; }
+}

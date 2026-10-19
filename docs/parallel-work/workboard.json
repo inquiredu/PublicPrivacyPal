@@ -2,47 +2,56 @@
   "version": 1,
   "purpose": "Coordinator-owned ledger; planned assignments are not completed work or process locks.",
   "preparedOn": "2026-10-17",
-  "coordinator": null,
+  "coordinator": "/root",
   "maxWorkers": 3,
   "baseline": {
-    "status": "development_checkpoint_pending_main_review",
+    "status": "accepted",
     "intendedBranch": "main",
     "observedMainAtPreparation": "91ce51f948c18f206e75621c1e03b014d9543d52",
     "observedDevelopmentHead": "5de75d386a6f3d146195fb8b5ab9036c0a43e2da",
     "developmentWorkingTreeWasDirty": true,
-    "acceptedCommit": null,
-    "acceptedSnapshot": null,
+    "acceptedCommit": "cb5bb04cde8d900f0376d11f5676369636845eae",
+    "acceptedSnapshot": ".local/validation/coordinated-wave1/baseline.json; source archive SHA-256 d611bf66d41a1e1aa90e0bb1093e78c6478cfa1c714883f3330242082ea08fd3",
     "manifestResult": {
-      "mode": "implementation-only",
+      "mode": "main-kickoff",
       "matching": 136,
       "missing": 0,
       "changed": 0,
       "invalid": 0,
-      "mainKickoffAccepted": false
+      "mainKickoffAccepted": true
     },
     "reviewedInputDeltas": [],
-    "privateEvidenceDirectory": ".local/validation/main-readiness",
-    "latestBackupReference": ".local/backups/2026-10-17T22-53-59-091Z-432478de-83e6-497f-a4e0-18d975bb9a00",
-    "observedLocalMain": "a0e94ca6f8fd7b8b8d524b5ff8047a5116bd2f60",
-    "observedRemoteMain": "a0e94ca6f8fd7b8b8d524b5ff8047a5116bd2f60",
+    "privateEvidenceDirectory": ".local/validation/coordinated-wave1",
+    "latestBackupReference": ".local/backups/2026-10-18T19-46-20-790Z-a067cfd3-50dc-4a1a-846c-9f41bcdfa1f0",
+    "observedLocalMain": "cb5bb04cde8d900f0376d11f5676369636845eae",
+    "observedRemoteMain": "cb5bb04cde8d900f0376d11f5676369636845eae",
     "readinessReport": "main-readiness.md",
     "preservedSourceSnapshot": ".local/source-checkpoints/main-readiness-2026-10-18T02-42-13Z",
     "validation": {
       "cleanDependencyInstall": "passed; npm ci --offline from existing package cache in a separate copy",
       "ci": "passed; 386 unit/isolation tests, TypeScript, build, bundle and source isolation",
       "priorIntegrationAndRecovery": "retained evidence: 163 integration tests, two recovery cycles; 79 backend/integration/recovery inputs still match the recorded source-segments inventory; not rerun",
-      "requiresBeforeMerge": "CI, authorization and recovery on proposed source commit plus review"
-    }
+      "requiresBeforeMerge": "CI, authorization and recovery on proposed source commit plus review",
+      "currentBackup": "Verified bdb4694e-8619-4c1a-aaa7-7670929d5e74, schema 9; no records changed",
+      "remoteBaseline": "PR #2 merged; verify checks successful at 5ffe0da; current main tree identical to PR head; prior runs retained, new wave checks pending",
+      "preRehearsalBackup": "Saved, copied privately, and verified again: 0ace614b-1352-401f-9049-ee40382270b2",
+      "wave1Integration": "164 passed on assembled application",
+      "wave1Recovery": "two shutdown/import cycles passed",
+      "waveFinalCI": "481 tests passed; TypeScript, build, bundle and source isolation passed in final assembled copy",
+      "nativeBrowser": "Passed focused saved-preview/draft/keyboard/320px/200% walkthrough in Chrome Guest; no saved records changed"
+    },
+    "observedCheckout": "main; clean before session edits",
+    "acceptedAt": "2026-10-18T19:42:05.094156+00:00"
   },
   "contractDecisions": {
-    "COV-001": "proposed",
-    "INT-001": "proposed"
+    "COV-001": "accepted",
+    "INT-001": "accepted_design_only"
   },
   "resources": [
     {
       "id": "emulator-ports",
-      "status": "observed_in_use",
-      "holder": "existing demo-privacypal-local preview",
+      "status": "retained_preview",
+      "holder": "/root",
       "ports": [
         5173,
         5174,
@@ -54,22 +63,24 @@
         9150
       ],
       "queue": [],
-      "observedRuntime": "/private/tmp/privacypal-segments-6dw8kzqf",
-      "note": "Observed during readiness audit; recheck before taking ownership. No stop/start authorization is implied by this ledger."
+      "observedRuntime": "/private/tmp/privacypal-wave1-0amrk031/integration",
+      "note": "Saved preview remains running from verified backup; preserve before stopping after future writes. No active worker validation."
     },
     {
       "id": "saved-preview-operator",
-      "status": "observed_in_use",
-      "holder": "existing demo-privacypal-local preview",
+      "status": "retained_preview",
+      "holder": "/root",
       "queue": [],
-      "observedRuntime": "/private/tmp/privacypal-segments-6dw8kzqf",
-      "note": "Observed during readiness audit; recheck before taking ownership. No stop/start authorization is implied by this ledger."
+      "observedRuntime": "/private/tmp/privacypal-wave1-0amrk031/integration",
+      "note": "Saved preview remains running from verified backup; preserve before stopping after future writes. No active worker validation."
     },
     {
       "id": "shared-browser-writes",
-      "status": "inspect_before_use",
+      "status": "released",
       "holder": null,
-      "queue": []
+      "queue": [],
+      "note": "Coordinator browser validation completed; temporary draft discarded; device emulation/zoom reset.",
+      "observedRuntime": "/private/tmp/privacypal-wave1-0amrk031/integration"
     }
   ],
   "coordinatorOwned": [
@@ -104,10 +115,10 @@
       "id": "UX-01",
       "wave": 1,
       "brief": "briefs/review-experience.md",
-      "status": "planned",
-      "worker": null,
-      "workspace": null,
-      "reviewer": null,
+      "status": "accepted",
+      "worker": "/root/review_experience",
+      "workspace": "/private/tmp/privacypal-wave1-0amrk031/ux",
+      "reviewer": "/root",
       "prerequisites": [
         "accepted baseline"
       ],
@@ -123,18 +134,26 @@
         "test/unit/source-dependency-editor.test.ts",
         "docs/parallel-work/reports/UX-01.md"
       ],
-      "checks": [],
-      "reviewFindings": [],
-      "integratedCommitOrSnapshot": null
+      "checks": [
+        "Final assembled CI:481 passing tests; TypeScript/build/bundle/source isolation passed.",
+        "Fresh API integration164 and recovery2 cycles passed.",
+        "Native Chrome passed scoped draft, stale-definition, scope, clause keyboard,320px and200% walkthrough; IAB streaming limitation remains separately documented."
+      ],
+      "reviewFindings": [
+        "Coordinator reviewed UI/tests and browser behavior; empty link drafts and exact exclusion whitespace corrected.",
+        "UX worker independently reviewed shared/API/draft wiring; no additional actionable defect."
+      ],
+      "integratedCommitOrSnapshot": "uncommitted coordinated working tree over cb5bb04; private final source inventory/archive under .local/validation/coordinated-wave1",
+      "assignmentNote": "136/136 baseline inputs verified in isolated copy. Exclusive allowlist authorized; runtime/browser remain coordinator-owned."
     },
     {
       "id": "INT-01",
       "wave": 1,
       "brief": "briefs/intelligence-workflow.md",
-      "status": "planned",
-      "worker": null,
-      "workspace": null,
-      "reviewer": null,
+      "status": "accepted",
+      "worker": "/root/intelligence_workflow",
+      "workspace": "/private/tmp/privacypal-wave1-0amrk031/int",
+      "reviewer": "/root",
       "prerequisites": [
         "accepted baseline"
       ],
@@ -148,18 +167,23 @@
         "scripts/segmented-adoption-lab.ts",
         "docs/parallel-work/reports/INT-01.md"
       ],
-      "checks": [],
-      "reviewFindings": [],
-      "integratedCommitOrSnapshot": null
+      "checks": [
+        "37 focused worker tests; 17 new cases included in final481-test CI. Design only; durable segmented lifecycle unimplemented."
+      ],
+      "reviewFindings": [
+        "Coordinator non-author review accepted design/offline evidence after exact-config recovery and canonical request-storage wording fixes; no durable authority added."
+      ],
+      "integratedCommitOrSnapshot": "uncommitted coordinated working tree over cb5bb04; private final source inventory/archive under .local/validation/coordinated-wave1",
+      "assignmentNote": "136/136 baseline inputs verified in isolated copy. Exclusive allowlist authorized; runtime/browser remain coordinator-owned."
     },
     {
       "id": "DOC-01",
       "wave": 1,
       "brief": "briefs/independent-installation.md",
-      "status": "planned",
-      "worker": null,
-      "workspace": null,
-      "reviewer": null,
+      "status": "accepted",
+      "worker": "/root/independent_installation",
+      "workspace": "/private/tmp/privacypal-wave1-0amrk031/doc",
+      "reviewer": "/root",
       "prerequisites": [
         "accepted baseline",
         "disposable copy with its own writable dependencies"
@@ -177,18 +201,25 @@
         "docs/installation-readiness.md",
         "docs/parallel-work/reports/DOC-01.md"
       ],
-      "checks": [],
-      "reviewFindings": [],
-      "integratedCommitOrSnapshot": null
+      "checks": [
+        "Normal npm ci and npm ls passed; own dependencies; baseline CI386 tests/typecheck/build/source isolation passed.",
+        "local:init creation and repeat no-op passed;66 local links valid;136 baseline hashes unchanged.",
+        "Runtime/bootstrap/account/backup/restore not exercised; elevated startup permission pending then interrupted; limitation explicitly recorded."
+      ],
+      "reviewFindings": [
+        "Coordinator reviewed all seven documents; no blocking issue. Historical schema wording in coordinator-owned service/bundle docs corrected."
+      ],
+      "integratedCommitOrSnapshot": "uncommitted coordinated working tree over cb5bb04; private final source inventory/archive under .local/validation/coordinated-wave1",
+      "assignmentNote": "136/136 baseline inputs verified in isolated copy. Exclusive allowlist authorized; runtime/browser remain coordinator-owned."
     },
     {
       "id": "RUB-01",
       "wave": 2,
       "brief": "briefs/rubric-refinement.md",
-      "status": "planned",
-      "worker": null,
-      "workspace": null,
-      "reviewer": null,
+      "status": "accepted",
+      "worker": "/root/review_experience",
+      "workspace": "/private/tmp/privacypal-wave1-0amrk031/ux",
+      "reviewer": "/root",
       "prerequisites": [
         "coordinator assignment after first-wave checkpoint",
         "frozen current candidate and batch selection"
@@ -203,18 +234,23 @@
         "test/unit/rubric-next.test.ts",
         "docs/parallel-work/reports/RUB-01.md"
       ],
-      "checks": [],
-      "reviewFindings": [],
-      "integratedCommitOrSnapshot": null
+      "checks": [
+        "38 focused and234 combined worker tests; final481-test CI passed. Frozen14-measure candidate unchanged."
+      ],
+      "reviewFindings": [
+        "Coordinator accepted offline-only proposal; license end conditions, format treatment and actor scope remain human adjudication decisions."
+      ],
+      "integratedCommitOrSnapshot": "uncommitted coordinated working tree over cb5bb04; private final source inventory/archive under .local/validation/coordinated-wave1",
+      "assignmentNote": "First-wave checkpoint recorded: implementation integrated; INT/DOC accepted; UX browser gate pending environment access. This independent follow-up has no runtime/browser dependency. No other file ownership or resource access granted. Batch: do_001, do_002, do_004 only; candidate hash e8e01a94339fc4c5c8e44009cec4d7c9a878e95941374337691b01986dae3dc3 frozen."
     },
     {
       "id": "A11Y-01",
       "wave": 2,
       "brief": "briefs/accessibility-review.md",
-      "status": "planned",
-      "worker": null,
-      "workspace": null,
-      "reviewer": null,
+      "status": "accepted",
+      "worker": "/root",
+      "workspace": "/private/tmp/privacypal-wave1-0amrk031/integration",
+      "reviewer": "/root/independent_installation",
       "prerequisites": [
         "coordinator assignment",
         "stable integrated UX-01 revision",
@@ -227,18 +263,24 @@
         "docs/accessibility-review.md",
         "docs/parallel-work/reports/A11Y-01.md"
       ],
-      "checks": [],
-      "reviewFindings": [],
-      "integratedCommitOrSnapshot": null
+      "checks": [
+        "Focused native Chrome keyboard, draft/error recovery, source/decision/publication inspection,320px reflow and200% zoom checks passed.",
+        "VoiceOver/NVDA, runtime reduced motion/forced colors and full configurable contrast remain untested."
+      ],
+      "reviewFindings": [
+        "Independent reviewer accepted source/evidence consistency after applicability wording correction. Low-severity feedback-navigation proposal remains unimplemented."
+      ],
+      "integratedCommitOrSnapshot": "uncommitted coordinated working tree over cb5bb04; private final source inventory/archive under .local/validation/coordinated-wave1",
+      "assignmentNote": "Native Chrome guest session available; coordinator owns focused browser assessment."
     },
     {
       "id": "PROV-01",
       "wave": 2,
       "brief": "briefs/provider-qualification.md",
-      "status": "planned",
-      "worker": null,
-      "workspace": null,
-      "reviewer": null,
+      "status": "accepted",
+      "worker": "/root/intelligence_workflow",
+      "workspace": "/private/tmp/privacypal-wave1-0amrk031/int",
+      "reviewer": "/root/independent_installation",
       "prerequisites": [
         "coordinator assignment",
         "accepted intelligence interfaces for this increment"
@@ -252,18 +294,23 @@
         "test/unit/provider-qualification.test.ts",
         "docs/parallel-work/reports/PROV-01.md"
       ],
-      "checks": [],
-      "reviewFindings": [],
-      "integratedCommitOrSnapshot": null
+      "checks": [
+        "26 focused fake-transport/worker tests; included in final481-test CI. No live calls or registration change."
+      ],
+      "reviewFindings": [
+        "Non-author review accepted after clarifying helper-only cancellation and envelope-only validation claims; terminal unknown-billing and original-output gaps explicitly retained."
+      ],
+      "integratedCommitOrSnapshot": "uncommitted coordinated working tree over cb5bb04; private final source inventory/archive under .local/validation/coordinated-wave1",
+      "assignmentNote": "First-wave checkpoint recorded: implementation integrated; INT/DOC accepted; UX browser gate pending environment access. This independent follow-up has no runtime/browser dependency. No other file ownership or resource access granted."
     },
     {
       "id": "OPS-01",
       "wave": 2,
       "brief": "briefs/operations.md",
-      "status": "planned",
-      "worker": null,
-      "workspace": null,
-      "reviewer": null,
+      "status": "accepted",
+      "worker": "/root/independent_installation",
+      "workspace": "/private/tmp/privacypal-wave1-0amrk031/doc",
+      "reviewer": "/root",
       "prerequisites": [
         "coordinator assignment",
         "DOC-01 findings"
@@ -277,9 +324,30 @@
         "docs/upgrade-rehearsal-plan.md",
         "docs/parallel-work/reports/OPS-01.md"
       ],
-      "checks": [],
-      "reviewFindings": [],
-      "integratedCommitOrSnapshot": null
+      "checks": [
+        "11 local links and whitespace passed; worker source isolation and136 baseline hashes unchanged. Documentation-only; no runtime rehearsal claimed."
+      ],
+      "reviewFindings": [
+        "Coordinator non-author review accepted: lockfile compatibility, protected initial-admin succession gap, exact per-review vs installation recovery, and rollback after accepted writes are explicit. Proposed operations do not acquire authority."
+      ],
+      "integratedCommitOrSnapshot": "uncommitted coordinated working tree over cb5bb04; private final source inventory/archive under .local/validation/coordinated-wave1",
+      "assignmentNote": "First-wave checkpoint recorded: implementation integrated; INT/DOC accepted; UX browser gate pending environment access. This independent follow-up has no runtime/browser dependency. No other file ownership or resource access granted."
     }
-  ]
+  ],
+  "sessionState": {
+    "status": "completed",
+    "reason": "Owner resumed; first wave and scoped follow-up deliverables reviewed and integrated into the uncommitted checkout.",
+    "remaining": "See coordinator report for deferred segmented application writes, provider gaps, independent runtime trial, human rubric adjudication and broader accessibility checks."
+  },
+  "remoteContinuation": {
+    "preparedOn": "2026-10-19",
+    "repository": "inquiredu/PublicPrivacyPal",
+    "branch": "codex/coordinated-milestone-2026-10-19",
+    "guide": "../workstation-handoff.md",
+    "sourceBaseline": "cb5bb04cde8d900f0376d11f5676369636845eae",
+    "preDocumentationParity": "218 files matched the validated October18 milestone",
+    "privateArtifacts": "Remain on original workstation; absent from Git clone",
+    "resourceReservations": "Historical local runtime only; new sessions must inspect their own resources",
+    "mainMergeAuthorized": false
+  }
 }
