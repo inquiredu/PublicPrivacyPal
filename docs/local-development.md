@@ -39,7 +39,9 @@ on Ctrl+C:
 
 The emulator hub also uses ports 4400/4500, and the Firestore websocket uses 9150. All installations
 and emulator suites share these fixed ports on one computer, even with different demo project IDs.
-Port conflicts stop startup; do not connect the app to a different endpoint as a workaround.
+An occupied port (`EADDRINUSE`) stops startup. Permission failures (`EACCES` or `EPERM`) identify
+the loopback address and require checking local bind permissions or sandbox restrictions. Other
+socket failures retain their original cause. Keep the documented endpoints for every case.
 
 Save the whole sandbox with `npm run local:backup` while services are running, then restart with
 `npm run dev -- --restore .local/backups/YOUR_COMPLETED_DIRECTORY`. There is no automatic save on
@@ -103,8 +105,8 @@ and running `npm run dev -- --restore BACKUP_DIRECTORY`. Do not bootstrap after 
 `npm run ci` runs strict TypeScript checks, unit/isolation tests, the browser build, and source/bundle
 isolation checks. `npm run test:integration` starts fresh Auth/Firestore emulators, checks actual
 security rules with synthetic identities, and calls the HTTP API using emulator-issued ID tokens.
-No Firebase login is required. `npm run test:recovery` additionally runs two complete emulator
-shutdown/import cycles and checks accounts, permissions and exact data recovery. Run integration
+No Firebase login is required. `npm run test:recovery` imports a schema-9 fixture, then runs two
+schema-10 shutdown/import cycles and checks accounts, permissions and saved data recovery. Run integration
 and recovery serially. Save and verify your sandbox, then stop the development server first to free
 its ports. Restore your saved installation after the tests; the test emulators are disposable.
 
@@ -119,7 +121,9 @@ material, and local configuration are excluded from Git; Vite denies access to t
 | Wrong Node version or no Java runtime | Select Node 24 and install/select Java 21+, then check versions in both terminals. Do not rely on another developer's temporary runtime path. |
 | Missing `tsx`, `pdfjs-dist`, Firebase CLI or another pinned dependency | Run `npm ci` in this checkout with Node 24. Do not borrow a different checkout's `node_modules` or replace the lockfile. |
 | Package or emulator download fails | Check access to the dependency/emulator distributor and retry the same pinned command. A cached install does not prove a first download works on a new computer. |
-| Port is occupied | Identify the process and its owner. Save/verify its installation before deliberately stopping it. Do not kill an unknown process or run two emulator sessions together. If no listener exists, check local bind permissions: the launcher currently gives this same message for any bind error. |
+| Port is occupied (`EADDRINUSE`) | Identify the process and its owner. Save/verify its installation before deliberately stopping it. Do not kill an unknown process or run two emulator sessions together. |
+| Permission denied binding a loopback port (`EACCES` / `EPERM`) | Check local bind permissions and the terminal/tool sandbox. Use the environment's authorized permission mechanism to retry the same local command; do not change ports or disable the fresh-session check. |
+| Another socket failure | Read the retained error code/cause and investigate that failure before retrying. The launcher does not label every socket error as an occupied port. |
 | Cloud-credential or emulator-endpoint refusal | Use a clean development shell with the documented loopback endpoints. Leave existing district credentials and services untouched. |
 | Old password fails after a restart | Check whether the launcher used the matching verified backup. An empty session has no previous accounts. Restore the saved installation rather than treating bootstrap as password recovery. |
 | Bootstrap says already initialized | Existing accounts, roles and passwords were preserved. Use the original local account file; bootstrap does not reset it. |

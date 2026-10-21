@@ -14,6 +14,8 @@
 .source-dependencies details { margin-block: .65rem; }
 .source-dependencies summary { cursor: pointer; }
 .source-dependencies .dependency-feedback ul { padding-inline-start: 1.25rem; }
+.source-dependencies .dependency-feedback h4 { margin-block: 0 .5rem; }
+.source-dependencies .dependency-error { overflow-wrap: anywhere; font-weight: 600; }
 .source-dependencies :focus-visible { outline: 3px solid #245da8; outline-offset: 3px; }
 @media (max-width: 420px) {
   .source-dependencies fieldset { padding: .6rem; margin-inline: 0; }

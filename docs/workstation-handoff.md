@@ -18,11 +18,11 @@ git rev-parse HEAD
 
 Record the returned commit as the starting revision. The clone includes the implementation, pinned
 dependencies, synthetic fixtures, tests, accepted contract decisions, scoped follow-up proposals and
-the first-wave, follow-up and segmented-implementation reports. A new session does not inherit the previous session's running agents
+the first-wave, follow-up, segmented-implementation and adoption-wave reports. A new session does not inherit the previous session's running agents
 or resource reservations. Preserve any local edits before changing an existing checkout.
 
 Start with [AGENTS.md](../AGENTS.md), [HANDOFF.md](../HANDOFF.md),
-[the current coordinator report](parallel-work/reports/coordinator-segmented.md),
+[the current coordinator report](parallel-work/reports/coordinator-adoption.md),
 [the contract log](parallel-work/contracts.md) and [the workboard](parallel-work/workboard.json).
 The original kickoff manifest describes the pre-milestone baseline at `cb5bb04`; it is intentionally
 unchanged and is not a hash inventory for this completed checkpoint. Record the current Git revision
@@ -47,8 +47,8 @@ no Firebase login, district credentials or AI keys are required. If the session 
 bind local ports or download dependencies, record the unrun checks instead of claiming a runtime
 pass. Do not weaken the emulator guards or substitute a live project.
 
-The October 20 assembled implementation passed 518 unit/isolation tests, TypeScript, build and
-bundle limits, and 209 emulator integration tests. The current coordinator report records recovery
+The October 20 assembled implementation passed 544 unit/isolation tests, TypeScript, build and
+bundle limits, and 224 emulator integration tests. The current coordinator report records recovery
 and browser evidence separately. These are observed checks on the original workstation, not a
 claim that a new workstation has already passed. GitHub's existing workflow also runs the
 unit/build/isolation, integration and recovery gates on pushes.
@@ -95,8 +95,10 @@ The dependency/exclusion editor, definition freshness checks and durable synthet
 are implemented. The lab retains original responses and opens explicit unresolved human drafts;
 see [its walkthrough](segmented-reviews.md). Only the exact authored Lantern source is eligible.
 Live provider admission, billing reconciliation, general model-output adoption and provider
-qualification remain open. Human rubric adjudication, an independent runtime installation trial
-and broader accessibility verification also remain open.
+qualification remain open. A fresh-clone synthetic installation/API/backup/restore trial and focused keyboard/draft/320px/200%
+checks passed. Human rubric adjudication, an outside-person adoption pilot, screen-reader coverage
+and broader accessibility verification remain open. The read-only `npm run local:check` is
+implemented; protected-administrator succession remains a proposal.
 Use the coordinator report to choose and assign the next bounded increment. Keep human corrections,
 historical versions, drafts, receipt replay, deterministic scoring and district decisions intact.
 The existing district instance and original repository remain untouched; live calls, deployment,

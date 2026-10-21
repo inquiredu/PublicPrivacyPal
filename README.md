@@ -19,6 +19,9 @@ Prerequisites: **Node 24**, **Java 21+**, and Git. No Firebase login, cloud proj
 Use a checkout of `inquiredu/PublicPrivacyPal` and open a terminal in its root directory.
 If you use nvm, `nvm use` selects Node 24; otherwise select Node 24 with your installed runtime manager.
 The first install and emulator run need access to package and emulator distributors.
+Install this checkout's own dependencies; do not copy another installation's configuration,
+accounts or `node_modules`. See [installation readiness](docs/installation-readiness.md) for the
+fresh-clone evidence and its limits.
 
 ```sh
 nvm use

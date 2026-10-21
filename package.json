@@ -26,7 +26,8 @@
     "local:backup:verify": "node --import tsx scripts/backup.ts verify",
     "local:resume": "node --import tsx scripts/backup.ts resume",
     "test:recovery": "node --import tsx scripts/test-recovery.ts",
-    "local:migrate-reviews": "node --import tsx scripts/migrate-reviews.ts"
+    "local:migrate-reviews": "node --import tsx scripts/migrate-reviews.ts",
+    "local:check": "node --import tsx scripts/operations-check.ts"
   },
   "dependencies": {
     "firebase": "13.0.0",

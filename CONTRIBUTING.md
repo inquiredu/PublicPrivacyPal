@@ -70,4 +70,10 @@ the increment as accepted. In an invoked parallel session, the coordinator contr
 [workboard](docs/parallel-work/workboard.json), shared contracts, resource queue and integration;
 workers change only assigned files.
 
+Startup diagnostic tests inject occupied-port, permission and other socket failures without binding
+real ports. A passing injected-error test is distinct from starting the application. Record actual
+startup and shutdown evidence under the shared runtime reservation; keep tool-permission delays
+separate from application failures. A fresh clone operated by the implementation team is useful
+setup evidence, but does not complete an independent person's adoption trial.
+
 For potential vulnerabilities, follow [SECURITY.md](SECURITY.md) before sharing details.

@@ -1,7 +1,7 @@
 # Operations readiness
 
-This is a proposed operating design for an independently owned district installation. PublicPrivacyPal
-currently runs only with synthetic local emulators. OPS-01 changes documentation only: no service,
+PublicPrivacyPal currently runs only with synthetic local emulators. OPS-02 implements a read-only
+operator diagnostic; the broader operating design below remains a proposal. No service,
 identity provider, credential, monitor, retention job or production target has been configured.
 Use [local setup](local-development.md) and [backup recovery](backup-recovery.md) for implemented
 commands; use [the rehearsal plan](upgrade-rehearsal-plan.md) to qualify later changes.
@@ -19,8 +19,60 @@ commands; use [the rehearsal plan](upgrade-rehearsal-plan.md) to qualify later c
 
 The local machine's privileged operator can bypass emulator administration. Current local access
 tests do not certify production infrastructure. [Installation readiness](installation-readiness.md)
-records DOC-01's successful pinned install/CI and its unexercised operator/browser steps. Coordinator
+records current independent installation evidence and its remaining limitations. Coordinator
 integration/recovery evidence is recorded separately in the current [handoff](../HANDOFF.md).
+
+## Implemented local operator check
+
+Run from the matching source checkout and configuration while its owned emulators are running:
+
+```sh
+npm run local:check
+npm run --silent local:check -- --json
+npm run local:check -- --backup PATH_TO_COMPLETED_ARCHIVE
+```
+
+Use the same `PRIVACYPAL_CONFIG` as the installation. This command never starts services, initializes
+an installation, signs in, creates or changes an account, changes membership/configuration, acquires
+or releases maintenance, saves a backup, or restores anything. It reads fixed loopback endpoints,
+installation identity fields, maintenance presence, relevant memberships and Auth identity status.
+The existing `demo-`/synthetic-domain/credential guards apply before opening services. Neither
+plain nor JSON output includes account identifiers, archive/configuration paths, raw Auth records,
+tokens, passwords or caught exception details.
+
+The JSON format is `operations-readiness-v1`, with `scope: "synthetic-local-only"`, `ok` and `checks`.
+Each check has one stable `code`, a `status` of `pass`, `warn`, `fail` or `not_checked`, and a static
+human-readable `message`. Consumers should use codes/statuses rather than parse message wording.
+Exit status is 1 for invalid arguments or any failed check; advisories alone return 0. Unknown,
+repeated and missing arguments fail. `--json` works with failures too. Use npm's `--silent` option
+above when piping JSON so npm's own command banner is omitted.
+
+| Code | Meaning |
+| --- | --- |
+| `arguments` | Present on invalid invocation; no configuration or services were read. |
+| `configuration` | The selected local file satisfies the existing strict synthetic configuration schema. |
+| `emulator_environment` | Shell credentials and emulator endpoints satisfy the existing local guard. |
+| `emulators` | Both fixed emulator root endpoints responded; unavailable services, deadlines or connection-close failure fail. This is not application health or a production-target test. |
+| `installation` | Installed district ID, domain list and initial-admin email match current configuration, and the protected UID is usable. Missing/malformed/drifting installation fails. |
+| `protected_admin` | That exact Auth identity is enabled, verified and matches the configured email and active admin membership. A missing, malformed or inconsistent identity/membership fails. |
+| `maintenance` | Any existing fence fails the check, including a malformed fence. It is never cleared or printed. |
+| `second_admin` | Another enabled verified Auth identity with matching active admin membership is present. Absence is an advisory; unavailable reads fail. Neither result proves succession or total-admin-loss recovery. |
+| `backup` | Optional archive passes the existing checksum, native metadata, supported schema and exact configuration/toolchain verifier. Without `--backup`, this remains `not_checked`. |
+
+Availability probes have a two-second deadline; service inspection has a ten-second deadline and
+connection cleanup one second. Administrator candidates are read in pages of at most 100, stopping
+after a qualifying second administrator or 1,000 candidates. Reaching that bound without confirmation
+is explicitly advisory. No diagnostic lock is acquired. Auth and Firestore reads occur at different
+times, so this is a point-in-time diagnostic, not an atomic authorization decision or a token that
+permits later operations. Current authorization still applies to every actual command.
+
+An archive verification pass means its supplied bytes and compatibility metadata passed; it does
+not prove restored identities, review semantics, usable passwords, an off-device copy, or successful
+shutdown/import. Follow [the rehearsal plan](upgrade-rehearsal-plan.md) for that separate evidence.
+On failure, preserve the existing installation/archive and investigate the named category. In
+particular, do not rerun bootstrap to replace a protected administrator or release an unexplained
+maintenance fence merely to make this check pass. Account loss and protected-admin retirement
+still have no implemented recovery/succession command.
 
 ## Proposed responsibilities and provisioning sequence
 
@@ -71,6 +123,36 @@ local archive requires the existing verified, enabled initial admin and matching
 does not promote an arbitrary replacement. A failed restored-admin check must stop recovery, not
 cause a fresh bootstrap. Ownership proof, recovery authority and two-person approval are unresolved
 production design decisions.
+
+### Versioned succession proposal — not implemented
+
+`protected-admin-succession-proposal-v1` is a design identifier, not an accepted command, record
+schema, migration, or promotion path. The check above does not issue attestations or authorize it.
+The proposed planned-transfer operation would have these explicit contracts:
+
+| Element | Proposed contract and unresolved decision |
+| --- | --- |
+| Request | One bounded request with a UUID, stable district identity, expected installation generation, source configuration hash, exact departing/successor UIDs, reason, expiry and attestation references. Bind the canonical request hash to the receipt; changing any field requires a new request. UID/proof fields need strict limits and no credential material. |
+| Authority | Require current enabled/verified protected-admin authority, a separately authenticated successor acknowledgment, and an independent district-control attestation bound to the same request. The attester must be distinct from both parties. Who may attest, how that authority is enrolled/revoked, proof format, expiry and verification remain unresolved; a domain email, a local operator shell or a second-admin diagnostic pass is insufficient. |
+| Preconditions | Re-read exact current Auth identities, admin memberships, installation generation and active maintenance ownership. Refuse revoked/disabled/unverified parties, expired evidence, stale generation, conflicting transfer or changed configuration. Current Auth and Firestore cannot be assumed atomically consistent; specify freshness/rechecks and the fail-closed reconciliation boundary before implementing. |
+| Durable state | Propose an immutable prepared request plus generation-bound commit receipt and audit event. An identical retry reads its original result after rechecking current authority; it cannot repeat promotion or retirement. An uncertain commit must be reconciled by request ID before another transfer can start. No partial failure releases maintenance. |
+| Configuration | A future installation/configuration version must distinguish historical bootstrap identity from the current protected custodian. Today `bootstrapAdminEmail` is immutable installation/backup identity. Decide a reviewed v1→v2 conversion and how the local file, database and receipt agree after a crash; they cannot be written atomically together. Keep startup fenced until explicit reconciliation proves one committed generation. |
+| Backup compatibility | Introduce a new supported archive/configuration version only with its reader and migration. Keep old archives byte-identical with their exact old configuration/source. Decide how a post-transfer archive proves the new protected identity, and how an old archive that would resurrect former authority is handled. Current schema-10/exact-configuration restore must continue to refuse an unrecognized version. No schema number is reserved by this proposal. |
+| Retirement | Successor promotion/protection and the former custodian's membership/session retirement are separate declared effects. Require independent successor access verification before the latter. Decide whether an interim former-admin membership is permissible and how its expiry is enforced; current self/protected-admin API restrictions must not be bypassed. |
+| Rollback | Before commitment, an expired/cancelled request has no membership effect. After commitment, do not silently restore the old protected identity or reuse the transfer receipt. Prefer a new attested reverse transfer with a higher generation. A pre-transfer archive rollback may restore revoked authority and discard later work; external generation evidence versus an explicit independently attested rollback decision is unresolved. Offline data alone cannot prove that no later transfer occurred. |
+
+Proposed acceptance must include replay/lost-response tests, two simultaneous transfers, changed
+attestation/identity/membership between stages, a crash after each database/file/receipt write,
+missing attesters, disabled successor, post-commit retirement failure, old/new archive refusal and
+two-cycle restore. Preserve every historical human attribution and existing receipt throughout;
+changing an administrator must not rewrite reviewer identity, scores, district decisions or public
+state. A test must show that failure leaves the maintenance owner and all authorities identifiable.
+
+Total-admin-loss recovery is a separate proposal requiring district-control authority that survives
+loss of all current accounts. It cannot fall back to the planned-transfer API, account creation,
+bootstrap, direct membership edits, or a check result. Before implementation, the owner must decide
+the attestation authority, configuration/backup compatibility mapping, durable reconciliation states,
+receipt retention and rollback/revocation policy and arrange independent review.
 
 For future secret rotation, inventory each server identity/provider credential and its consumer;
 create a replacement through the district's verified operator; validate it in the disposable target;

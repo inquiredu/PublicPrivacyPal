@@ -1,9 +1,11 @@
 # Synthetic recovery and upgrade rehearsal plan
 
-This is a test plan, not an executed OPS-01 upgrade or a production runbook. It preserves the
-existing [local backup contract](backup-recovery.md) and separates its tested legacy conversion from
-a future supported release upgrade. OPS-01 ran no emulators, migrations, bootstrap, publication,
-backup, restore or failure injection. The coordinator owns runtime reservations and the saved preview.
+This plan preserves the existing [local backup contract](backup-recovery.md) and separates its tested
+legacy conversion from a future supported release upgrade. OPS-02 adds executable read-only
+diagnostics and direct finish-restore refusal tests. It does not implement succession or select a
+supported upgrade pair. OPS workers run no emulators, bootstrap, backup, import or publication;
+the coordinator owns runtime reservations and records executed evidence in
+[the OPS-02 report](parallel-work/reports/OPS-02.md).
 
 ## Entry gate and source identities
 
@@ -36,11 +38,18 @@ npm run test:integration
 npm run test:recovery
 ```
 
-Run them serially where they share output/dependencies or ports. The recovery command creates
-synthetic records, saves them, shuts down/imports twice and checks exact restored state. It uses the
-current reader against a fixture containing older record shapes; it is not a test of arbitrary
+Run them serially where they share output/dependencies or ports. The recovery command optionally
+imports a preserved schema-9 baseline first, then imports a synthetic schema-9 fixture and performs
+two schema-10 shutdown/import cycles, checking exact restored state. It uses the
+current reader against older record shapes and durable schema-10 segmented runs; it is not a test of arbitrary
 historical binaries or dependency upgrades. Inspect the receipt privately for generated IDs and
 comparison data. Its random passwords and exported accounts must never enter a report or commit.
+
+The new `npm run local:check` can inspect an already running installation. It does not acquire a
+maintenance lock or repair anything. Run `npm run --silent local:check -- --json` for structured
+output and optionally supply `--backup PATH` to invoke the existing exact verifier. Preserve the
+exit status and redacted check report; do not treat `backup: not_checked` as a verified recovery
+point or a passing archive check as a completed restore. See [operator check semantics](operations-readiness.md).
 
 The current suite's precise before/after contract in
 [roundtrip.ts](../test/recovery/roundtrip.ts) includes:
@@ -55,15 +64,20 @@ The current suite's precise before/after contract in
 | `Precision recovery`: mixed clause states and question `Supply applicable security terms.` | Adopted precision definition and original proposal clauses survive; unresolved current finding remains distinct from original established proposal. |
 | `Bounded source recovery`: missing security addendum | Document remains missing, coverage target not ready, aggregate score null. |
 | `Segmented source recovery`: over 100,000 characters, late seven-year backup-retention exception, only `s1` human acknowledgment | Exact text/hash/parts and late quotation survive; acknowledgment remains partial and score null. |
+| Durable segmented schema-10 runs, including empty/cancelled runs, original valid/invalid responses, stale synthesis and attributed unresolved human findings | Exact raw bytes, requests, attempts/outcomes, historical prefixes, dispatch/receipt identities, admission accounting and original human provenance survive; no new score, decision or publication is inferred. |
 | Queued suggestion and fixture jobs; failed retry fixture | Queued jobs may resume once explicitly processed; failed job stays failed until reviewer retry. Existing outputs/corrections are not newly approved. |
 | Original actor-scoped create-command receipt | Same command replays to the same review without changing any stored document or restoring an old publication. |
 | Legacy inline review in a mixed archive | Exact expected bounded conversion, historical evaluation/decision evidence and public state survive; no silent rescoring. |
 
 The comparison includes every Firestore document and timestamp except the transient
-`installation/maintenance` document; maintenance is verified separately. Auth verification checks
-identity/password/disabled state, not byte equality of mutable login timestamps. After permitted
+`installation/maintenance` document; maintenance is verified separately. Auth comparison covers
+every field, including password hash/salt and last-login time, except two proven native-import
+normalizations: the token-valid-after cutoff becomes the import time, and last-refresh time becomes
+null. The test bounds the new cutoff and compares every other field exactly through private digests;
+see [the segmented recovery evidence](parallel-work/reports/coordinator-segmented.md). After permitted
 queued-job work, the second archive establishes a new exact comparison baseline. The first archive
-must remain byte-identical. Current long-source records require schema 9; use the actual format
+must remain byte-identical. Long-source records require schema 9; any durable segmented run requires
+schema 10, including an empty or cancelled run. Use the actual format
 required by the records rather than forcing a chosen version.
 
 ## Proposed A-to-B rehearsal and acceptance sequence
@@ -108,7 +122,7 @@ is present in the named source tests; it does not claim OPS-01 executed it.
 | Throw during one legacy review transaction | No partial versions for that review; fence remains. Resume once cause is fixed; already converted reviews are skipped. | Existing [migration tests](../test/integration/review-storage.test.ts). |
 | Interrupt between legacy review batches | Earlier transactions may be converted; later ones remain legacy. Hold the same fence, resume idempotently and compare the complete expected state. | Proposed extension; per-review atomicity is not whole-installation rollback. |
 | Legacy history exceeds the supported bound, or cannot reproduce its historical score | Refuse conversion and keep maintenance. Preserve evidence for a separately reviewed migration; do not truncate history or rescore it. | Current migration rejects these states; explicit adversarial rehearsal remains planned. |
-| Restored initial admin is disabled/unverified or membership/email disagrees | Finish-restore rejects before API/worker startup. Preserve diagnostics, stop owned emulators and use a trusted compatible recovery point; never bootstrap around the check. | Current restore guard; proposed targeted failure rehearsal. |
+| Missing/drifting installation, malformed protected UID, missing/disabled/unverified/wrong-email Auth, missing/non-admin/inactive/wrong-email membership | Both the diagnostic and current finish-restore gate fail; compare all Auth and Firestore records before/after and retain the exact maintenance fence. Never bootstrap around the refusal. | Added [OPS-02 emulator cases](../test/integration/operations-readiness.test.ts); execution status in the OPS-02 report. |
 | Lost save response followed by original command replay | One effect and one review identity; old receipt must not republish a corrected review or bypass revoked membership. | Existing receipt/integration/recovery cases. |
 | Candidate starts but record/projection comparison fails | Reject B, preserve failure evidence privately, stop B and restore A/A0. No user writes may be admitted while accepting the candidate. | Proposed A/B acceptance gate. |
 | Off-device copy unreadable, decryption key unavailable or retrieval corrupted | Restore fails explicitly; use an independently verified retained copy/key recovery path. No successful recovery declaration based only on object existence. | Future encrypted/off-device design; no such service selected. |
@@ -119,6 +133,30 @@ The existing local legacy command, for a separately authorized compatible exerci
 Its documented recovery form is `npm run local:migrate-reviews -- --resume-lock LOCK_ID` after the
 cause is understood. This narrow command is not a general schema-upgrade engine, and a migration
 failure is not fixed by `local:resume` merely to reopen partially converted state.
+
+## Scope of the new refusal evidence
+
+`test/integration/operations-readiness.test.ts` uses the normal synthetic test configuration and
+real Auth/Firestore emulators. It exercises the fixed-root availability probes, healthy/maintenance
+diagnostics, second-admin eligibility and eleven protected-installation failure variants. Each
+variant captures every fixture Firestore document and Auth user record after the intentional damage
+and before inspection, then compares them after inspection and after `finishRestore` rejects. The
+same maintenance ID must remain. It performs no sign-in between comparisons, avoiding Auth login
+timestamp changes being mistaken for restore writes. Generated identities/passwords stay private.
+
+These are direct tests of the existing **post-import gate**, with an in-memory schema-3 manifest
+fixture. That fixture is deliberately not a sealed archive. No native export is edited or relabeled,
+and the tests do not claim a new shutdown/import rehearsal. Actual native archive validity and
+two-cycle recovery remain the separate backup/recovery suites. The pure readiness suite additionally
+checks argument/environment refusals, fixed redacted output, piped JSON completion, bounded reads,
+and unchanged bytes during optional exact-configuration archive verification. A synthetic checksum
+fixture is not evidence that its placeholder Firestore files could be imported.
+
+For the proposed versioned protected-admin succession contract, extend this matrix only after its
+attestation and configuration/backup choices are accepted. A prepared request must survive restart
+without authority changes; a committed request must reconcile to exactly one generation and receipt;
+an old archive must never be relabeled to hide a transfer. Require explicit evidence for an intended
+rollback that would restore former authority. The current read-only check cannot perform any stage.
 
 ## Rollback and decision rules
 

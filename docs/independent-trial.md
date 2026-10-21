@@ -96,8 +96,10 @@ npm run test:integration
 npm run test:recovery
 ```
 
-Then restart your sandbox using its backup. Port conflicts mean another local process still owns
-one of the required ports; identify its owner and preserve its data before deliberately stopping it.
+Then restart your sandbox using its backup. An `EADDRINUSE` port conflict means another local
+process owns a required port; identify its owner and preserve its data before deliberately stopping
+it. `EACCES` or `EPERM` instead identifies a bind-permission failure; check the local terminal or
+tool permission boundary and retry the same documented command once authorized.
 Run integration and recovery one at a time, even when using different demo project names.
 If local source files repeatedly stall in a cloud-synced folder, keep a working copy on local disk
 and rerun the pinned install there. Never copy an old app's deployment settings into this project.
@@ -108,7 +110,7 @@ Do not include passwords or backup files in feedback. One successful automated r
 replace this independent user trial. Live hosting, real-policy extraction, a district-approved profile,
 accessibility review, encrypted operational backups and upgrade recovery remain release work.
 Use [installation readiness](installation-readiness.md) to distinguish the current automated
-installation rehearsal from an independent person's completed trial. See
+and implementation-team installation rehearsals from an independent person's completed trial. See
 [setup troubleshooting](local-development.md#common-setup-failures) for common failures.
 
 ## Try pasted text and corrections

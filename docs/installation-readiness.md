@@ -5,7 +5,42 @@ of production provisioning, a supported release or a completed independent distr
 The adopter instructions are [local setup](local-development.md) and
 [independent trial](independent-trial.md); they require no author's account or temporary path.
 
-## Rehearsal identity
+## Current fresh-clone rehearsal — DOC-03
+
+The October 20, 2026 adoption wave starts from an actual GitHub clone of
+`inquiredu/PublicPrivacyPal` at `2f3709f37c601815bed653a468d062c15aff3067`, on the development branch
+`codex/coordinated-milestone-2026-10-19`. It is not a `main` merge. The coordinator supplied only the
+new coordination brief/contracts/workboard after verifying clone parity. No configuration, accounts,
+archives, private material or dependency directory was copied into this installation workspace.
+
+The macOS 26.6.2 arm64 host already had Node 24.22.0, npm 11.6.2, Temurin Java 21.0.12.1 and an
+emulator cache. Selecting those existing tools does not prove fresh Node/Java installation or an
+empty-cache emulator download. Normal `npm ci --no-audit --no-fund` installed this clone's own
+735 packages in five seconds; existing package cache reuse was possible. Deprecation notices were
+observed, not resolved by unrequested dependency changes or treated as a current security audit.
+
+| Exercise | Observed result and limit |
+| --- | --- |
+| Own pinned dependency installation and `npm ls --depth=0` | Passed; exact declared top-level versions, unchanged package manifest/lockfile. |
+| `npm run local:init`, then repeat | Passed; created synthetic `config/local.json`, then preserved its exact bytes. The runtime trial selects the checked-in River Valley example instead. |
+| Port diagnostic tests | Eight injected cases passed for successful sequential loopback probes, occupied ports, both permission codes, other/uncoded errors, synchronous refusal and close failure. No real ports are bound by these tests. |
+| `npm run ci` in the fresh clone | Passed 526 unit/isolation tests, TypeScript, browser build, bundle budgets and source isolation. This is the DOC-03 source increment before other adoption-wave changes. |
+| Actual sandbox startup | Failed on `EPERM` at `127.0.0.1:5173`, now correctly reported as a permission denial with the original cause. The elevated retry waited for tool approval and was cancelled; no successful worker runtime start is claimed. |
+| Fresh River Valley startup/bootstrap | Coordinator ran the trial in this clone after taking over the reservation. Startup and bootstrap passed. Repeat bootstrap preserved every Firestore document, Auth record and generated account-file digest. |
+| API sign-in/setup and role boundary | Administrator sign-in/setup/member reads passed; anonymous private-review access returned 401. A newly created unassigned identity received 403; viewer could read reviews but not memberships; staff could not read private reviews. |
+| Native backup, graceful shutdown and fresh restore | Coordinator saved/verified archive `58dd5b0e-eb71-4c61-8187-ffffd7baf132` (six files), stopped the trial, and restored without bootstrap. Full Firestore digest matched; both original UIDs/passwords, admin/staff roles, staff denial and all three catalogue entries survived. Original archive verified again afterward; trial services stopped. |
+| Browser and independent-person trial | No browser interaction by DOC-03. CLI/API evidence cannot establish an interactive onboarding pass, and implementation-team operation is not an outside-person trial. |
+
+These are implementation-team CLI/API results, not interactive browser or outside-person acceptance.
+The fix changes only the startup port probe and its diagnostic. Loopback addresses, port list,
+fresh-session refusal, process shutdown, configuration and restore behavior remain the existing
+contracts. Coordinator source review accepted the three source/test files. See
+[DOC-03](parallel-work/reports/DOC-03.md) for operator attribution, private evidence locations and
+remaining limits. The coordinator also verified a real occupied `127.0.0.1:8080` probe returned
+`EADDRINUSE` with its original cause while the integrated test runtime retained ownership. The
+worker observed real `EPERM`; coordinator startup then succeeded through the authorized tool route.
+
+## Historical source-copy rehearsal — DOC-01
 
 DOC-01 began on October 18, 2026 from accepted main commit
 `cb5bb04cde8d900f0376d11f5676369636845eae`. All 136 implementation-manifest inputs matched before
@@ -22,7 +57,7 @@ package cache where available, so this is not an empty-cache/offline-first downl
 An existing Temurin Java 21.0.12.1 runtime and emulator cache were selected for the attempted
 runtime rehearsal; installing Java and downloading fresh emulator binaries were not exercised.
 
-## Observed checks
+### Observed checks in the October 18 source copy
 
 | Exercise | Result and limit |
 | --- | --- |
@@ -55,8 +90,9 @@ feedback. Dependency notices are not an updated security audit; see [dependency 
   A backup does not include browser drafts, plaintext account files or separate offline packets.
 - Troubleshooting covers missing pinned dependencies, wrong runtimes, download failures, occupied
   ports, wrong configuration, old passwords and synced-filesystem stalls.
-- The runtime attempt exposed a diagnostic limitation: a bind-permission failure can be described
-  as an occupied port. The launcher itself was not changed in this documentation increment.
+- DOC-01 exposed a diagnostic limitation: a bind-permission failure could be described as an
+  occupied port. DOC-03 fixes that distinction with injected tests and an observed `EPERM` result;
+  the cancelled elevated retry remains a separate tool-permission limitation.
 - [Contributing](../CONTRIBUTING.md) and [security reporting](../SECURITY.md) provide concrete
   development boundaries without inventing a monitored security inbox or support commitment.
 

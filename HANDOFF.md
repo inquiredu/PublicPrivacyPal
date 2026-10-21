@@ -1,3 +1,37 @@
+# Adoption wave checkpoint — October 20, 2026
+
+This checkpoint supersedes historical runtime/backup/next-work statements below. The owner's
+next-wave instruction is implemented on `codex/coordinated-milestone-2026-10-19` over
+`2f3709f37c601815bed653a468d062c15aff3067`; source is being checkpointed on that GitHub branch.
+`main` remains `cb5bb04cde8d900f0376d11f5676369636845eae`, with a separate merge decision.
+
+- Three agents delivered fresh-installation/startup guidance, actionable accessible validation,
+  and a read-only local operator check. Shared contracts and file ownership were recorded first,
+  and non-author review completed. Protected-admin succession remains a proposal.
+- Passed 544 unit/isolation tests, TypeScript/build/bundle/isolation, 224 emulator tests, a schema-9
+  fixture import and two schema-10 recovery cycles. Fresh River Valley bootstrap/API access and
+  native backup/restore passed. Native Chrome passed keyboard/draft/320px/200% acceptance.
+- Saved preview: http://127.0.0.1:5173/ from
+  `/private/tmp/privacypal-adoption-wave-IiILu6/integration`, project `demo-privacypal-local`.
+  Ten reviews and five public entries remain. Only the named unsaved QA draft was discarded.
+- Latest verified saved-preview archive:
+  `.local/backups/2026-10-21T02-14-43-293Z-06886d3c-568c-4299-92c4-d5d90bedc670`, id
+  `1ef70c3f-8ac4-4123-bc68-d5deda429fa3`, schema 10. Saved/copied/hash-compared/verified, then
+  restored with exact configuration without bootstrap. The new operator check and supplied
+  archive verification passed; no second administrator is an explicit advisory.
+- Private source snapshots: `.local/source-checkpoints/adoption-wave-2026-10-20/`. Private
+  evidence/trial archives/accounts/screenshots: `.local/validation/adoption-wave/`. Preserve
+  these and older private artifacts. Save and verify again before future shutdown after edits.
+
+Continue with [the workstation guide](docs/workstation-handoff.md),
+[the coordinator report](docs/parallel-work/reports/coordinator-adoption.md),
+[contracts](docs/parallel-work/contracts.md) and [workboard](docs/parallel-work/workboard.json).
+An outside-person adoption pilot, screen-reader coverage, human rubric decisions, live providers,
+protected-admin succession and production operations remain open. No main merge, deployment,
+release, repository-visibility change or new saved-preview publication occurred.
+
+---
+
 # Durable segmented review checkpoint — October 20, 2026
 
 The INT-002 application increment is implemented on `codex/coordinated-milestone-2026-10-19`

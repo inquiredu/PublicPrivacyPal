@@ -51,7 +51,7 @@
   "resources": [
     {
       "id": "emulator-ports",
-      "status": "preview_active",
+      "status": "running_preserved",
       "holder": "/root",
       "ports": [
         5173,
@@ -64,24 +64,24 @@
         9150
       ],
       "queue": [],
-      "observedRuntime": "/private/tmp/privacypal-segmented-app-zhubduyq/integration",
-      "note": "Validation complete; saved preview remains active with ten synthetic reviews and five unchanged public entries. New sessions must inspect actual processes before acquiring ports. Latest verified backup is recorded under segmentedImplementation."
+      "observedRuntime": "/private/tmp/privacypal-adoption-wave-IiILu6/integration",
+      "note": "Saved Maple preview restored without bootstrap from adoption baseline freshPreviewBackup; no parallel emulator tests. Preserve before future shutdown."
     },
     {
       "id": "saved-preview-operator",
-      "status": "preview_active",
+      "status": "running_preserved",
       "holder": "/root",
       "queue": [],
-      "observedRuntime": "/private/tmp/privacypal-segmented-app-zhubduyq/integration",
-      "note": "Validation complete; saved preview remains active with ten synthetic reviews and five unchanged public entries. New sessions must inspect actual processes before acquiring ports. Latest verified backup is recorded under segmentedImplementation."
+      "observedRuntime": "/private/tmp/privacypal-adoption-wave-IiILu6/integration",
+      "note": "Saved Maple preview restored without bootstrap from adoption baseline freshPreviewBackup; no parallel emulator tests. Preserve before future shutdown."
     },
     {
       "id": "shared-browser-writes",
       "status": "released",
       "holder": null,
       "queue": [],
-      "note": "Validation complete; saved preview remains active with ten synthetic reviews and five unchanged public entries. New sessions must inspect actual processes before acquiring ports. Latest verified backup is recorded under segmentedImplementation.",
-      "observedRuntime": "/private/tmp/privacypal-segmented-app-zhubduyq/integration"
+      "note": "Acceptance complete; own QA draft discarded; viewport and zoom reset. Preview tab retained.",
+      "observedRuntime": "/private/tmp/privacypal-adoption-wave-IiILu6/integration"
     }
   ],
   "coordinatorOwned": [
@@ -350,7 +350,7 @@
     "privateArtifacts": "Remain on original workstation; absent from Git clone",
     "resourceReservations": "Historical local runtime only; new sessions must inspect their own resources",
     "mainMergeAuthorized": false,
-    "currentReport": "reports/coordinator-segmented.md"
+    "currentReport": "reports/coordinator-adoption.md"
   },
   "segmentedImplementation": {
     "status": "accepted",
@@ -453,5 +453,115 @@
     "sourceCheckpoint": ".local/source-checkpoints/segmented-app-2026-10-20/",
     "evidence": ".local/validation/segmented-app-final/",
     "report": "reports/coordinator-segmented.md"
+  },
+  "adoptionWave": {
+    "status": "accepted",
+    "baseline": {
+      "acceptedAt": "2026-10-21T02:13:41.226374+00:00",
+      "sourceCommit": "2f3709f37c601815bed653a468d062c15aff3067",
+      "tree": "a339f31b5b09e9b4c201b875e1d3cc73a61ff0d2",
+      "branch": "codex/coordinated-milestone-2026-10-19",
+      "origin": "https://github.com/inquiredu/PublicPrivacyPal.git",
+      "localMain": "cb5bb04cde8d900f0376d11f5676369636845eae",
+      "freshRemoteMain": "cb5bb04cde8d900f0376d11f5676369636845eae",
+      "freshRemoteBranch": "2f3709f37c601815bed653a468d062c15aff3067",
+      "primaryClean": true,
+      "fileCount": 242,
+      "fourFreshClonesMatch": true,
+      "scope": "Authorized continuation on existing development branch; no main integration. Historical kickoff inventory is superseded by this complete source identity.",
+      "backup": {
+        "path": ".local/backups/2026-10-21T01-40-29-576Z-9bc2bd80-9c1b-4784-8ef0-4138f7b1b6dd",
+        "id": "d4b37fb9-b18c-494b-9891-1c4d499830bb",
+        "reverified": true
+      },
+      "preview": {
+        "path": "/private/tmp/privacypal-segmented-app-zhubduyq/integration",
+        "ports": [
+          5173,
+          8787,
+          9099,
+          8080
+        ],
+        "firebasePid": 88946,
+        "verified": "Owned loopback listeners and HTTP preview respond; unchanged initial baseline."
+      },
+      "archiveSha256": "b221ed20c1caedb7efcd189ba14aed0d502140302f73fc395d73380f62306583",
+      "freshPreviewBackup": {
+        "path": ".local/backups/2026-10-21T02-14-43-293Z-06886d3c-568c-4299-92c4-d5d90bedc670",
+        "backupId": "1ef70c3f-8ac4-4123-bc68-d5deda429fa3",
+        "verification": "Saved; copied with every file hash compared; copied archive verified independently before graceful preview shutdown."
+      }
+    },
+    "assignments": [
+      {
+        "id": "DOC-03",
+        "worker": "/root/independent_installation",
+        "workspace": "/private/tmp/privacypal-adoption-wave-IiILu6/installation",
+        "brief": "briefs/adoption-installation.md",
+        "status": "accepted",
+        "reviewer": "/root",
+        "ownedFiles": [
+          "README.md",
+          "CONTRIBUTING.md",
+          "docs/local-development.md",
+          "docs/independent-trial.md",
+          "docs/installation-readiness.md",
+          "scripts/local.ts",
+          "scripts/local-ports.ts",
+          "test/unit/local-ports.test.ts",
+          "docs/parallel-work/reports/DOC-03.md"
+        ],
+        "review": "Coordinator non-author source/docs review, fresh River Valley install/API/backup/restore and actual occupied-port probe accepted. Existing Node/Java/cache; no outside-person pilot."
+      },
+      {
+        "id": "UX-03",
+        "worker": "/root/review_experience",
+        "workspace": "/private/tmp/privacypal-adoption-wave-IiILu6/ux",
+        "brief": "briefs/adoption-accessibility.md",
+        "status": "accepted",
+        "reviewer": "/root",
+        "ownedFiles": [
+          "src/SourceDependencyEditor.tsx",
+          "src/source-dependencies.css",
+          "src/source-dependency-feedback.ts",
+          "test/unit/source-dependency-feedback.test.ts",
+          "test/fixtures/source-dependency-feedback.ts",
+          "docs/accessibility-review.md",
+          "docs/parallel-work/reports/UX-03.md"
+        ],
+        "review": "Coordinator non-author source review and actual Chrome focus/ARIA/identity/draft/320px/200% acceptance passed."
+      },
+      {
+        "id": "OPS-02",
+        "worker": "/root/intelligence_workflow",
+        "workspace": "/private/tmp/privacypal-adoption-wave-IiILu6/operations",
+        "brief": "briefs/adoption-operations.md",
+        "status": "accepted",
+        "reviewer": "/root/independent_installation",
+        "ownedFiles": [
+          "server/operations-readiness.ts",
+          "scripts/operations-check.ts",
+          "test/unit/operations-readiness.test.ts",
+          "test/integration/operations-readiness.test.ts",
+          "docs/operations-readiness.md",
+          "docs/upgrade-rehearsal-plan.md",
+          "docs/parallel-work/reports/OPS-02.md"
+        ],
+        "review": "Coordinator plus independent UX core/CLI review and DOC restore-test/docs review found no blocker;15 new cases passed in224 suite. Succession proposal only."
+      }
+    ],
+    "coordinatorOwned": "All other paths, contracts, package script registration, test runner registration, runtime/browser, integration and source checkpoint.",
+    "contract": "OPS-002-read-only",
+    "runtimeQueue": [],
+    "sourceCheckpoint": ".local/source-checkpoints/adoption-wave-2026-10-20/",
+    "checks": {
+      "ci": "Passed 544 unit/isolation tests, TypeScript, build, bundle budgets and source isolation on assembled source.",
+      "integration": "Passed224 emulator tests including15 new operations/refusal cases.",
+      "recovery": "Passed schema9 fixture and two schema10 shutdown/import cycles; optional preserved historical schema9 not rerun.",
+      "browser": "Native Chrome passed focus/identity/disclosure/scope/coverage/draft navigation+reload/320px/200%; own unsaved QA discarded; ten reviews/five public entries retained.",
+      "operator": "Read-only restored-preview check and supplied archive verifier passed; absence of second administrator advisory."
+    },
+    "installationTrialOperator": "/root; distinct fresh clone/dependencies/configuration, not an outside-person pilot",
+    "report": "reports/coordinator-adoption.md"
   }
 }

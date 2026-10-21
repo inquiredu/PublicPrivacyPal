@@ -108,3 +108,20 @@ Accepted for implementation by the coordinator under the owner's instruction to 
 - Adopt the finite limits from segmented-adoption.md and add an installation ceiling of 1,600 new run-owned records. The 75-attempt ceiling is not a capacity promise. Reserve worst-case remaining writes before dispatch; fail atomically when any byte or record ceiling is reached. No deletion to evade retention limits. Historical human findings and evaluations are traversed in bounded pages without imposing this new admission cap on old corrections; existing per-record bounds and the 64 MiB whole-archive bound remain authoritative.
 - Set a sticky schema-10 marker at first run, including empty or cancelled runs. Independently scan artifacts and reject missing parents, dangling references, incorrect versions/hashes/counters/markers and schema-1–9 archives containing new artifacts. The storage owner supplies the shared strict bounded validator; restore runs it under maintenance before workers and before releasing the fence. Add findings-v7/human-evidence-v6 only for new attributed evidence and preserve them on later corrections. Historical v1–v9 archives are never rewritten.
 - Runtime and shared-browser work remain serialized by the coordinator. Acceptance requires CI, role/receipt/lease/storage integration, independent review, saved draft checks, actual maximum-admission native export bounds, and two-cycle schema-10 recovery including a genuine schema-9 restore. Failure of a gate remains an explicit outstanding item rather than a successful result.
+
+
+## OPS-002-read-only — Local operator readiness (accepted October 20, 2026)
+
+The adoption wave adds a local read-only diagnostic command, not administration or recovery authority.
+Its only service operations are existing guarded reads of installation/config, maintenance, relevant
+memberships and Auth user status; optional archive verification uses the current exact configuration
+and existing backup verifier. It may write no Firestore/Auth/configuration/backup data. Failure leaves
+maintenance and accounts untouched. No production target or network provider is introduced.
+
+The command accepts --json and an optional --backup PATH; unknown/duplicate/missing arguments fail.
+Output uses stable codes and pass/warn/fail/not_checked states and contains no account identifiers,
+passwords, token/export data or raw exception records. Exit nonzero for usage or any failed check;
+advisories alone do not claim release readiness. Missing second active verified administrator is an
+advisory. A valid backup checksum/configuration check is not an actual restore rehearsal.
+The protected initial admin remains protected. A succession workflow needs an independently reviewed
+attestation and versioned configuration/restore contract before implementation; no helper can bypass it.

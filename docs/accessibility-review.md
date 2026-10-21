@@ -1,5 +1,29 @@
 # Focused review-flow accessibility assessment
 
+## A11Y-F1 implementation — UX-03, October 20, 2026
+
+The source fix is implemented over `2f3709f37c601815bed653a468d062c15aff3067` and awaits
+coordinator review and browser acceptance. The named **Before saving this capture** summary links
+to the affected input, exclusion textarea or document dependency group. Controls and groups refer
+to their applicable inline errors with stable IDs, `aria-describedby` and `aria-invalid`.
+Unrelated link or exclusion-reason errors do not mark dependency choices invalid. The summary is
+not a live region, and focus changes only when its link is activated. Activation opens a containing
+disclosure if necessary; it neither navigates the URL nor edits the draft.
+
+Document IDs survive document insertion/removal. Local presentation keys distinguish identical
+blank links through editing and sibling removal without changing the stored draft shape. A remount
+may generate a new component namespace; the current controls, error IDs and summary links remain
+associated. Scope and uncovered-measure feedback targets named dependency groups; the existing
+scope reconciliation and rubric-adoption controls retain their responsibilities.
+
+Worker verification: full TypeScript check and **56 focused tests passed**, including seven new
+mapping/rendered-HTML cases. This proves source and static HTML relationships, not actual keyboard
+focus, reflow or spoken announcements. Coordinator acceptance steps, exact test commands and limits
+are in [UX-03](parallel-work/reports/UX-03.md). A11Y-F1's browser and assistive-technology retests remain
+pending; A11Y-F2 and F3 remain open. The following October 18 observations are historical evidence.
+
+## October 18 assessment
+
 A11Y-01, October 18, 2026. The coordinator assessed the assembled UX-01 interface in native Chrome
 on macOS, using a separate Guest window and the saved synthetic `demo-privacypal-local` installation.
 This is a focused keyboard, accessible-state and visual assessment, not a conformance certification
@@ -34,8 +58,9 @@ message and no errors in the inspected view; Chrome's separate Issues panel was 
 | A11Y-F3 / verification gap | `src/styles.css` contains a reduced-motion rule disabling decorative transition/animation, and dependency controls have a visible focus rule. Runtime reduced-motion and forced-colors modes, every configurable theme, contrast ratios and every disabled/error state were not assessed. | Exercise those runtime modes and measure configured foreground/background pairs, including focus indicators and public tier colors. | Record tested settings and ratios; any changed token must preserve readable text and visible keyboard focus across its affected states. |
 
 No blocking keyboard or layout defect was observed in this focused walkthrough. This statement is
-limited to the exercised routes and synthetic records. F1 is a concrete improvement proposal, not
-an asserted screen-reader failure or a completed source fix. Full form reflow at all widths, 400%
+limited to the exercised routes and synthetic records. At that checkpoint F1 was an improvement
+proposal, not an asserted screen-reader failure or a completed source fix; see the UX-03 update above.
+Full form reflow at all widths, 400%
 zoom, alternative platforms and a complete contrast/assistive-technology audit remain open.
 
 ## Environment distinction and preservation
@@ -49,3 +74,12 @@ The preview was restored from verified archive `0ace614b-1352-401f-9049-ee403822
 created only the named temporary tab draft, then discarded it. Saved reviews, public entries, user
 membership and backup contents were preserved. Existing source/human decisions and publication
 rules were inspected without executing a publication command.
+
+### UX-03 coordinator acceptance
+
+The October 20 adoption-wave walkthrough passed in native Chrome: exact field/error focus from
+summary links, Tab/Shift+Tab, disclosure opening, retained row identity and typing focus, scope and
+coverage group focus, exact exclusion text through navigation/reload, 320px reflow and 200% native
+zoom. The temporary unsaved draft was discarded; all ten saved reviews and five public entries
+remained. See [the coordinator report](parallel-work/reports/coordinator-adoption.md). This does not
+verify spoken screen-reader behavior or full conformance.
