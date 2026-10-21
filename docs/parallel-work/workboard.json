@@ -45,12 +45,13 @@
   },
   "contractDecisions": {
     "COV-001": "accepted",
-    "INT-001": "accepted_design_only"
+    "INT-001": "accepted_design_only",
+    "INT-002": "accepted_implementation"
   },
   "resources": [
     {
       "id": "emulator-ports",
-      "status": "retained_preview",
+      "status": "preview_active",
       "holder": "/root",
       "ports": [
         5173,
@@ -63,24 +64,24 @@
         9150
       ],
       "queue": [],
-      "observedRuntime": "/private/tmp/privacypal-wave1-0amrk031/integration",
-      "note": "Saved preview remains running from verified backup; preserve before stopping after future writes. No active worker validation."
+      "observedRuntime": "/private/tmp/privacypal-segmented-app-zhubduyq/integration",
+      "note": "Validation complete; saved preview remains active with ten synthetic reviews and five unchanged public entries. New sessions must inspect actual processes before acquiring ports. Latest verified backup is recorded under segmentedImplementation."
     },
     {
       "id": "saved-preview-operator",
-      "status": "retained_preview",
+      "status": "preview_active",
       "holder": "/root",
       "queue": [],
-      "observedRuntime": "/private/tmp/privacypal-wave1-0amrk031/integration",
-      "note": "Saved preview remains running from verified backup; preserve before stopping after future writes. No active worker validation."
+      "observedRuntime": "/private/tmp/privacypal-segmented-app-zhubduyq/integration",
+      "note": "Validation complete; saved preview remains active with ten synthetic reviews and five unchanged public entries. New sessions must inspect actual processes before acquiring ports. Latest verified backup is recorded under segmentedImplementation."
     },
     {
       "id": "shared-browser-writes",
       "status": "released",
       "holder": null,
       "queue": [],
-      "note": "Coordinator browser validation completed; temporary draft discarded; device emulation/zoom reset.",
-      "observedRuntime": "/private/tmp/privacypal-wave1-0amrk031/integration"
+      "note": "Validation complete; saved preview remains active with ten synthetic reviews and five unchanged public entries. New sessions must inspect actual processes before acquiring ports. Latest verified backup is recorded under segmentedImplementation.",
+      "observedRuntime": "/private/tmp/privacypal-segmented-app-zhubduyq/integration"
     }
   ],
   "coordinatorOwned": [
@@ -340,7 +341,7 @@
     "remaining": "See coordinator report for deferred segmented application writes, provider gaps, independent runtime trial, human rubric adjudication and broader accessibility checks."
   },
   "remoteContinuation": {
-    "preparedOn": "2026-10-19",
+    "preparedOn": "2026-10-20",
     "repository": "inquiredu/PublicPrivacyPal",
     "branch": "codex/coordinated-milestone-2026-10-19",
     "guide": "../workstation-handoff.md",
@@ -348,6 +349,109 @@
     "preDocumentationParity": "218 files matched the validated October18 milestone",
     "privateArtifacts": "Remain on original workstation; absent from Git clone",
     "resourceReservations": "Historical local runtime only; new sessions must inspect their own resources",
-    "mainMergeAuthorized": false
+    "mainMergeAuthorized": false,
+    "currentReport": "reports/coordinator-segmented.md"
+  },
+  "segmentedImplementation": {
+    "status": "accepted",
+    "baseline": {
+      "acceptedAt": "2026-10-21T00:50:18.813020+00:00",
+      "branch": "codex/coordinated-milestone-2026-10-19",
+      "sourceCommit": "cb89a66c200f7f26fec812a331743a9e54e0fd55",
+      "tree": "927ba369058188ebb2285c6ad8f5bc4c3d493a2f",
+      "origin": "https://github.com/inquiredu/PublicPrivacyPal.git",
+      "localMain": "cb5bb04cde8d900f0376d11f5676369636845eae",
+      "freshRemoteMain": "cb5bb04cde8d900f0376d11f5676369636845eae",
+      "freshRemoteBranch": "cb89a66c200f7f26fec812a331743a9e54e0fd55",
+      "checkoutWasClean": true,
+      "archiveSha256": "04597aeca70c9bcaeeab18ac5eabfc52af62be3c7408770c7a8a7933618cd876",
+      "sourceFileCount": 219,
+      "latestVerifiedBackup": ".local/backups/2026-10-18T19-46-20-790Z-a067cfd3-50dc-4a1a-846c-9f41bcdfa1f0",
+      "preview": "Retained previous saved preview; coordinator must preserve before runtime changes.",
+      "scope": "Durable synthetic segmented runs, unresolved human handoff, additive schema10 recovery. No live provider, main merge, publication or deployment.",
+      "freshPreviewBackup": {
+        "path": ".local/backups/2026-10-21T00-53-22-131Z-689702e4-8d54-4ee5-ac7c-ff6f05201efa",
+        "backupId": "8d2768f9-c285-4db9-8104-351ecce66d4a",
+        "verification": "Save verified by original source; copied privately with every file hash compared; copied archive independently verified again."
+      }
+    },
+    "contract": "INT-002",
+    "assignments": [
+      {
+        "id": "INT-02",
+        "worker": "/root/intelligence_workflow",
+        "workspace": "/private/tmp/privacypal-segmented-app-zhubduyq/server",
+        "ownedFiles": [
+          "shared/segmented-assistance.ts",
+          "server/segmented-review-storage.ts",
+          "server/segmented-reviews.ts",
+          "server/analysis/segmented-jobs.ts",
+          "server/analysis/segmented-recording.ts",
+          "test/unit/segmented-storage.test.ts",
+          "test/integration/segmented-runs.test.ts",
+          "test/fixtures/segmented-application.ts",
+          "docs/parallel-work/reports/INT-02.md"
+        ],
+        "reviewer": "/root",
+        "status": "accepted",
+        "review": "Coordinator source review and independent UX/DOC review completed; core integration12 and unit8 focused cases passed within assembled suites. No separate recording unit file needed."
+      },
+      {
+        "id": "UX-02",
+        "worker": "/root/review_experience",
+        "workspace": "/private/tmp/privacypal-segmented-app-zhubduyq/ui",
+        "ownedFiles": [
+          "src/SegmentedAssistancePanel.tsx",
+          "src/SegmentedProposalView.tsx",
+          "src/segmented-review.ts",
+          "src/segmented-review.css",
+          "src/EvidenceEditor.tsx",
+          "src/FindingContext.tsx",
+          "test/unit/segmented-review.test.ts",
+          "test/fixtures/segmented-review.ts",
+          "docs/parallel-work/reports/UX-02.md"
+        ],
+        "reviewer": "/root",
+        "status": "accepted",
+        "review": "Coordinator source review and native Chrome acceptance complete; plain-language labels, raw preview bounds, paging labels and changed-review retry guard verified."
+      },
+      {
+        "id": "DOC-02",
+        "worker": "/root/independent_installation",
+        "workspace": "/private/tmp/privacypal-segmented-app-zhubduyq/recovery",
+        "ownedFiles": [
+          "scripts/backup-files.ts",
+          "scripts/backup-operations.ts",
+          "scripts/test-recovery.ts",
+          "test/unit/backup-files.test.ts",
+          "test/recovery/roundtrip.ts",
+          "test/recovery/segmented.ts",
+          "test/integration/segmented-backup.test.ts",
+          "docs/backup-recovery.md",
+          "docs/parallel-work/reports/DOC-02.md"
+        ],
+        "reviewer": "/root",
+        "status": "accepted",
+        "review": "Coordinator source/fixture review and full historical/schema10 recovery accepted. Native Auth import timestamp behavior independently proven and narrowly asserted."
+      }
+    ],
+    "coordinatorOwned": "All other files; shared integration, schema hooks, route/receipt wiring, human evidence validation, runtime/browser scheduling and final acceptance.",
+    "checks": {
+      "focusedEvidenceRegression": "53 focused tests passed; included in the assembled 518-test suite.",
+      "ci": "Passed 518 unit/isolation tests, TypeScript, build, bundle budgets and source isolation on assembled core.",
+      "integration": "Passed 209 emulator integration tests, including45 new lifecycle/handoff/recovery cases.",
+      "independentReview": "UX verified generation/prefix, byte-aware pages and permanent reservations; DOC verified parent wiring and independent historical/orphan finding scan. No further blocker.",
+      "recovery": "Passed genuine original schema9 import and fixture schema9 import followed by two schema10 shutdown/import cycles. Maximum admission:473 records,9406415 logical bytes,13672169 native export bytes; over-limit commands atomic. Native Auth ephemeral timestamp changes independently verified and narrowly asserted.",
+      "browser": "Passed native Chrome synthetic run, three range attempts, synthesis, conflicting evidence inspection, unresolved human draft, exact draft reload, correction provenance, untouched-measure handoff, original-response inspection and 320px reflow. Last revision retry UI guard passed TypeScript/full build; broader assistive technology remains open."
+    },
+    "finalBackup": {
+      "path": ".local/backups/2026-10-21T01-40-29-576Z-9bc2bd80-9c1b-4784-8ef0-4138f7b1b6dd",
+      "backupId": "d4b37fb9-b18c-494b-9891-1c4d499830bb",
+      "schemaVersion": 10,
+      "verification": "Saved and verified; copied with every file hash compared; copied archive independently verified again."
+    },
+    "sourceCheckpoint": ".local/source-checkpoints/segmented-app-2026-10-20/",
+    "evidence": ".local/validation/segmented-app-final/",
+    "report": "reports/coordinator-segmented.md"
   }
 }

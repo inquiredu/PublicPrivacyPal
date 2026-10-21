@@ -22,6 +22,9 @@ the correct district are required for private access.
 | Reconcile/retry own review command through the API | No | No | No | Yes | Yes |
 | Read private suggestions and prompt preview through API | No | No | Yes | Yes | Yes |
 | Start/cancel suggestion jobs through API | No | No | No | Yes | Yes |
+| Inspect saved segmented runs, original returns and proposals through API | No | No | Yes | Yes | Yes |
+| Start/cancel a segmented run or explicitly request an attempt through API | No | No | No | Yes | Yes |
+| Read/write segmented records, dispatch indexes or reservations directly | No | No | No | No | No |
 | Read/write suggestion jobs, budgets, keys or results directly | No | No | No | No | No |
 | Write public records directly | No | No | No | No | No |
 | Write a role, audit event, bootstrap, or domain registry directly | No | No | No | No | No |
@@ -138,3 +141,11 @@ capture requests accept up to 512 KiB; other capture requests retain 128 KiB. So
 command receipts, human range acknowledgments and publication withdrawal remain atomic and
 maintenance-fenced. Offline qualification packets contain private source material and have no
 application write/import authority. See [source segments](source-segments.md).
+
+Saved segmented runs retain exact source/definition/plan identity and actor-scoped command effects.
+Attempt progress advances only a run revision. New human handoffs require a valid completion and
+an unchanged, unreviewed target; corrections retain their original historical provenance. A worker
+cannot write findings, scores, district decisions or public projections. Maintenance fences raw
+output retention and settlement as well as eligibility. The only dispatch implementation is a
+server-approved authored synthetic recording; arbitrary packets and client output have no authority.
+See [saved segmented review lab](segmented-reviews.md).

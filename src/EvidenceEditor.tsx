@@ -1,3 +1,6 @@
+import type { User } from 'firebase/auth';
+import { SegmentedProposalBrowser } from './SegmentedProposalView';
+import { attachSegmentedCandidate, segmentedEvidenceSizeError } from './segmented-review';
 import { LONG_BUNDLE_VERSION, sourceSegments } from '../shared/source-segments';
 import { measuresFor } from '../shared/evaluation';
 import { useState, type FormEvent } from 'react';
@@ -9,7 +12,7 @@ import { RequirementEditor } from './RequirementReview';
 import { blankRequirementReview, deriveRequirementReview, requirementFinding, requirementCitations } from '../shared/requirements';
 import { measureCoverage, coverageReady, documentForRange } from '../shared/source-bundle';
 
-export function EvidenceEditor({ review: r, disabled, commands }: { review: Review; disabled: boolean; commands: ReviewCommands }) {
+export function EvidenceEditor({ review: r, disabled, commands, user }: { review: Review; disabled: boolean; commands: ReviewCommands; user?: User }) {
   const criteria = measuresFor(r);
   const store = useDraftStore(); const key = `evidence:${r.id}`;
   const draft = store.get(key, evidenceDraftSchema);
@@ -19,8 +22,8 @@ export function EvidenceEditor({ review: r, disabled, commands }: { review: Revi
   const definitions = 'requirements' in criterion ? criterion.requirements : undefined;
   const f = r.analysis?.findings.find(f => f.id === criterionId);
   const savedContext = f?.context && { scope: f.context.scope, uncertainty: f.context.uncertainty, question: f.context.question, resolution: f.context.resolution, note: f.context.note, citations: f.context.citations };
-  const values = draft || { revision: r.revision, criterionId, finding: f && (!isPastedReview(r) || f.reviewedBy) ? f.finding : '' as const, citations: f?.requirements ? requirementCitations(f.requirements) : citationsFor(f), rationale: f?.rationale || '', quoteText: '', ...(f?.sourceReview ? { sourceReview: f.sourceReview } : {}), ...(savedContext ? { context: savedContext } : {}), ...(f?.provenance ? { proposalId: f.provenance.jobId } : {}), ...(definitions ? { requirements: f?.requirements || blankRequirementReview(definitions) } : {}) };
-  const { citations, rationale, quoteText, context, proposalId, requirements, sourceReview } = values;
+  const values = draft || { revision: r.revision, criterionId, finding: f && (!isPastedReview(r) || f.reviewedBy) ? f.finding : '' as const, citations: f?.requirements ? requirementCitations(f.requirements) : citationsFor(f), rationale: f?.rationale || '', quoteText: '', ...(f?.sourceReview ? { sourceReview: f.sourceReview } : {}), ...(savedContext ? { context: savedContext } : {}), ...(f?.provenance ? { proposalId: f.provenance.jobId } : {}), ...(f?.segmentedProvenance ? { segmentedProposal: f.segmentedProvenance.reference } : {}), ...(definitions ? { requirements: f?.requirements || blankRequirementReview(definitions) } : {}) };
+  const { citations, rationale, quoteText, context, proposalId, segmentedProposal, requirements, sourceReview } = values;
   const coverage = r.sourceBundle && r.contract ? measureCoverage(r.sourceBundle, r.contract, criterionId) : undefined;
   const segments = r.sourceBundle?.version === LONG_BUNDLE_VERSION ? sourceSegments(r.sourceBundle).filter(s => coverage?.targets.some(t => t.documents.includes(s.documentId))) : [];
   const sourceMissing = !!coverage && !coverageReady(coverage);
@@ -29,8 +32,8 @@ export function EvidenceEditor({ review: r, disabled, commands }: { review: Revi
   const [documentId, setDocumentId] = useState(r.sourceBundle?.documents.find(d => d.text)?.id || '');
   const document = r.sourceBundle?.documents.find(d => d.id === documentId);
   const shownText = document?.text ?? r.sourceText;
-  const citationLimit = definitions ? 9 : 3;
-  const contextLocked = !!proposalId || !!f?.context;
+  const citationLimit = definitions ? definitions.length * 3 : 3;
+  const contextLocked = !!proposalId || !!segmentedProposal || !!f?.context;
   function changeContext(patch: Partial<ReviewContext>) { if (context) change({ context: { ...context, ...patch } }); }
   const [selection, setSelection] = useState<Citation | null>(null);
   const [error, setError] = useState('');
@@ -51,7 +54,10 @@ export function EvidenceEditor({ review: r, disabled, commands }: { review: Revi
     if (quoteText.trim()) { setError('Add the typed quotation or clear that field before saving.'); return; }
     setChosen(criterionId);
     const savedCitations = requirements ? requirementCitations(requirements).slice(0, 3) : citations;
-    await commands.start(`/api/reviews/${r.id}`, { action: 'edit_evidence', revision: values.revision, evidence: { criterionId, finding, citations: savedCitations, rationale, ...(sourceReview ? { sourceReview } : {}), ...(requirements ? { requirements: segmentsIncomplete ? { ...requirements, sourceStatus: 'incomplete' } : requirements } : {}), ...(context ? { context } : {}), ...(proposalId ? { proposalId } : {}) } }, 'Save evidence', [key]);
+    const evidence = { criterionId, finding, citations: savedCitations, rationale, ...(sourceReview ? { sourceReview } : {}), ...(requirements ? { requirements: segmentsIncomplete ? { ...requirements, sourceStatus: 'incomplete' } : requirements } : {}), ...(context ? { context } : {}), ...(proposalId ? { proposalId } : {}), ...(segmentedProposal ? { segmentedProposal } : {}) };
+    const sizeError = segmentedProposal && segmentedEvidenceSizeError(evidence);
+    if (sizeError) { setError(sizeError); return; }
+    await commands.start(`/api/reviews/${r.id}`, { action: 'edit_evidence', revision: values.revision, evidence }, 'Save evidence', [key]);
   }
   return <section className="evidence-editor" aria-labelledby="evidence-editor-title">
     <h3 id="evidence-editor-title" tabIndex={-1}>Review and edit evidence</h3>
@@ -64,7 +70,7 @@ export function EvidenceEditor({ review: r, disabled, commands }: { review: Revi
         <dl className="rubric-definitions"><dt>Meets</dt><dd>{criterion.evidence}</dd><dt>Partial</dt><dd>{criterion.partial}</dd><dt>Does not meet</dt><dd>{criterion.failure}</dd></dl>
         {sourceMissing && <p className="notice">Required source coverage is incomplete: {[...new Set(coverage!.targets.flatMap(t => t.missing))].map(id => r.sourceBundle!.documents.find(d => d.id === id)!.label).join('; ')}. Preserve useful evidence below; this measure remains unresolved until a new complete source capture.</p>}
         <label>Finding{definitions && <small>Calculated from the subrequirements below.</small>}<select required disabled={!!definitions || sourceMissing} value={finding} onChange={e => { const f = e.target.value as typeof finding; change({ finding: f, ...(f === 'not_specified' ? { citations: [], quoteText: '' } : {}) }); }}><option value="" disabled>Choose after reviewing the policy</option><option value="yes">Meets</option><option value="partial">Partial</option><option value="no">Does not meet / contradicts</option><option value="not_specified">Not addressed — confirmed after review</option><option value="unresolved">Unresolved / defer for follow-up</option></select></label>
-        {definitions && requirements && <><p>{'decisionRule' in criterion && criterion.decisionRule}</p><RequirementEditor missingRequirements={coverage?.targets.filter(t => !t.ready).map(t => t.target.split('/')[1])} definitions={definitions} value={requirements} passages={citations} onChange={value => change({ requirements: value })}/></>}
+        {definitions && requirements && <><p className="subtle">All selected clause passages are retained. The saved measure overview includes up to three preview passages; the full evidence stays with each clause.</p><p>{'decisionRule' in criterion && criterion.decisionRule}</p><RequirementEditor missingRequirements={coverage?.targets.filter(t => !t.ready).map(t => t.target.split('/')[1])} definitions={definitions} value={requirements} passages={citations} onChange={value => change({ requirements: value })}/></>}
         {r.sourceBundle && <label>Captured document<select value={documentId} onChange={e => { setDocumentId(e.target.value); setSelection(null); }}>{r.sourceBundle.documents.filter(d => d.text).map(d => <option key={d.id} value={d.id}>{d.label} · {d.capture}</option>)}</select></label>}
         <label>Saved policy text — select a passage to cite<textarea className="policy-source selection-source" readOnly rows={10} value={shownText} onSelect={e => { const area = e.currentTarget; const offset = document?.start || 0; const start = offset + area.selectionStart, end = offset + area.selectionEnd; setSelection(end > start ? { start, end, quote: r.sourceText.slice(start, end) } : null); }}/></label>
         <button type="button" className="secondary" disabled={!selection || (!definitions && finding === 'not_specified') || citations.length >= citationLimit} onClick={() => attempt(() => add(selection!))}>Add selected passage</button>
@@ -86,13 +92,20 @@ export function EvidenceEditor({ review: r, disabled, commands }: { review: Revi
           <label>Qualification review<select value={context.resolution} onChange={e => changeContext({ resolution: e.target.value as ReviewContext['resolution'], ...(e.target.value === 'retained' ? { note: '', citations: [] } : {}) })}><option value="retained">Retain qualification / keep question open</option><option value="resolved">Record a supported resolution or correction</option></select></label>
           {context.resolution === 'resolved' && <>
             <label>Resolution and evidence checked<textarea required maxLength={1000} rows={3} value={context.note} onChange={e => changeContext({ note: e.target.value })}/></label>
-            <p>Select the attached passages that support this resolution. For confirmed absence, explain the source coverage you checked in the note.</p>
-            {citations.map(c => <label key={`resolve-${c.start}:${c.end}`}><input type="checkbox" checked={context.citations.some(q => q.start === c.start && q.end === c.end)} onChange={e => changeContext({ citations: e.target.checked ? [...context.citations.filter(q => q.start !== c.start || q.end !== c.end), c].slice(0, 3) : context.citations.filter(q => q.start !== c.start || q.end !== c.end) })}/>{c.quote}</label>)}
+            <p>Select up to three attached passages that support this resolution. For confirmed absence, explain the source coverage you checked in the note.</p>
+            {citations.map(c => <label key={`resolve-${c.start}:${c.end}`}><input type="checkbox" checked={context.citations.some(q => q.start === c.start && q.end === c.end)} disabled={context.citations.length >= 3 && !context.citations.some(q => q.start === c.start && q.end === c.end)} onChange={e => changeContext({ citations: e.target.checked ? [...context.citations.filter(q => q.start !== c.start || q.end !== c.end), c] : context.citations.filter(q => q.start !== c.start || q.end !== c.end) })}/>{c.quote}</label>)}
             {context.citations.filter(c => !citations.some(q => q.start === c.start && q.end === c.end)).map(c => <div key={`saved-resolution-${c.start}:${c.end}`}><blockquote>{c.quote}</blockquote><button type="button" className="secondary" onClick={() => changeContext({ citations: context.citations.filter(q => q !== c) })}>Remove resolution passage</button></div>)}
           </>}
           {context.question && context.resolution !== 'resolved' && <p className="notice">This question stays open. Saving preserves your work; a score and district decision remain unavailable until it is resolved.</p>}
+          {segmentedProposal && <p>Original segmented proposal retained. Its generated questions and evidence remain inspectable below; this handoff question is a separate required human check.</p>}
           {proposalId && <small>Suggestion job: {proposalId}. The server verifies its immutable result, source and rubric when you save.</small>}
         </section>}
+        {segmentedProposal && user && <SegmentedProposalBrowser review={r} user={user} address={segmentedProposal} expectedReference={segmentedProposal} disabled={disabled || busy || stale} onAttach={(candidate, reference) => {
+          if (store.has('pending-command') || disabled || busy) throw new Error('Resolve the pending command or other draft before changing this evidence.');
+          const updated = attachSegmentedCandidate(store.get(key, evidenceDraftSchema) || values, reference, candidate, r);
+          store.set(key, updated); setError('');
+        }}/>}
+        {segmentedProposal && !user && <p>The original segmented proposal remains linked. Reopen this review with your signed-in account to inspect its retained evidence.</p>}
         <div className="actions"><button disabled={!dirty || stale}>{finding === 'unresolved' || (context?.question && context.resolution !== 'resolved') ? 'Save unresolved criterion' : 'Save criterion and recalculate'}</button>{dirty && <button type="button" className="secondary" onClick={() => { store.remove(key); setError(''); setSelection(null); }}>{stale ? 'Discard draft and load current evidence' : 'Discard evidence changes'}</button>}</div>
       </fieldset>
     </form>

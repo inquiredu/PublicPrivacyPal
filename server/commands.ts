@@ -6,6 +6,7 @@ import type { Transaction } from 'firebase-admin/firestore';
 import type { Services } from './firebase.ts';
 import { HttpError, membersRef, requireMember } from './operations.ts';
 import type { Review } from '../shared/review.ts';
+import { segmentedReceiptEffectSchema, type SegmentedReceiptEffect } from '../shared/segmented-assistance.ts';
 
 export type CommandIdentity = { id: string; hash: string; route: string };
 function canonical(value: unknown): string {
@@ -27,8 +28,8 @@ export async function replayCommand(s: Services, tx: Transaction, actor: Decoded
   if (!review.exists) throw new HttpError(409, 'The saved result is unavailable. Do not resubmit as a new command.');
   return readReview(s, tx, receipt.get('reviewId'), review); // Return current state, never roll back to an earlier result.
 }
-export function recordCommand(s: Services, tx: Transaction, actor: DecodedIdToken, review: Review, command?: CommandIdentity) {
-  if (command) tx.create(receiptRef(s, actor.uid, command.id), { ...command, actorUid: actor.uid, reviewId: review.id, appliedRevision: review.revision, at: new Date().toISOString() });
+export function recordCommand(s: Services, tx: Transaction, actor: DecodedIdToken, review: Review, command?: CommandIdentity, segmented?: SegmentedReceiptEffect) {
+  if (command) tx.create(receiptRef(s, actor.uid, command.id), { ...command, actorUid: actor.uid, reviewId: review.id, appliedRevision: review.revision, at: new Date().toISOString(), ...(segmented ? { segmented: segmentedReceiptEffectSchema.parse(segmented) } : {}) });
 }
 export async function commandStatus(s: Services, actor: DecodedIdToken, id: string) {
   return s.db.runTransaction(async tx => {
@@ -37,6 +38,6 @@ export async function commandStatus(s: Services, actor: DecodedIdToken, id: stri
     if (!receipt.exists) return { state: 'not_found' as const };
     const review = await tx.get(s.db.doc(`districts/${s.config.districtId}/reviews/${receipt.get('reviewId')}`));
     if (!review.exists) throw new HttpError(409, 'The saved result is unavailable. Contact your local operator.');
-    return { state: 'applied' as const, appliedRevision: receipt.get('appliedRevision') as number, review: await readReview(s, tx, receipt.get('reviewId'), review) };
+    return { state: 'applied' as const, appliedRevision: receipt.get('appliedRevision') as number, review: await readReview(s, tx, receipt.get('reviewId'), review), ...(receipt.get('segmented') ? { segmented: segmentedReceiptEffectSchema.parse(receipt.get('segmented')) } : {}) };
   });
 }

@@ -135,7 +135,8 @@ capture requests retain their 128 KiB HTTP cap and 32,000-unit text limit.
 
 Long reviews mark `sourceVersion: 3`, `evidenceVersion: 6`, and human saves use
 `human-evidence-v5` / `findings-v6`. Installation archives require **schema 9**, even before the first
-finding. Readers accept schemas 1–9; never relabel an archive for an older reader. Portable review
+finding. That milestone introduced schemas through 9; consult the current
+[backup runbook](backup-recovery.md) for the combined reader. Never relabel an archive for an older reader. Portable review
 exports use `privacypal-source-bundle-v2` and remain archives rather than approval-restoring imports.
 Direct browser reads/writes of source parts are denied for every role; staff/family projections
 exclude source text, range acknowledgments and coverage.
@@ -148,6 +149,8 @@ every Firestore document and also checks the reconstructed long Unicode source, 
 partial acknowledgments, unavailable addendum and withheld score. File-round-trip tests separately
 verify original offline responses and derived ledger reconstruction.
 
-Provider qualification, direct application adoption of segmented model output, the remaining
-36 precision definitions, independently
-adjudicated labels and whole-policy cross-provider trials remain future work.
+The later [saved segmented review lab](segmented-reviews.md) adds application-owned attempts,
+original response retention and explicit unresolved human handoff for one exact authored fixture.
+Its first durable run requires schema 10; the offline packet contract above remains unchanged.
+Provider qualification, general model-output adoption, the remaining 36 precision definitions,
+independently adjudicated labels and whole-policy cross-provider trials remain future work.

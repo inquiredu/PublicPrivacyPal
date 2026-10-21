@@ -1,6 +1,6 @@
 # Continue from another workstation
 
-Checkpoint prepared October 19, 2026 for `inquiredu/PublicPrivacyPal` on
+Checkpoint updated October 20, 2026 for `inquiredu/PublicPrivacyPal` on
 `codex/coordinated-milestone-2026-10-19`. The owner authorized committing and pushing this work.
 This is a development checkpoint; it does not merge the branch into `main` or authorize deployment.
 
@@ -18,11 +18,11 @@ git rev-parse HEAD
 
 Record the returned commit as the starting revision. The clone includes the implementation, pinned
 dependencies, synthetic fixtures, tests, accepted contract decisions, scoped follow-up proposals and
-all seven assignment reports. A new session does not inherit the previous session's running agents
+the first-wave, follow-up and segmented-implementation reports. A new session does not inherit the previous session's running agents
 or resource reservations. Preserve any local edits before changing an existing checkout.
 
 Start with [AGENTS.md](../AGENTS.md), [HANDOFF.md](../HANDOFF.md),
-[the coordinator report](parallel-work/reports/coordinator-wave1.md),
+[the current coordinator report](parallel-work/reports/coordinator-segmented.md),
 [the contract log](parallel-work/contracts.md) and [the workboard](parallel-work/workboard.json).
 The original kickoff manifest describes the pre-milestone baseline at `cb5bb04`; it is intentionally
 unchanged and is not a hash inventory for this completed checkpoint. Record the current Git revision
@@ -47,11 +47,11 @@ no Firebase login, district credentials or AI keys are required. If the session 
 bind local ports or download dependencies, record the unrun checks instead of claiming a runtime
 pass. Do not weaken the emulator guards or substitute a live project.
 
-The October 18 assembled checkpoint passed 481 unit/isolation tests, TypeScript, build and bundle
-limits, 164 integration tests and two full recovery cycles. On October 19 all 218 source files matched
-that verified checkpoint before adding this continuation documentation. Those are prior observed
-results, not a claim that a new workstation has already passed. GitHub's existing workflow also runs
-the unit/build/isolation, integration and recovery gates on pushes.
+The October 20 assembled implementation passed 518 unit/isolation tests, TypeScript, build and
+bundle limits, and 209 emulator integration tests. The current coordinator report records recovery
+and browser evidence separately. These are observed checks on the original workstation, not a
+claim that a new workstation has already passed. GitHub's existing workflow also runs the
+unit/build/isolation, integration and recovery gates on pushes.
 
 ## Start a fresh synthetic preview
 
@@ -70,7 +70,7 @@ npm run local:bootstrap
 ```
 
 Use the newly generated local credentials and http://127.0.0.1:5173/. This is a fresh synthetic
-installation with its own sample records and accounts. It does not contain the previous Mac's nine
+installation with its own sample records and accounts. It does not contain the previous Mac's ten
 saved reviews, five public entries or administrator password. Keep emulator services on loopback.
 Source work and CI can continue without that saved installation.
 
@@ -82,7 +82,7 @@ excludes dependencies and generated builds. The previous Mac's temporary runtime
 portable installation instructions. The committed reports preserve the conclusions and limitations;
 do not claim to have read private evidence that is unavailable in the new session.
 
-The last verified installation archive and source checkpoint are referenced in the historical local
+The last verified installation archive and source checkpoint are referenced in the current local
 handoff. Continuing that exact saved installation requires a separate private transfer of its trusted
 backup, matching synthetic configuration and required sign-in information. Do not commit those
 artifacts to GitHub. Follow [backup and recovery](backup-recovery.md), verify the archive against the
@@ -91,10 +91,12 @@ performed by this source checkpoint.
 
 ## Remaining implementation boundaries
 
-The dependency/exclusion editor and definition freshness checks are implemented. Segmented durable
-application storage, live provider admission/reconciliation and exact response retention are future
-work; the accepted designs and fake-provider checks do not enable them. Human rubric adjudication,
-an independent runtime installation trial and broader accessibility verification remain open.
+The dependency/exclusion editor, definition freshness checks and durable synthetic segmented lab
+are implemented. The lab retains original responses and opens explicit unresolved human drafts;
+see [its walkthrough](segmented-reviews.md). Only the exact authored Lantern source is eligible.
+Live provider admission, billing reconciliation, general model-output adoption and provider
+qualification remain open. Human rubric adjudication, an independent runtime installation trial
+and broader accessibility verification also remain open.
 Use the coordinator report to choose and assign the next bounded increment. Keep human corrections,
 historical versions, drafts, receipt replay, deterministic scoring and district decisions intact.
 The existing district instance and original repository remain untouched; live calls, deployment,

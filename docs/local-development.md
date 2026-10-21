@@ -156,3 +156,11 @@ Use the [backup compatibility runbook](backup-recovery.md) for the archive versi
 records in the installation; long-source formats require newer versions than service records alone.
 Preserve compatible source and archives for rollback. The staff catalogue is in My workspace and
 uses its separate audience projection.
+
+## Saved segmented review lab
+
+Use **Load Lantern long-policy lab** in a new empty review draft to try durable source-range
+attempts and unresolved human handoff with authored synthetic recordings. The exact saved example
+and practice definition are required; arbitrary sources have no enabled model transport. Follow
+[the segmented review guide](segmented-reviews.md). Run/receipt/output records require schema-10
+backup support even when a run is empty or cancelled. Preserve older archives for rollback.

@@ -1,4 +1,6 @@
 import { LONG_BUNDLE_VERSION } from '../shared/source-segments.ts';
+import { prepareSegmentedAction, verifiedSegmentedProposal } from './segmented-reviews.ts';
+import type { SegmentedReceiptEffect } from '../shared/segmented-assistance.ts';
 import { prepareAssistance, verifiedProposal } from './analysis/jobs.ts';
 import { FieldPath } from 'firebase-admin/firestore';
 import { PAGE_SIZE } from '../shared/evaluation.ts';
@@ -130,7 +132,18 @@ export async function reviewAction(s: Services, actor: DecodedIdToken, id: strin
     const active = ['queued', 'running'].includes(r.job.status);
     let spend: (() => unknown) | undefined;
     let details: unknown = null;
-    if (input.action === 'start_assistance' || input.action === 'cancel_assistance') {
+    let segmentedEffect: SegmentedReceiptEffect | undefined;
+    if (input.action === 'start_segmented_run' || input.action === 'cancel_segmented_run' || input.action === 'run_segmented_attempt') {
+      const prepared = await prepareSegmentedAction(s, tx, actor, r, input, command);
+      segmentedEffect = prepared.effect;
+      details = { ...prepared.details, segmented: prepared.effect };
+      if (!prepared.reviewChanged) {
+        // Attempt progress has its own revision. It cannot stale a human draft or touch publication.
+        event(s, tx, r, input.action, actor.uid, details);
+        recordCommand(s, tx, actor, r, command, segmentedEffect);
+        return r;
+      }
+    } else if (input.action === 'start_assistance' || input.action === 'cancel_assistance') {
       await prepareAssistance(s, tx, actor, r, input.action === 'cancel_assistance');
       details = { assistanceId: r.assistanceId };
     } else if (input.action === 'adopt_service') {
@@ -160,7 +173,8 @@ export async function reviewAction(s: Services, actor: DecodedIdToken, id: strin
       const previous = r.analysis;
       const at = nowISO(); const analysisId = randomUUID();
       const proposal = input.evidence.proposalId ? await verifiedProposal(s, tx, r, input.evidence.proposalId, input.evidence.criterionId) : undefined;
-      try { r.analysis = editAnalysis(r.sourceText, r.profileVersion || 'community-demo-v1', previous, input.evidence, analysisId, actor.uid, at, r.contract, proposal, isPastedReview(r), r.sourceBundle); }
+      const segmented = input.evidence.segmentedProposal ? await verifiedSegmentedProposal(s, tx, r, input.evidence.segmentedProposal, input.evidence.criterionId) : undefined;
+      try { r.analysis = editAnalysis(r.sourceText, r.profileVersion || 'community-demo-v1', previous, input.evidence, analysisId, actor.uid, at, r.contract, proposal, isPastedReview(r), r.sourceBundle, segmented); }
       catch (error) { throw new HttpError(400, error instanceof Error ? error.message : 'Invalid evidence.'); }
       r.job = { id: analysisId, status: evidenceComplete(r) ? 'succeeded' : 'awaiting_review', attempt: 0, actorUid: actor.uid, actorEmail: actor.email!, leaseUntil: 0, error: null };
       r.published = false;
@@ -190,7 +204,7 @@ export async function reviewAction(s: Services, actor: DecodedIdToken, id: strin
     } else { unpublish(s, tx, id); }
     writeReview(s, tx, r, previousReview);
     event(s, tx, r, input.action, actor.uid, input.action === 'decide' ? { before, after: r.decision } : details);
-    recordCommand(s, tx, actor, r, command);
+    recordCommand(s, tx, actor, r, command, segmentedEffect);
     return r;
   });
 }

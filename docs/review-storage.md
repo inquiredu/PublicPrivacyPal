@@ -167,3 +167,18 @@ order, full-source hash and frozen segment plan on reads. Heads mark `evidenceVe
 `findings-v6` retains `human-source-review-v1` acknowledgments. Existing finding/history/detail
 bounds remain unchanged. Schema-9 backups identify this format before any finding is saved.
 See [source segments](source-segments.md) for request, coverage, offline packet and recovery contracts.
+
+## Saved segmented attempts
+
+The [synthetic segmented lab](segmented-reviews.md) stores immutable requests, original returned
+bytes, outcomes and their attempt order below private run heads. Each review retains up to two
+runs and three attempts per range or synthesis. Permanent admission reservations cover future
+output records; per-run limits are 16 MiB / 800 records and installation limits are 32 MiB / 1,600
+new run-owned records. Existing human finding/history bounds and the 64 MiB whole-archive limit
+remain separate. No history is deleted to make room.
+
+The first run leaves a sticky storage marker, including empty cancelled runs, requiring schema 10.
+An explicit human save with segmented provenance uses `findings-v7` / `human-evidence-v6` and keeps
+that format for later corrections. Historical findings and evaluations retain their original
+identities. Worker completion cannot write human evidence, scores, decisions or projections.
+Recovery validates the complete attributed graph before releasing maintenance or starting workers.

@@ -1,3 +1,38 @@
+# Durable segmented review checkpoint — October 20, 2026
+
+The INT-002 application increment is implemented on `codex/coordinated-milestone-2026-10-19`
+over `cb89a66c200f7f26fec812a331743a9e54e0fd55`. This section supersedes the historical next-work,
+preview and backup statements below. The owner authorized the source checkpoint on GitHub;
+`main` remains `cb5bb04cde8d900f0376d11f5676369636845eae` and requires a separate merge decision.
+
+- Durable synthetic segmented runs retain frozen requests, original responses and attempt history.
+  Explicit human handoff starts unresolved; citations, acknowledgments, corrections, deterministic
+  scoring and district decisions retain their separate responsibilities.
+- Assembled validation passed 518 unit/isolation tests, TypeScript, build/bundle gates and 209
+  emulator integration tests. Recovery passed the original schema-9 archive, a schema-9 fixture
+  and two schema-10 shutdown/import cycles. Native Chrome passed the focused draft, correction,
+  evidence-inspection and 320px walkthrough. See the report for the final UI check and test limits.
+- The saved preview runs at http://127.0.0.1:5173/ from
+  `/private/tmp/privacypal-segmented-app-zhubduyq/integration`, using `demo-privacypal-local`.
+  Ten synthetic reviews include the original nine and one named Lantern browser-QA review.
+  The five public entries remain unchanged. Existing accounts remain private.
+- Latest verified schema-10 backup:
+  `.local/backups/2026-10-21T01-40-29-576Z-9bc2bd80-9c1b-4784-8ef0-4138f7b1b6dd`, id
+  `d4b37fb9-b18c-494b-9891-1c4d499830bb`. It was saved, hash-compared after copying and verified
+  again. Restore that exact configuration without bootstrap. Preserve older archives and save
+  another verified backup before stopping after any future saved changes.
+- Private source archive and inventory: `.local/source-checkpoints/segmented-app-2026-10-20/`.
+  Private final validation evidence: `.local/validation/segmented-app-final/`.
+
+Continue with [the workstation guide](docs/workstation-handoff.md),
+[the coordinator report](docs/parallel-work/reports/coordinator-segmented.md),
+[the walkthrough](docs/segmented-reviews.md), [contracts](docs/parallel-work/contracts.md) and
+[the workboard](docs/parallel-work/workboard.json). A Git clone contains source and synthetic
+fixtures, not private installation backups or credentials. Live providers, general model-output
+adoption, independent installation, human rubric adjudication and broader accessibility remain open.
+
+---
+
 # GitHub continuation checkpoint — October 19, 2026
 
 The owner authorized committing and pushing all releasable work to

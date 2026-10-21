@@ -4,6 +4,11 @@ The owner requested a reusable parallel-work structure for a fresh session on `m
 prepares that session; it does not start agents or change the Git baseline. Start at
 [the kickoff](../../START_PARALLEL_WORK.md) and satisfy [baseline preparation](baseline.md).
 
+The original first wave is recorded in [its coordinator report](reports/coordinator-wave1.md).
+The later INT-002 implementation uses the `segmentedImplementation` assignments and baseline in
+[the workboard](workboard.json). Its application scope is the authored
+[segmented review lab](../segmented-reviews.md); the original briefs below remain historical scope.
+
 ## Roles and first wave
 
 Use one coordinator plus up to three workers, adapting to available capacity. The coordinator owns

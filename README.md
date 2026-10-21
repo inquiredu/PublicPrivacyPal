@@ -123,3 +123,6 @@ unchanged; the synthetic labels still require independent adjudication.
 Manual review also supports [document sets](docs/source-bundles.md) and
 [long-policy coverage](docs/source-segments.md). Offline segment packets preserve extraction and
 synthesis evidence but do not import model findings into the application or enable a provider.
+The [saved segmented review lab](docs/segmented-reviews.md) adds durable attempts for an authored
+Lantern example, original-response inspection and explicit unresolved human drafts. It uses no
+network model calls; human review, deterministic scores and district decisions remain separate.
