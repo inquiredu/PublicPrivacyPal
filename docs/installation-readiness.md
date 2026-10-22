@@ -5,6 +5,15 @@ of production provisioning, a supported release or a completed independent distr
 The adopter instructions are [local setup](local-development.md) and
 [independent trial](independent-trial.md); they require no author's account or temporary path.
 
+## Next acceptance gate — October 22, 2026
+
+The [independent local trial checklist](independent-trial.md#trial-record-and-completion-rule)
+is prepared but unexecuted. An outside participant on another machine must record T01–T15,
+including assistance, actual publication/removal and matching-account recovery. The DOC-03 evidence
+below remains implementation-team evidence; it must not be relabeled an independent-person pass.
+Current implementation and pending release gates are indexed in the
+[open-source plan](open-source-plan.md#current-implementation-and-remaining-work).
+
 ## Current fresh-clone rehearsal — DOC-03
 
 The October 20, 2026 adoption wave starts from an actual GitHub clone of

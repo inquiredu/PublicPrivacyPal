@@ -67,6 +67,13 @@ live-provider authority.
 
 ## Qualification blockers and retained guarantees
 
+Status reconciliation, October 22: the table records the PROV-01 ordinary-worker/offline baseline.
+INT-002 subsequently implemented typed segment/synthesis requests, immutable original responses,
+durable synthetic run storage, human provenance and schema-10 recovery for the exact Lantern lab;
+see [segmented reviews](segmented-reviews.md). The segmented-interface row is no longer wholly
+pending for that synthetic path. This does not repair ordinary-worker response retention or qualify
+live adapters, general imports, billing settlement or spending limits. Those remain open.
+
 | Gap | Current evidence | Required next increment |
 | --- | --- | --- |
 | Terminal settlement discovery | Runnable probes show `succeeded`, `stale` and `failed` jobs with unknown billing are outside the worker's eligible query. Reservations remain, rather than being falsely released. | Independent dispatch/settlement index and bounded operator lookup for every unsettled attempt, regardless of result status. |

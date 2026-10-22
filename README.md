@@ -10,7 +10,11 @@ policies, calculating reproducible scores, and publishing a district-curated lib
 Districts will own their data, accounts, infrastructure, and provider credentials. The software
 will be freely licensed; hosting, email, and AI services can have operating costs.
 
-Start with the [open-source plan](docs/open-source-plan.md) and [source provenance](docs/provenance.md).
+Start with the [current status and work plan](docs/open-source-plan.md#current-implementation-and-remaining-work)
+and [source provenance](docs/provenance.md). The next milestone is
+[independent local acceptance](docs/independent-trial.md); implementation-team rehearsals have passed,
+but an outside-person trial remains pending. The latest implementation baseline is development
+commit `186c48d` on `codex/coordinated-milestone-2026-10-19`, not `main` (verified October 22, 2026).
 See the [service workflow](docs/service-detail.md) and [accessibility and bundle checks](docs/accessibility-performance.md) for implemented behavior and remaining limits.
 
 ## Run locally

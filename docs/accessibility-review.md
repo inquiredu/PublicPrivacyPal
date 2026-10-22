@@ -2,8 +2,8 @@
 
 ## A11Y-F1 implementation — UX-03, October 20, 2026
 
-The source fix is implemented over `2f3709f37c601815bed653a468d062c15aff3067` and awaits
-coordinator review and browser acceptance. The named **Before saving this capture** summary links
+The source fix is implemented over `2f3709f37c601815bed653a468d062c15aff3067` and passed
+coordinator review and focused native Chrome acceptance; see the acceptance section below. The named **Before saving this capture** summary links
 to the affected input, exclusion textarea or document dependency group. Controls and groups refer
 to their applicable inline errors with stable IDs, `aria-describedby` and `aria-invalid`.
 Unrelated link or exclusion-reason errors do not mark dependency choices invalid. The summary is
@@ -19,8 +19,8 @@ scope reconciliation and rubric-adoption controls retain their responsibilities.
 Worker verification: full TypeScript check and **56 focused tests passed**, including seven new
 mapping/rendered-HTML cases. This proves source and static HTML relationships, not actual keyboard
 focus, reflow or spoken announcements. Coordinator acceptance steps, exact test commands and limits
-are in [UX-03](parallel-work/reports/UX-03.md). A11Y-F1's browser and assistive-technology retests remain
-pending; A11Y-F2 and F3 remain open. The following October 18 observations are historical evidence.
+are in [UX-03](parallel-work/reports/UX-03.md). A11Y-F1's focused browser retest passed; its spoken assistive-technology retest remains
+pending. A11Y-F2 and F3 remain open. The following October 18 observations are historical evidence.
 
 ## October 18 assessment
 

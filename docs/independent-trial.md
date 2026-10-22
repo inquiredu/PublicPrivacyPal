@@ -5,6 +5,146 @@ This is a synthetic local rehearsal, not a public hosting guide. It uses no dist
 project, cloud credential, AI key, mail service or real vendor policy. The software is AGPL-3.0;
 a future hosted installation may incur infrastructure and provider costs.
 
+## Trial record and completion rule
+
+Checklist prepared October 22, 2026; **not yet executed by an independent participant**.
+Use a person outside the implementation team on a separate computer. A maintainer may observe,
+but record every hint, command intervention and workaround. If the maintainer takes over a task,
+mark it assisted and repeat it independently after the instructions or product are fixed.
+
+Keep a private copy of this checklist with one result per ID: **pass / fail / blocked / not run**,
+plus independent or assisted, elapsed time, expected versus observed behavior and an issue reference.
+Unchecked boxes are pending, never implied passes. Share only a redacted outcome report.
+
+| Trial identity | Record before starting |
+| --- | --- |
+| Participant / observer | Names or agreed identifiers; confirm participant is outside implementation team |
+| Date and machine | OS/version, architecture, browser/version; any assistive technology |
+| Source | Repository, branch, exact commit and clean/modified state; documentation revision if different |
+| Toolchain | Node, npm and Java versions; whether newly installed or preexisting |
+| Downloads | Package/emulator cache present or absent; first-download failures and assistance |
+| Installation | Selected synthetic configuration, demo project ID and district ID; no passwords |
+| Evidence | Private notes location; sanitized issue references; backup ID/schema and verification result |
+
+The implementation baseline is `186c48d505fa275e0e6eff769c4ceb6a11dbfb9f` on
+`codex/coordinated-milestone-2026-10-19`; main does not yet contain these increments. Use the reviewed
+trial candidate and record its actual commit, including any later fixes. Obtain source through the
+participant's own authorized repository access; never share another person's GitHub credentials.
+See [workstation handoff](workstation-handoff.md#get-the-complete-source) for cloning the branch.
+
+### Core acceptance checklist
+
+Complete every core row. Use the procedures below and linked walkthroughs; the checkboxes record
+outcomes, not permission to change real systems. Start with practice reviews before adopting an
+optional full rubric, so the first exercise does not require fifty manual findings.
+
+- [ ] **T01 — Fresh installation.** Clone the correct branch on local disk, record `git rev-parse HEAD`
+  and `git status --short`, select Node 24/Java 21+, install this checkout's dependencies and initialize
+  configuration. Pass: no borrowed config/accounts/dependencies and only an explicit `demo-` project.
+- [ ] **T02 — Startup/bootstrap.** Start services, bootstrap once, sign in through **For your district
+  team**, then repeat bootstrap. Pass: the same account still works and the repeat preserves existing
+  setup; it does not reset credentials. Record downloads, setup messages and any help needed.
+- [ ] **T03 — Role boundaries.** Create reviewer, viewer and teacher identities using the commands
+  below. Before assigning membership, confirm an identity cannot enter private reviews. Assign the
+  three roles and sign in as each. Pass: reviewer can edit reviews; viewer can inspect but not mutate;
+  staff can see staff guidance and submit their own tool request but cannot inspect private reviews
+  or settings; anonymous visitors see only the public library. Check against [permissions](permissions.md).
+- [ ] **T04 — Revocation with an existing session.** Keep the reviewer signed in in a separate browser
+  profile, revoke that membership as admin, then revisit private review data and attempt an edit.
+  Pass: further private access/saves are denied. Previously displayed text is not proof of continued
+  access. Restore membership as admin for later steps; record any unexpected successful request.
+- [ ] **T05 — Synthetic analysis/retry.** Create a uniquely named bundled review using **Missing and
+  conflicting commitments** and inspect score/evidence. In a separate practice review use the
+  temporary-failure fixture and its explicit retry. Pass: failure is visible, retry completes and
+  neither analysis automatically approves or publishes a service. Use [review workflow](review-workflow.md).
+- [ ] **T06 — Pasted evidence and draft protection.** Follow [Orchard Practice](synthetic-paste-walkthrough.md).
+  Before saving an evidence draft, record its exact text privately, navigate away/back and reload
+  the same tab. Pass: wording survives; a fabricated quote is rejected; literal script-like policy
+  text does not execute. Complete the eight authored findings and confirm the expected 64/100.
+  These labels are synthetic test inputs, not district rubric approval.
+- [ ] **T07 — Actual publication/removal.** Record an explicit conditional decision with public
+  summary/category/conditions and distinct private rationale. Publish locally. In a signed-out
+  browser verify the actual entry and allowed wording, with no private source/rationale/reviewer
+  details. Unpublish, refresh the anonymous library and confirm removal. A success badge alone
+  does not pass. Record a fresh decision if required and republish for the next step.
+- [ ] **T08 — Correction and fresh decision.** Change Orchard Collection to Partial as the walkthrough
+  specifies. Pass: score becomes 57, actual public entry disappears, earlier decision becomes stale
+  and republication requires a fresh decision. Confirm old/new evidence in private history, then
+  explicitly decide and republish. Preserve this review as the recovery sample.
+- [ ] **T09 — Setup and audience workflow.** As admin inspect the six-part Settings and save a uniquely
+  named synthetic library title. Verify reload and anonymous appearance. Inspect all four service
+  tabs and staff guidance/conditions. Pass: score, district decision and publication are distinguishable;
+  changing settings does not silently rescore the existing Orchard review. Record confusing wording
+  and any missing destination. Do not treat this as owner acceptance of every restored feature.
+- [ ] **T10 — Segmented example and unresolved handoff.** Follow [the Lantern lab](segmented-reviews.md):
+  save its exact example, run source ranges, synthesize, inspect original responses and create an
+  unresolved human draft. Save unfinished evidence. Pass: missing annex/contradiction stays visible,
+  no automatic finding acceptance, no aggregate approval/publication, and reload retains saved work.
+- [ ] **T11 — Keyboard and validation.** Without a mouse, reach main navigation, review tabs and
+  source controls. Create an empty linked-material label, activate its validation-summary link and
+  verify focus reaches the corresponding field without losing text. Correct it. Check 320 CSS-pixel
+  reflow and 200% zoom. Pass: controls remain reachable and readable; record browser/method. This
+  does not close spoken screen-reader, full contrast or 400% acceptance gaps.
+- [ ] **T12 — Save and verify.** Inventory the trial's review names, scores/decisions/publication,
+  one history event, saved settings, role assignments and Lantern attempts. Run backup, wait for
+  saved/verified, then independently verify the printed directory. Pass: both commands succeed;
+  record backup ID/schema and preserve the original account passwords privately. An archive
+  containing Lantern runs requires schema 10. Browser drafts are not part of this inventory.
+- [ ] **T13 — Restore.** Stop only this trial's services, restore the exact verified archive with the
+  same configuration/source/lockfile and do not bootstrap. Pass: original credentials work, the T12
+  inventory matches, public wording remains correct and viewer/staff restrictions still hold.
+  Verify saved evidence/history and Lantern original responses, not just review counts.
+- [ ] **T14 — Automated checks and final preservation.** Save/verify any new changes, stop services,
+  then run CI, integration and recovery sequentially as below. Record each exit result and failures,
+  then restore the trial archive again and sign in. Pass: all checks and restored access succeed.
+  Do not compare only the historical test totals or discard failure logs.
+- [ ] **T15 — Debrief and disposition.** Participant explains evidence versus score versus district
+  decision, where staff find conditions, what families see, and how to restore. Record confusion,
+  assistance and unresolved issues. Assign each failure an owner and retest; observer and participant
+  date the outcome. Mark the trial accepted only when all core rows pass independently after retests.
+
+Stop dependent steps on unexpected private-data exposure, unauthorized mutation, lost saved work,
+wrong configuration or failed backup verification. Preserve private evidence and report the failed
+row; do not force a restore, edit an archive or weaken guards to complete the checklist. A blocked
+trial is a useful result and must remain blocked until its cause is resolved.
+
+### Additional acceptance tracks — report separately
+
+- [ ] **E01 — Full service requirements.** Follow [service detail](service-detail.md#repeatable-synthetic-acceptance)
+  with an explicitly adopted tier policy and all enabled measures. Verify an unknown required DPA
+  blocks approval, then use fictional agreement facts and repeat correction/withdrawal. The documented
+  API-populated 50-measure fixture was team QA; do not report it as this participant's manual review.
+- [ ] **E02 — Second configuration.** Save/verify/stop the first installation, then follow the River
+  Valley procedure below. Verify independent accounts/data and restore each with its own configuration.
+- [ ] **E03 — Assistive technology.** Execute the spoken VoiceOver/NVDA and visual-mode checks in
+  [accessibility review](accessibility-review.md). Record actual announcements and ratios separately.
+- [ ] **E04 — Policy adjudication.** Independent qualified reviewers follow [rubric next](rubric-next.md)
+  and [precision](rubric-precision.md); record normative decisions and disagreements. Completing
+  this user trial does not approve a rubric.
+
+Core acceptance demonstrates the scoped local workflow only. Unrun additional tracks remain open;
+none of these results establishes production hosting, provider quality or release readiness.
+
+### Redacted issue / outcome template
+
+```text
+Trial ID / source commit / documentation revision:
+Checklist ID / result / independent or assisted / elapsed time:
+Expected behavior:
+Observed behavior and minimal synthetic reproduction:
+Exact error message (remove tokens, passwords and private paths):
+Assistance or workaround used:
+Impact: blocks setup / access boundary / lost work / usability / documentation
+Issue owner / reference / next action:
+Retest commit / date / result:
+Final trial disposition / participant / observer / date:
+Open additional tracks:
+```
+
+Do not attach account files, backups, tokens or raw logs containing secrets. Retain original logs
+privately and provide a sanitized excerpt. A clean-install failure and an assisted completion must
+remain visible in the final outcome, even when a later retest succeeds.
+
 ## Prepare a copy
 
 Use the independent `inquiredu/PublicPrivacyPal` repository, then open a terminal in its directory.
@@ -69,7 +209,7 @@ Return to the admin account for the rest of the rehearsal.
 
 ## Complete a review and recover it
 
-1. Open **Policy reviews**, choose **Bundled synthetic policy**, a fictional name, and **Missing and conflicting commitments**.
+1. For T05, open **Policy reviews**, choose **Bundled synthetic policy**, a fictional name, and **Missing and conflicting commitments**.
    Keep **Evidence-first candidate** selected. Analyze, then inspect the score and exact quotations.
 2. Expand **Review the scoring rubric**. Compare a separate practice review using the inherited profile.
    The [scoring rubric](scoring-rubric.md) records the expected fixture scores and their meaning.
@@ -147,6 +287,6 @@ scope, dependencies and missing-material review. A missing required document or 
 cannot be resolved by a generic note. Available evidence can be saved as unfinished work without
 an aggregate score or approval. Source and dependency changes require a new review.
 
-The recorded Cedar suggestions and offline segment tools demonstrate contracts and failure handling.
+The recorded Cedar suggestions, saved Lantern lab and offline segment tools demonstrate contracts and failure handling.
 They do not enable a live provider, automatic fetching or automatic acceptance of model findings.
 No production credentials or real policies are required for any step in this trial.

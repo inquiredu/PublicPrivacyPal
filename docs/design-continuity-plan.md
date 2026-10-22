@@ -110,18 +110,14 @@ Relevant source: [settings completion](https://github.com/inquiredu/privacypal/b
 [override resolution](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/services/toolResolution.ts).
 These are source-level findings and proposals, not new production test results.
 
-## Proposed next milestone: existing setup through a complete service review
+## Historical milestone: existing setup through a complete service review
 
-**Progress, 2026-10-15:** increment 1 is implemented locally. The original six-part setup and
-Library Design dialog now save administrator-only, versioned settings. Local PDF text import,
-the optional original 50-measure framework, area priorities, library branding/notice/footer,
-preview and display defaults are available. Synthetic unit, permission, recovery and browser
-checks passed; see [district setup](district-setup.md) and [provenance](provenance.md).
-Live law discovery and Drive are deliberately deferred. The public library consumes its saved
-appearance settings, but full reviewer/staff/service-detail cards are still increments 2 and 3.
-New pasted reviews can now explicitly adopt a versioned snapshot of the saved district rubric.
-Existing eight-measure practice scores remain unchanged. See `review-storage.md` for the bounded
-records, migration and full-rubric tests; the original four-tab detail still needs restoration.
+**Status reconciled October 22, 2026:** all three local increments below are implemented.
+Versioned settings, bounded review storage, reviewer cards/four tabs and staff/family projections
+have recorded synthetic acceptance. See [service detail](service-detail.md) and the
+[current status and work plan](open-source-plan.md#current-implementation-and-remaining-work).
+Owner acceptance of the refined interface and broader independent/accessibility acceptance remain
+pending. The following sequence records the original design intent, not the next assignment.
 
 Implement one recognizable end-to-end local experience in three increments:
 
@@ -160,9 +156,9 @@ Acceptance requires:
 - Keyboard use, focus, narrow screens and tab navigation are verified as components return.
 - No changes to the original repository, district configuration, data, users or deployment.
 
-This proposal changes the next local milestone. It does not authorize production changes or
-claim feature parity has already been implemented. Preserve the tested local foundation and
-bring the existing product experience onto it incrementally.
+This historical proposal defined the local restoration milestone. Its implemented scope is recorded
+in `service-detail.md`; it does not establish full feature parity or authorize production changes.
+Use the current status index for remaining work.
 
 ## Reliability review before further restoration
 
@@ -189,7 +185,13 @@ changed in this review.
 | Jobs and integrations | Keep durable server-owned work. The current instant fixture worker is not a production AI queue. Keep mail, Drive and signing separate and disabled until their own review. | Slow provider, lease renewal, duplicate delivery, cancellation, crash/restart, revocation and bounded cost/retry tests. Use an event-driven/bounded queue before a hosted rollout. |
 | Recovery and upgrades | Keep verified backups, maintenance fencing and whole-installation restore. Strict lockfile matching is a current guardrail, not an upgrade solution. | Rehearse an old-backup-to-new-schema migration and failed-upgrade rollback; operator handoff, retention and encryption before real district data. |
 
-### Concrete gaps in the current local implementation
+### Historical gaps observed October 15, 2026
+
+Items 1–4 below were subsequently addressed for policy reviews by the draft/receipt and versioned
+storage increments. They are preserved as the original failure analysis, not current defects.
+Session/operations, independent public startup and live-provider readiness remain open; the newer
+provider contracts include leases and synthetic segmented retention, but do not qualify live use.
+Use the [current status index](open-source-plan.md#current-implementation-and-remaining-work).
 
 1. **Draft loss can occur during navigation.** `src/Reviews.tsx` keeps evidence/decision dirtiness
    inside the selected detail, while selecting another review replaces that keyed component.
@@ -280,7 +282,7 @@ their failure-injection/browser cases are acceptance work below, not claimed com
    historical reproducibility and full backup/restore. Confirm settings effects without choosing
    district policy on the owner's behalf. Implemented locally; see `review-storage.md` and
    `provenance.md`. Public entry-point separation and measured performance budgets remain ahead.
-3. **Restore one complete service through the familiar screens.** Use the original card and four
+3. **Restore one complete service through the familiar screens — implemented locally.** Use the original card and four
    tabs on that contract. Show use decision/conditions, evidence coverage, blockers and next action
    clearly. Include an unresolved DPA, omitted policy statements, a human correction and fresh
    publication. Prove reviewer, staff and family views independently. Expand only after this

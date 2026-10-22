@@ -1,3 +1,23 @@
+# Baseline consolidation — October 22, 2026
+
+Documentation now uses [the current status index](docs/open-source-plan.md#current-implementation-and-remaining-work)
+and [the independent local trial checklist](docs/independent-trial.md). Next work is an outside-person
+synthetic local trial, with accessibility and human rubric acceptance alongside it; operational
+continuity and any hosted/provider pilot follow separate gates.
+
+The clean source baseline before these documentation edits was `186c48d505fa275e0e6eff769c4ceb6a11dbfb9f`
+on `codex/coordinated-milestone-2026-10-19`, matching GitHub. Local/fresh remote main remained
+`cb5bb04cde8d900f0376d11f5676369636845eae`. The adoption-wave source is already checkpointed on
+the development branch; older “being checkpointed” and “uncommitted” notes below are historical.
+No branch switch, merge, commit, push, runtime change or test-suite rerun was part of consolidation.
+The October 20 evidence below remains the latest recorded validation, not a new result.
+
+The saved-preview/backup information below is the latest recorded handoff, not a current liveness
+or integrity check. Inspect ownership and save/verify before any future runtime shutdown. Do not
+bootstrap over a saved installation. Fresh trial participants use their own synthetic installation.
+
+---
+
 # Adoption wave checkpoint — October 20, 2026
 
 This checkpoint supersedes historical runtime/backup/next-work statements below. The owner's

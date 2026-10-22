@@ -8,12 +8,15 @@ foundation screens and eight-criterion trial prove mechanics; they are not a rep
 design. See [the source-based design continuity proposal](design-continuity-plan.md) for the
 feature map, concrete improvements and next milestone.
 
-**Reliability direction, 2026-10-15:** the owner has explicitly asked to interrogate every approach
-before restoring more screens. Original design and new foundation code are both subject to review.
-The immediate next work is the reliability gate in `design-continuity-plan.md`: draft protection,
-acknowledged/retry-safe commands, bounded review storage and explicit evaluation context. Feature
-continuity does not require copying unreliable behavior. This supersedes proceeding directly to
-service-card restoration.
+**Current baseline — October 22, 2026:** the clean checkout and GitHub development branch
+`codex/coordinated-milestone-2026-10-19` were verified at
+`186c48d505fa275e0e6eff769c4ceb6a11dbfb9f`. Local and fresh GitHub main were
+`cb5bb04cde8d900f0376d11f5676369636845eae`. The three later development commits are not on main.
+These identities precede this documentation consolidation; no merge, release or deployment is implied.
+
+The review draft/retry gate, bounded/versioned evaluation storage, setup and complete-service
+restoration are implemented locally. The next milestone is **independent local acceptance** using
+[the trial checklist](independent-trial.md). Reliability remains the gate for further expansion.
 
 ## Product scope
 
@@ -104,21 +107,22 @@ versions alongside each result so changes can be evaluated and explained.
 - [x] Run Auth, Firestore, and a local Node API against explicit demo projects.
 - [x] Establish operator-only initial admin setup and explicit staff/viewer/reviewer/admin roles.
 - [x] Replace broad rules with role/field validation and negative authorization tests.
-- [x] Pin a reviewed Node 24 toolchain and lockfile; runtime audit is clean, development CLI exceptions documented.
+- [x] Pin a reviewed Node 24 toolchain and lockfile; dated audit evidence and development CLI exceptions are in `dependencies.md` (not a new dependency audit).
 - [x] Gate source/bundle scanning and emulator integration tests in CI. Block deployment entirely for this local milestone.
 
 **Done when:** a fresh clone can be installed, tested, and started with no cloud credentials; a second
 synthetic district config works; neither setup references the original district; access tests reject
 unrelated users, forged ownership, privilege changes, and unauthorized public fields.
 
-### 2. Deliver the core review-to-publication workflow — local synthetic and pasted-text slices implemented
+### 2. Deliver the core review-to-publication workflow — local workflow implemented; live boundaries pending
 
-- Extract and pin the deterministic scoring engine using new synthetic golden fixtures.
-- Implement server-side analysis jobs with authorization, quotas, bounded fetches, and durable state.
-- Treat fetched pages and model output as untrusted input; validate structured output and citations.
-- Keep facts, calculated scores, administrative decisions, and public wording separate.
-- Save primary records and publication state with verifiable consistency and useful failure feedback.
-- Provide export/import and an append-only server-attributed review history.
+- [x] Pin deterministic scoring with synthetic regression fixtures and versioned definitions.
+- [x] Persist authorized synthetic jobs and segmented attempts with bounded storage and receipts.
+- [x] Validate supported structured outputs and exact citations; preserve human corrections.
+- [x] Separate findings, calculated scores, district decisions and public wording.
+- [x] Commit publication/removal consistently with private state and attributed history.
+- [x] Support practice draft import/export and whole-installation recovery; newer inspection archives require explicit recapture.
+- [ ] Qualify live provider execution, bounded outbound retrieval and semantic interpretation.
 
 **Done when:** a reviewer can submit a synthetic policy, recover from a failed job, inspect its evidence,
 approve it, publish it, and unpublish it. Closing/reopening the browser does not lose the job. A failure
@@ -156,45 +160,55 @@ The application assists review and records decisions; it should not promise a le
 certification. Policy text, consent wording, and jurisdiction coverage need separate qualified review.
 This plan does not adopt the legal claims in the old UI or documentation.
 
-## Current implementation and next slice
+## Current implementation and remaining work
 
-The local foundation now includes a public sample library, sign-in, team access management, pending
-tool requests, and role-gated internal notes. It uses a local Node API instead of deploying Cloud
-Functions; deployment and live AI are deliberately unavailable in this milestone. See
-`local-development.md`, `permissions.md`, and `dependencies.md` for setup, guarantees, and limits.
+This is the current status index. Historical proposals and milestone reports retain their dates;
+they must not be used as a current assignment list. “Implemented locally” means synthetic emulator
+support, not production readiness, independent acceptance or district policy approval.
 
-The local milestone 2 slice adds a pure versioned score engine, synthetic golden fixtures, persistent
-emulator jobs, attributed decisions/history, atomic publication/removal, and export/import as drafts.
-See `review-workflow.md` for the complete flow and limits. The next local slice adds a technically reviewed, versioned evidence-first rubric candidate,
-operator installation snapshots with write fencing and integrity checks, two full recovery cycles,
-and an independent local trial guide. See `scoring-rubric.md`, `backup-recovery.md`, and
-`independent-trial.md`. These complete the local backup/recovery rehearsal, not milestone 3's
-independent district pilot. Real-policy extraction, district policy sign-off, bounded outbound
-retrieval, production provisioning, accessibility verification, encrypted retention and schema
-upgrade/rollback remain ahead.
-The tested baseline was committed locally as `9523fbd` before the pasted-text work. The next slice
-now supports immutable pasted source capture, explicit review of all eight criteria, multiple exact
-quotations and private evidence rationales, deterministic recalculation, and atomic withdrawal of
-publication after a correction. Fresh decisions are required after every evidence edit. Synthetic
-regressions cover contradictions, exceptions, omissions, authorization, concurrency and recovery.
-The interactive browser walkthrough passed on 2026-10-15, including source capture, exact quotes,
-64-to-57 correction, automatic withdrawal, stale decision handling and fresh-decision republication.
-See `provenance.md` for evidence and `synthetic-paste-walkthrough.md` to repeat the exercise.
+| Area | Implemented and recorded evidence | Still pending |
+| --- | --- | --- |
+| District setup and service experience | Versioned setup/library settings, reviewer cards, four tabs, manual agreement facts and separate staff/family projections. See [service detail](service-detail.md). | Owner acceptance of the refined interface, broader tag/batch workflows and independent user acceptance. |
+| Review reliability | Tab-scoped review drafts, actor-scoped retry receipts, immutable source/evaluation context, bounded findings/history, deterministic scoring and atomic publication withdrawal. See [review workflow](review-workflow.md) and [storage](review-storage.md). | Equivalent durable draft/retry guarantees for settings, requests and internal notes; production-scale validation. Settings navigation retention alone is not full draft recovery. |
+| Document coverage | Pasted document sets, dependency/exclusion editor, long sources, explicit range acknowledgments and unresolved coverage gates. | Automatic retrieval/discovery and evidence interpretation qualification. |
+| Segmented assistance | Durable Lantern synthetic runs, retained original bytes/attempts, explicit unresolved human handoff and schema-10 recovery. See [segmented reviews](segmented-reviews.md). | Live adapters, general output adoption, settlement/billing reconciliation and enforced provider token/spend limits. Offline packets remain inspection artifacts. |
+| Rubric | Versioned practice/full definitions, selectable 14-measure precision pilot, and a separate three-measure offline proposal. | Independent labels/holdouts, district normative decisions and remaining precision coverage. Agent review is not human adjudication. |
+| Installation | Own-dependency fresh-clone River Valley rehearsal, bootstrap, role denials, backup/restore and startup diagnostics. | An outside person's browser trial on another machine, including prerequisite/download friction. |
+| Accessibility and public delivery | Keyboard/error-focus/draft/320px/200% browser checks and build-size budgets. | Spoken VoiceOver/NVDA checks, broader contrast/modes/400% coverage and public startup independent of private API health. |
+| Operations | Verified local archives, legacy conversion, two schema-10 recovery cycles and a read-only operator check. | Protected-admin succession, total-admin-loss recovery, encrypted off-device custody, supported A/B upgrade/rollback and production operations. |
 
-The next proposed milestone restores the existing Setup / Settings flow, reviewer cards and
-four-tab service detail on the tested local foundation, then connects the original staff and family
-view patterns. It includes optional starter evaluation profiles, versioned district choices, manual
-correction preservation and truthful publication feedback. The implementation sequence and
-synthetic acceptance criteria are in `design-continuity-plan.md`. The simplified editor and rubric
-are development fixtures, not an accepted replacement for the original product experience.
-An independent adoption pilot follows that local acceptance. Live extraction and hosting still
-require separate design and validation; they are not enabled by this local milestone.
-The original district repository, source snapshot, and deployment remain unchanged.
+### Evidence boundary
 
-The reliability review now takes precedence over further screen restoration. The first gate is
-implemented for policy reviews: tab-scoped drafts with original revisions, bounded API requests,
-and durable actor-scoped receipts for safe create/import/action reconciliation and retries.
-See `review-workflow.md` for draft retention and sign-out limits, and `provenance.md` for automated
-and browser evidence. The versioned full-evaluation contract is now implemented with bounded source,
-findings and history storage, explicit saved-rubric adoption, and legacy migration/recovery tests.
-See `review-storage.md`. The one-service card/four-tab restoration is now implemented on that contract; see `service-detail.md` for the field map, acceptance and remaining work.
+The [October 20 adoption-wave report](parallel-work/reports/coordinator-adoption.md) records
+544 unit/isolation tests, TypeScript/build/bundle/isolation, 224 emulator integration tests,
+a schema-9 fixture import and two schema-10 shutdown/import cycles passing. The fresh trial was
+operated by the implementation team on a Mac with Node/Java and emulator caches already installed.
+Native Chrome acceptance was focused; it did not test screen-reader speech. These suites were
+not rerun for the October 22 documentation consolidation. Test totals are historical observations,
+not future acceptance thresholds. A new candidate must pass its own applicable checks.
+
+The latest recorded saved-preview archive is schema 10, id
+`1ef70c3f-8ac4-4123-bc68-d5deda429fa3`; its private path and restoration instructions are in
+[HANDOFF](../HANDOFF.md). Runtime liveness and archive integrity were not rechecked for this docs
+update. A fresh adopter must create their own installation and backup, not use that private archive.
+
+### Ordered work plan
+
+1. **Baseline consolidation — this documentation increment.** Use this status index, the dated
+   handoff and the trial checklist. Preserve historical evidence. Review actual branch changes
+   and candidate checks before any separately authorized main integration.
+2. **Independent local acceptance — pending.** An outside participant uses a fresh source checkout
+   and synthetic accounts on another machine. Record each trial step, assistance, failure and retest.
+   Completion requires the core checklist, not only automated tests.
+3. **Accessibility and rubric acceptance — pending; may proceed alongside the trial.** Exercise
+   spoken assistive technology and configurable visual states. Obtain independent rubric judgments
+   and named district policy decisions before extending accepted precision coverage.
+4. **Operational continuity — pending.** Resolve succession authority/configuration compatibility,
+   then implement and rehearse transfer, revocation, encrypted off-device recovery and a named
+   supported upgrade/rollback pair. Existing restore cycles are not an upgrade certification.
+5. **Hosted/provider pilot — separately scoped.** Qualify retrieval, adapters, cost/settlement,
+   identity, public delivery and infrastructure before live enablement. Decide support and private
+   vulnerability reporting before a supported release.
+
+The existing district service and original repository remain outside this work. Main merge,
+provider calls, publication to a hosted service, release and deployment are separate decisions.
