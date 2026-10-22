@@ -8,6 +8,11 @@ a future hosted installation may incur infrastructure and provider costs.
 ## Trial record and completion rule
 
 Checklist prepared October 22, 2026; **not yet executed by an independent participant**.
+This checklist tests the current local slice, not full original-product parity. The next implementation
+milestone is [dashboard/request restoration](component-parity.md#next-milestone-restore-dashboard-and-request-lifecycle).
+Add its P1-3 walkthrough after implementation before claiming restored-workflow acceptance.
+DPA generation, signing, vendor upload and delivery are excluded; existing manual agreement facts
+in the optional full-service exercise remain independent of any legal-document system.
 Use a person outside the implementation team on a separate computer. A maintainer may observe,
 but record every hint, command intervention and workaround. If the maintainer takes over a task,
 mark it assisted and repeat it independently after the instructions or product are fixed.

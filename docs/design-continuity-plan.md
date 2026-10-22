@@ -8,6 +8,15 @@ Familiar workflows remain the baseline; neither old implementation choices nor n
 choices are exempt from challenge. The recommendations below are not claims that the remaining
 work has already been implemented.
 
+## Current parity follow-up — October 22
+
+The [component checklist](component-parity.md) supplements this service-detail map with all 56
+original component/support files. Dashboard rollups and the complete request lifecycle are the
+next restoration milestone. Track [public-version improvements](public-improvements.md) separately
+for possible later backport; original systems remain untouched. DPA generation/signing/vendor
+upload/delivery is intentionally excluded by the owner, rather than a deferred restoration promise.
+Manual agreement facts remain part of service review. Older integration proposals below are history.
+
 ## Direction
 
 The existing PrivacyPal is the product baseline. Preserve its setup, service cards, detailed

@@ -1,7 +1,26 @@
+# Component parity and next restoration — October 22, 2026
+
+The owner requested a component-by-component comparison after inspecting the local preview.
+[Component parity](docs/component-parity.md) inventories all 56 original component/support files
+against public commit `f31c874` and the pinned original archive. Dashboard and request lifecycle
+restoration now precede broader adoption acceptance; the older consolidation priority below is
+superseded. Core service tabs alone do not imply full product parity.
+
+[Public-version improvements](docs/public-improvements.md) records inherited strengths, stronger
+local contracts, evidence limits and possible original-project backports. No original change is
+authorized. Owner decision: exclude DPA generation, signing, vendor upload and delivery; legal
+documents will use other methods. Existing manual agreement facts remain separate.
+
+This increment changes documentation only. No implementation, suite rerun, saved data, runtime,
+branch/main, commit or push change is part of this inventory. Use the P1 acceptance checklist to
+scope the next implementation; no agents or historical workboard reservations have been activated.
+
+---
+
 # Baseline consolidation — October 22, 2026
 
 Documentation now uses [the current status index](docs/open-source-plan.md#current-implementation-and-remaining-work)
-and [the independent local trial checklist](docs/independent-trial.md). Next work is an outside-person
+and [the independent local trial checklist](docs/independent-trial.md). At this checkpoint, next work was an outside-person
 synthetic local trial, with accessibility and human rubric acceptance alongside it; operational
 continuity and any hosted/provider pilot follow separate gates.
 

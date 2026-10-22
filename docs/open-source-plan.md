@@ -15,8 +15,11 @@ feature map, concrete improvements and next milestone.
 These identities precede this documentation consolidation; no merge, release or deployment is implied.
 
 The review draft/retry gate, bounded/versioned evaluation storage, setup and complete-service
-restoration are implemented locally. The next milestone is **independent local acceptance** using
-[the trial checklist](independent-trial.md). Reliability remains the gate for further expansion.
+restoration are implemented locally. The next implementation milestone is **dashboard and request-workflow restoration**, following
+[the component parity checklist](component-parity.md). The [independent trial](independent-trial.md)
+can assess the current slice, but broader workflow acceptance follows restoration. Reliability
+remains the gate for expansion. Preserve [public-version improvements](public-improvements.md)
+as separately reviewed backport candidates; do not change the original project.
 
 ## Product scope
 
@@ -33,8 +36,10 @@ The first release should support:
 5. Families see an accessible, searchable library containing only approved public fields.
 6. District administrators can export, back up, restore, upgrade, and hand over the installation.
 
-DPA generation/signature collection, Gmail/Drive integrations, automated policy monitoring,
-and cross-district sharing are later modules. Their current implementations add permissions,
+**Owner decision, October 22:** DPA document generation, signing, vendor upload and delivery are
+excluded from restoration; districts will use other methods for legal documents. Gmail/Drive
+integrations unrelated to that excluded workflow, automated policy monitoring and cross-district
+sharing remain later modules. Their current implementations add permissions,
 operational costs, and review work that should not block a trustworthy first release.
 This does not defer manual DPA status, tier requirements, conditions of use, or their display in
 service details; those are part of preserving the existing review experience.
@@ -197,16 +202,20 @@ update. A fresh adopter must create their own installation and backup, not use t
 1. **Baseline consolidation — this documentation increment.** Use this status index, the dated
    handoff and the trial checklist. Preserve historical evidence. Review actual branch changes
    and candidate checks before any separately authorized main integration.
-2. **Independent local acceptance — pending.** An outside participant uses a fresh source checkout
+2. **Dashboard/request restoration — next implementation.** Complete the P1 contract, dashboard,
+   reviewer queue and requester outcome gates in [component parity](component-parity.md). The current
+   request form/list is not a complete lifecycle. DPA document automation is intentionally excluded.
+3. **Independent local acceptance — pending.** An outside participant uses a fresh source checkout
    and synthetic accounts on another machine. Record each trial step, assistance, failure and retest.
-   Completion requires the core checklist, not only automated tests.
-3. **Accessibility and rubric acceptance — pending; may proceed alongside the trial.** Exercise
+   Completion requires the core checklist, not only automated tests. Extend it with the P1 request/dashboard
+   walkthrough before claiming restored-workflow acceptance.
+4. **Accessibility and rubric acceptance — pending; may proceed alongside the trial.** Exercise
    spoken assistive technology and configurable visual states. Obtain independent rubric judgments
    and named district policy decisions before extending accepted precision coverage.
-4. **Operational continuity — pending.** Resolve succession authority/configuration compatibility,
+5. **Operational continuity — pending.** Resolve succession authority/configuration compatibility,
    then implement and rehearse transfer, revocation, encrypted off-device recovery and a named
    supported upgrade/rollback pair. Existing restore cycles are not an upgrade certification.
-5. **Hosted/provider pilot — separately scoped.** Qualify retrieval, adapters, cost/settlement,
+6. **Hosted/provider pilot — separately scoped.** Qualify retrieval, adapters, cost/settlement,
    identity, public delivery and infrastructure before live enablement. Decide support and private
    vulnerability reporting before a supported release.
 

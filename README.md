@@ -11,9 +11,11 @@ Districts will own their data, accounts, infrastructure, and provider credential
 will be freely licensed; hosting, email, and AI services can have operating costs.
 
 Start with the [current status and work plan](docs/open-source-plan.md#current-implementation-and-remaining-work)
-and [source provenance](docs/provenance.md). The next milestone is
-[independent local acceptance](docs/independent-trial.md); implementation-team rehearsals have passed,
-but an outside-person trial remains pending. The latest implementation baseline is development
+and [source provenance](docs/provenance.md). The next implementation milestone restores
+[dashboard and request workflows](docs/component-parity.md). The
+[independent local trial](docs/independent-trial.md) remains pending; current-slice acceptance is
+separate from full workflow parity. [Public-version improvements](docs/public-improvements.md)
+are recorded for possible separately authorized backports to the original. The latest implementation baseline is development
 commit `186c48d` on `codex/coordinated-milestone-2026-10-19`, not `main` (verified October 22, 2026).
 See the [service workflow](docs/service-detail.md) and [accessibility and bundle checks](docs/accessibility-performance.md) for implemented behavior and remaining limits.
 
