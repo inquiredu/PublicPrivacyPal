@@ -87,6 +87,19 @@ for(const role of ['anonymous','nonmember','staff','viewer','reviewer','admin'])
   const version=(await s.db.collection(`${base}/reviews/${r.id}/services`).limit(1).get()).docs[0];await assertFails(getDoc(doc(db,version.ref.path)));await assertFails(setDoc(doc(db,version.ref.path),{forged:true}));
   assert.equal((await act(r,'edit_service',{service:{values:serviceValues,rationale:'Role test'}},role)).status,canEdit?200:denied);
 });
+test('vendor policy URL becomes public only on publication and disappears on correction or withdrawal', async () => {
+  let r = await save(await complete(), { ...serviceValues, policyUrl: 'https://vendor.example/privacy-v1' });
+  const db = env.unauthenticatedContext().firestore();
+  assert.equal((await getDoc(doc(db, publicPath(r)))).exists(), false);
+  r = await publish(r);
+  assert.equal((await getDoc(doc(db, publicPath(r)))).get('policyUrl'), 'https://vendor.example/privacy-v1');
+  r = await save(r, { ...serviceValues, policyUrl: 'https://vendor.example/privacy-v2' });
+  assert.equal((await getDoc(doc(db, publicPath(r)))).exists(), false);
+  r = await publish(r);
+  assert.equal((await getDoc(doc(db, publicPath(r)))).get('policyUrl'), 'https://vendor.example/privacy-v2');
+  r = (await act(r, 'unpublish')).data;
+  assert.equal((await getDoc(doc(db, publicPath(r)))).exists(), false);
+});
 test('new settings never reinterpret the saved service policy or an existing decision',async()=>{
   const r=await publish(await save(await complete()));const old=await get(r.id);const policy=exampleTierPolicy();policy.version='stricter-local-v2';policy.rules['Tier 2: Site/Department Approved'].rostering=true;
   assert.equal((await call('/settings','reviewer',{section:'evaluation',revision:1,values:{...defaultEvaluation(),state:'Colorado',tierPolicy:policy}})).status,403);

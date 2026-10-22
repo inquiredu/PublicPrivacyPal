@@ -1,6 +1,8 @@
+import { publicPolicyUrl } from '../shared/public-policy';
 import type { LibraryProfile } from '../shared/settings';
 /** Shared by the actual audience view and its reviewer preview. */
 export function ServiceNotice({ profile: p, staff = false, showTier = true }: { profile: LibraryProfile; staff?: boolean; showTier?: boolean }) {
+  const policyUrl = publicPolicyUrl(p.policyUrl);
   return <div className="service-notice">
     {showTier && p.tierLevel && <p><strong>{p.tierLevel}</strong></p>}
     <p>{p.summary}</p>
@@ -11,6 +13,7 @@ export function ServiceNotice({ profile: p, staff = false, showTier = true }: { 
     {p.grades && <p><strong>Grades: </strong>{p.grades}</p>}
     {p.dataUse && <p><strong>Student data: </strong>{p.dataUse === 'student_data' ? p.dataCategories || 'Categories not recorded' : p.dataUse === 'no_student_data' ? 'No student data in the recorded use conditions' : 'Not yet confirmed'}</p>}
     {staff && <>{p.support && <p><strong>Support: </strong>{p.support}</p>}{p.ageGuidance && <p><strong>Age guidance: </strong>{p.ageGuidance}</p>}{p.curriculum && <p><strong>Curriculum: </strong>{p.curriculum}</p>}{p.educationNotes && <p><strong>Education version: </strong>{p.educationNotes}</p>}{p.score != null && <p className="subtle">Policy evidence score: {p.score}/100 · {p.evidenceCount}/{p.measureCount} measures cited. This describes policy statements, not permission to use the service.</p>}</>}
+    {policyUrl && <p><a href={policyUrl} target="_blank" rel="noopener noreferrer">Vendor privacy policy<span className="sr-only"> (opens in a new tab)</span></a></p>}
     {p.reviewedAt && <small>Decision recorded {new Date(p.reviewedAt).toLocaleDateString()}</small>}
   </div>;
 }

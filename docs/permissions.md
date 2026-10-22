@@ -73,9 +73,13 @@ requires local Origin on mutations, bounds JSON request size, and exposes no gen
 The browser has no service credential. Every browser database write is also constrained by
 `firestore.rules`, including field allowlists and server timestamps.
 
-Requests must start pending, name the authenticated requester, and contain only request fields.
-Review status/history cannot be supplied during creation. Staff updates are limited to an archive
-boolean on their own request. Internal tool writes cannot inject scores or publication fields or
+Requests use server-only commands for creation, claim/release, administrator takeover/reopen,
+assigned-reviewer outcomes and independent requester/reviewer archives. All direct browser reads
+and writes to request heads, history and receipts are denied. Staff/viewers receive only their own
+request projections; reviewers/admins may inspect district requests and private history. Commands
+recheck current membership, authority and expected revision, with actor-scoped retry receipts.
+See [request lifecycle](request-workflow.md) for the state/permission matrix and local bounds.
+Internal tool writes cannot inject scores or publication fields or
 forge `updatedBy`. Review decisions use strict server commands with revision checks; direct review/job/history writes are denied.
 
 ## Operator backups

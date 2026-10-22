@@ -1,3 +1,5 @@
+import { RequestPanel } from './RequestPanel';
+import { clearRequestDrafts, hasRequestDrafts } from './request-journal';
 import { ServiceNotice } from './ServiceNotice';
 import { DraftProvider } from './ReviewDrafts';
 import { browserDraftStore, clearReviewDrafts, type DraftStore } from './draft-store';
@@ -8,7 +10,7 @@ import { LibraryView } from './LibraryView';
 import { defaultLibrary, librarySettingsSchema, type LibrarySettings, type LibraryProfile } from '../shared/settings';
 import { lazy, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, type User } from 'firebase/auth';
-import { addDoc, collection, doc, onSnapshot, query, where, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { connectLocal, type Client } from './firebase';
 import { roles, type Role } from '../shared/config';
 
@@ -17,7 +19,6 @@ const Settings = lazy(() => import('./Settings').then(m => ({ default: m.Setting
 type Profile = LibraryProfile;
 type Member = { uid: string; email: string; role: Role; active: boolean; protected?: boolean };
 type Tool = { id: string; name: string; url: string; notes: string };
-type RequestRow = { id: string; toolName: string; purpose: string; status: string; requestedBy: string; archived: boolean };
 const roleLabels: Record<Role, string> = { admin: 'Administrator', reviewer: 'Reviewer', viewer: 'Read-only reviewer', staff: 'Staff' };
 const message = (e: unknown) => e instanceof Error ? e.message : 'Something went wrong. Please try again.';
 function Brand() { return <span className="brand"><span className="brand-mark" aria-hidden="true">P</span>PrivacyPal<span className="edition">community</span></span>; }
@@ -52,8 +53,15 @@ function Workspace({ client }: { client: Client }) {
   const [signingOut, setSigningOut] = useState(false);
   const signOutDialog = useRef<HTMLDialogElement>(null);
   const draftOwner = useRef('');
+  const requestOwner = useRef('');
   const [member, setMember] = useState<Member | null>(null);
   const [accountReady, setAccountReady] = useState(false);
+  useEffect(() => {
+    if (!authReady || (user && !accountReady)) return;
+    const owner = user && member ? `${user.uid}/${member.role}` : '';
+    if (!owner || requestOwner.current && requestOwner.current !== owner) clearRequestDrafts();
+    requestOwner.current = owner;
+  }, [authReady, accountReady, user?.uid, member?.role]);
   const [tab, setTab] = useState<'library' | 'workspace' | 'people' | 'reviews' | 'settings'>('library');
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [library, setLibrary] = useState<LibrarySettings>();
@@ -96,9 +104,9 @@ function Workspace({ client }: { client: Client }) {
   function keepEditing() { signOutDialog.current?.close(); setConfirmSignOut(false); }
   async function leaveAccount(confirmed = false) {
     if (signingOut) return;
-    if (!confirmed && drafts?.has()) { setConfirmSignOut(true); return; }
+    if (!confirmed && (drafts?.has() || hasRequestDrafts())) { setConfirmSignOut(true); return; }
     setSigningOut(true);
-    try { await signOut(client.auth); clearReviewDrafts(); setConfirmSignOut(false); }
+    try { await signOut(client.auth); clearReviewDrafts(); clearRequestDrafts(); setConfirmSignOut(false); }
     catch (e) { setError(message(e)); setConfirmSignOut(false); }
     finally { setSigningOut(false); }
   }
@@ -124,7 +132,7 @@ function Workspace({ client }: { client: Client }) {
         <section className="session-bar" aria-label="Account"><div><strong>{user ? user.email : 'You’re viewing the public library'}</strong><p>{member ? roleLabels[member.role] : user ? accountReady ? 'No active membership. Ask your local administrator to assign access.' : 'Checking your membership…' : 'Anyone can browse. District team members can sign in below.'}</p></div>{user && <button className="secondary" disabled={signingOut} onClick={() => { void leaveAccount(); }}>Sign out</button>}</section>
         {confirmSignOut && <dialog ref={signOutDialog} className="draft-signout-dialog" aria-labelledby="draft-signout-title" aria-describedby="draft-signout-description" onCancel={e => { e.preventDefault(); if (!signingOut) keepEditing(); }}>
           <h2 id="draft-signout-title">Sign out and erase this tab’s drafts?</h2>
-          <p id="draft-signout-description">Unsaved policy text, evidence and decision drafts will be erased. An unconfirmed save may still complete; check review history when you return.</p>
+          <p id="draft-signout-description">Unsaved request text, policy text, evidence and decision drafts will be erased. An unconfirmed save may still complete; check your requests and review history when you return.</p>
           <div className="actions"><button type="button" className="secondary" autoFocus disabled={signingOut} onClick={keepEditing}>Keep editing</button><button type="button" disabled={signingOut} onClick={() => void leaveAccount(true)}>{signingOut ? 'Signing out…' : 'Erase drafts and sign out'}</button></div>
         </dialog>}
         {currentTab === 'library' && <>{libraryError && <Notice>{libraryError}</Notice>}{library ? <LibraryView settings={library} profiles={profiles} onCustomize={member?.role === 'admin' ? () => { setTab('settings'); setCustomizeRequest(n => n + 1); } : undefined}/> : !libraryError && <p role="status">Loading library settings…</p>}{!user && <Login client={client}/>}</>}
@@ -166,23 +174,15 @@ function People({ user }: { client: Client; user: User }) {
 function DistrictWork({ client, user, member }: { client: Client; user: User; member: Member }) {
   const [staffProfiles, setStaffProfiles] = useState<LibraryProfile[]>([]);
   const [staffSearch, setStaffSearch] = useState('');
-  const [requests, setRequests] = useState<RequestRow[]>([]); const [tools, setTools] = useState<Tool[]>([]); const [notice, setNotice] = useState(''); const [busy, setBusy] = useState(false);
+  const [tools, setTools] = useState<Tool[]>([]); const [notice, setNotice] = useState('');
   const base = `districts/${client.config.districtId}`;
   const canReview = ['admin', 'reviewer'].includes(member.role);
   useEffect(() => {
-    const ref = collection(client.db, `${base}/requests`);
-    const stopRequests = onSnapshot(canReview ? ref : query(ref, where('requestedBy', '==', user.uid)), snap => setRequests(snap.docs.map(d => ({ id: d.id, ...d.data() } as RequestRow))), () => { setRequests([]); setNotice('Request access is unavailable. Your permissions may have changed.'); });
     const stopStaff = onSnapshot(collection(client.db, `${base}/staffTools`), snap => setStaffProfiles(snap.docs.map(d => ({ id: d.id, ...d.data() } as LibraryProfile))), () => { setStaffProfiles([]); setNotice('Staff catalogue could not be loaded.'); });
     const stopTools = member.role !== 'staff' ? onSnapshot(collection(client.db, `${base}/tools`), snap => setTools(snap.docs.map(d => ({ id: d.id, ...d.data() } as Tool))), () => { setTools([]); setNotice('Internal tool access is unavailable.'); }) : () => {};
-    return () => { stopRequests(); stopTools(); stopStaff(); };
+    return () => { stopTools(); stopStaff(); };
   }, [client, base, user.uid, member.role, canReview]);
-  async function request(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault(); const form = e.currentTarget; const data = new FormData(form); setBusy(true); setNotice('');
-    try { await addDoc(collection(client.db, `${base}/requests`), { toolName: String(data.get('toolName')).trim(), purpose: String(data.get('purpose')).trim(), requestedBy: user.uid, status: 'pending', archived: false, createdAt: serverTimestamp() }); form.reset(); setNotice('Request submitted for review.'); }
-    catch { setNotice('The request could not be saved. Your access may have changed.'); } finally { setBusy(false); }
-  }
-  return <><section className="panel"><h2>Staff catalogue</h2><p>Check permitted use, grade scope and conditions before choosing a resource.</p><label>Search staff resources<input type="search" value={staffSearch} onChange={e => setStaffSearch(e.target.value)}/></label><div className="catalogue">{staffProfiles.filter(p => `${p.name} ${p.category}`.toLowerCase().includes(staffSearch.toLowerCase())).map(p => <article className="tool-card" key={p.id}><h3>{p.name}</h3><ServiceNotice profile={p} staff/></article>)}</div>{!staffProfiles.length && <p>No published staff resources yet.</p>}</section><div className="panel"><h2>Request a tool</h2><p>Tell your district team what you want to use and why.</p><form className="request-form" onSubmit={e => { void request(e); }}><label>Tool name<input name="toolName" required maxLength={120}/></label><label>How would you use it?<textarea name="purpose" required maxLength={2000} rows={3}/></label><button disabled={busy}>Submit request</button></form>{notice && <Notice>{notice}</Notice>}</div>
-      <div className="panel"><h2>{canReview ? 'District requests' : 'Your requests'}</h2>{!requests.length && <p>No requests yet. Your next request will appear here.</p>}{requests.map(r => <div className="request-row" key={r.id}><div><strong>{r.toolName}</strong><p>{r.purpose}</p></div><span className="pill">{r.status}</span></div>)}</div>
+  return <><section className="panel"><h2>Staff catalogue</h2><p>Check permitted use, grade scope and conditions before choosing a resource.</p><label>Search staff resources<input type="search" value={staffSearch} onChange={e => setStaffSearch(e.target.value)}/></label><div className="catalogue">{staffProfiles.filter(p => `${p.name} ${p.category}`.toLowerCase().includes(staffSearch.toLowerCase())).map(p => <article className="tool-card" key={p.id}><h3>{p.name}</h3><ServiceNotice profile={p} staff/></article>)}</div>{!staffProfiles.length && <p>No published staff resources yet.</p>}</section><RequestPanel key={`${client.config.projectId}/${client.config.districtId}/${user.uid}/${member.role}`} user={user} role={member.role} scope={`${client.config.projectId}/${client.config.districtId}`}/>
       {member.role !== 'staff' && <div className="panel"><h2>Internal tool records</h2><p>Reviewer notes stay inside your district workspace.</p>{tools.map(tool => <ToolEditor key={tool.id} tool={tool} canEdit={canReview} onSave={async notes => { await updateDoc(doc(client.db, `${base}/tools/${tool.id}`), { notes, updatedAt: serverTimestamp(), updatedBy: user.uid }); }}/>)}</div>}
     </>;
 }

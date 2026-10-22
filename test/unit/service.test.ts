@@ -30,9 +30,13 @@ test('service validation rejects invented authority, invalid dates, dangerous UR
 test('public and staff projections never include private service, evidence or author fields', () => {
   const r = { id: 'one', name: 'Synthetic', sourceKind: 'pasted', service: service(), decision: { outcome: 'conditional', rationale: 'SECRET', conditions: 'Supervision', summary: 'Synthetic summary', category: 'Learning', at: '2026-10-15', actorUid: 'SECRET' }, analysis: { score: { total: 64 }, evidenceCount: 7 } } as Review;
   const family = audienceProjection(r, 'public')!; const staff = audienceProjection(r, 'staff')!;
+  assert.equal('policyUrl' in family && family.policyUrl, serviceValues.policyUrl);
   assert.equal('score' in family, false); assert.equal('support' in family, false); assert.equal('score' in staff && staff.score, 64);
   for (const p of [family, staff]) { const text = JSON.stringify(p); for (const secret of ['SECRET', 'private-actor', 'CEDAR-1', 'Private correction rationale', 'governance', 'settingsRevision', 'dpaScope']) assert.ok(!text.includes(secret), secret); }
-  assert.deepEqual(Object.keys(family).sort(), ['alternative','approvedWhen','category','conditions','dataCategories','dataUse','grades','name','outcome','permissionWhen','reviewedAt','summary','synthetic','tierLevel']);
+  const withoutUrl = { ...r, service: { ...r.service!, values: { ...r.service!.values, policyUrl: '' } }, url: 'https://private.example/source' };
+  assert.equal('policyUrl' in audienceProjection(withoutUrl, 'public')!, false);
+  assert.equal('policyUrl' in audienceProjection({ ...r, service: undefined }, 'public')!, false);
+  assert.deepEqual(Object.keys(family).sort(), ['alternative','approvedWhen','category','conditions','dataCategories','dataUse','grades','name','outcome','permissionWhen','policyUrl','reviewedAt','summary','synthetic','tierLevel']);
 });
 test('service drafts retain their original revision and disappear on sign-out', () => {
   const map = new Map<string,string>(); const storage = { getItem: (k:string) => map.get(k) ?? null, setItem: (k:string,v:string) => { map.set(k,v); }, removeItem: (k:string) => { map.delete(k); }, key: (i:number) => [...map.keys()][i] ?? null, get length() { return map.size; } };

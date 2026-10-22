@@ -1,3 +1,4 @@
+import { requestCommand, requestCommandStatus, requestDetail, requestHistory, listRequests } from './requests.ts';
 import { assistanceDetail } from './analysis/jobs.ts';
 import { z } from 'zod';
 import { segmentedRunSummary, segmentedRunDetail, segmentedAttemptDetail, segmentedRequestDetail, segmentedOutputDetail, segmentedProposalDetail } from './segmented-reviews.ts';
@@ -47,11 +48,24 @@ export function apiServer(s: Services) {
       req.url = url.pathname;
       const evaluationRoute = /^\/api\/reviews\/([a-f0-9-]{36})\/evaluations\/([a-f0-9-]{36})$/.exec(req.url);
       const reviewRoute = /^\/api\/reviews\/([a-f0-9-]{36})(?:\/(history|export|assistance|prompt))?$/.exec(req.url || '');
+      const requestRoute = /^\/api\/requests\/([a-zA-Z0-9_-]{1,128})(?:\/(history))?$/.exec(req.url);
+      const requestReceiptRoute = /^\/api\/request-commands\/([a-f0-9-]{36})$/.exec(req.url);
       const commandRoute = /^\/api\/commands\/([a-f0-9-]{36})$/.exec(req.url || '');
       const segmentedRoute = /^\/api\/reviews\/([a-f0-9-]{36})\/segmented-runs(?:\/([a-f0-9-]{36})(?:\/(attempts|requests|outputs)\/([a-f0-9-]{36}|[a-f0-9]{64})|\/proposals\/([a-f0-9]{64})\/([a-zA-Z0-9_-]{1,80}))?)?$/.exec(req.url);
-      if (!['/api/review-rubric', '/api/me', '/api/members', '/api/settings', '/api/reviews', '/api/reviews/import'].includes(req.url || '') && !reviewRoute && !commandRoute && !evaluationRoute && !segmentedRoute) throw new HttpError(404, 'Endpoint not found.');
+      if (!['/api/review-rubric', '/api/me', '/api/members', '/api/settings', '/api/reviews', '/api/reviews/import', '/api/requests'].includes(req.url || '') && !reviewRoute && !commandRoute && !evaluationRoute && !segmentedRoute && !requestRoute && !requestReceiptRoute) throw new HttpError(404, 'Endpoint not found.');
       if (req.method === 'POST' && !origins.has(req.headers.origin || '')) throw new HttpError(403, 'Local origin required.');
       const identity = await authenticate(s, req.headers.authorization);
+      if (req.method === 'GET' && requestReceiptRoute) { if (cursor) throw new HttpError(400, 'No cursor allowed.'); return send(res, 200, await requestCommandStatus(s, identity, requestReceiptRoute[1])); }
+      if (req.method === 'GET' && req.url === '/api/requests') return send(res, 200, await listRequests(s, identity, cursor));
+      if (req.method === 'GET' && requestRoute) {
+        if (requestRoute[2]) return send(res, 200, await requestHistory(s, identity, requestRoute[1], cursor));
+        if (cursor) throw new HttpError(400, 'No cursor allowed.');
+        return send(res, 200, await requestDetail(s, identity, requestRoute[1]));
+      }
+      if (req.method === 'POST' && (req.url === '/api/requests' || requestRoute && !requestRoute[2])) {
+        const raw = await jsonBody(req, 24576); const command = commandIdentity(req.headers['idempotency-key'], req.url!, raw);
+        return send(res, requestRoute ? 200 : 201, await requestCommand(s, identity, requestRoute?.[1] || null, raw, command));
+      }
       if (segmentedRoute && req.method === 'GET') {
         const [, reviewId, runId, kind, itemId, outcomeId, measureId] = segmentedRoute;
         if (!z.uuid().safeParse(reviewId).success || (runId && !z.uuid().safeParse(runId).success) || (kind === 'attempts' && !z.uuid().safeParse(itemId).success) || ((kind === 'requests' || kind === 'outputs') && !/^[a-f0-9]{64}$/.test(itemId))) throw new HttpError(400, 'Invalid segmented record reference.');

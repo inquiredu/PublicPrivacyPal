@@ -1,3 +1,4 @@
+import { requestCommand, requestCommandStatus, requestHistory } from '../../server/requests.ts';
 import { longSyntheticBundle } from '../fixtures/source-segments.ts';
 import { suggestedEvidence } from '../../shared/assistance.ts';
 import { ANALYSIS_EXAMPLE } from '../../shared/analysis-example.ts';
@@ -222,12 +223,22 @@ try {
   } else {
     const receipt = JSON.parse(readFileSync(receiptPath, 'utf8'));
     const manifest = verifyBackup(process.env.PRIVACYPAL_RESTORE!, config);
-    assert.equal(manifest.dataSchema, process.env.PRIVACYPAL_RECOVERY_PHASE === 'restore-nine' ? 9 : 10);
+    assert.equal(manifest.dataSchema, process.env.PRIVACYPAL_RECOVERY_PHASE === 'restore-nine' ? 9 : 11);
     await finishRestore(s, manifest);
     assert.deepEqual(await allDocuments(), receipt.documents, 'Every Firestore document must survive exactly, including history, timestamps, quota and projections.');
     assertImportedAccounts(await allAccounts(), receipt.accounts, manifest.createdAt);
     verifyBackup(receipt.schema9.backup, config);
     assert.equal(readFileSync(resolve(receipt.schema9.backup, 'privacypal-backup.json'), 'utf8'), receipt.schema9.manifest, 'The pre-upgrade schema-9 archive must never be rewritten.');
+    if (receipt.request) {
+      const actor = receipt.identities.staff as DecodedIdToken;
+      const status = await requestCommandStatus(s, actor, receipt.request.commandId);
+      assert.equal(status.state, 'applied');
+      if (status.state === 'applied') assert.equal(status.request.id, receipt.request.id);
+      const before = await allDocuments();
+      await requestCommand(s, actor, null, receipt.request.body, commandIdentity(receipt.request.commandId, '/api/requests', receipt.request.body));
+      assert.deepEqual(await allDocuments(), before);
+      assert.equal((await requestHistory(s, receipt.identities.admin as DecodedIdToken, receipt.request.id)).items.length, 2);
+    }
     if (receipt.segmented) await verifySegmentedRecovery(s, receipt.identities.reviewer as DecodedIdToken, receipt.segmented);
     const longReview = await s.db.runTransaction(tx => readReview(s, tx, receipt.longId));
     assert.equal(longReview.sourceVersion, 3); assert.equal(longReview.evidenceVersion, 6); assert.equal(longReview.analysis!.schemaVersion, 'findings-v6');
@@ -301,8 +312,14 @@ try {
     } finally { await rules.cleanup(); server.close(); await once(server, 'close'); }
     if (process.env.PRIVACYPAL_RECOVERY_PHASE === 'restore-nine') {
       receipt.segmented = await seedSegmentedRecovery(s, receipt.identities.reviewer as DecodedIdToken);
+      const requestBody = { toolName: 'Recovery request', purpose: 'Synthetic preserved draft', requestedUrl: '' };
+      const requestCommandId = randomUUID();
+      const request = await requestCommand(s, receipt.identities.staff as DecodedIdToken, null, requestBody, commandIdentity(requestCommandId, '/api/requests', requestBody));
+      const claim = { action: 'claim', revision: request.revision };
+      await requestCommand(s, receipt.identities.reviewer as DecodedIdToken, request.id, claim, commandIdentity(randomUUID(), `/api/requests/${request.id}`, claim));
+      receipt.request = { id: request.id, body: requestBody, commandId: requestCommandId };
       receipt.backup = await saveBackup(s);
-      assert.equal(verifyBackup(receipt.backup, config).dataSchema, 10);
+      assert.equal(verifyBackup(receipt.backup, config).dataSchema, 11);
       receipt.documents = await allDocuments();
       receipt.accounts = await allAccounts();
       writeFileSync(receiptPath, JSON.stringify(receipt), { mode: 0o600 });
@@ -316,11 +333,11 @@ try {
       assert.equal((await s.db.doc(`${base}/reviews/${receipt.failedId}`).get()).get('job.status'), 'failed');
       const originalManifest = readFileSync(resolve(receipt.backup, 'privacypal-backup.json'), 'utf8');
       const nextBackup = await saveBackup(s); assert.notEqual(nextBackup, receipt.backup);
-      assert.equal(verifyBackup(nextBackup, config).dataSchema, 10);
+      assert.equal(verifyBackup(nextBackup, config).dataSchema, 11);
       assert.equal(readFileSync(resolve(receipt.backup, 'privacypal-backup.json'), 'utf8'), originalManifest);
       receipt.backup = nextBackup; receipt.documents = await allDocuments(); receipt.accounts = await allAccounts(); writeFileSync(receiptPath, JSON.stringify(receipt), { mode: 0o600 });
     } else if (process.env.PRIVACYPAL_RECOVERY_PHASE === 'restore-again') {
-      await maximumSegmentedRecovery(s, receipt.identities.reviewer as DecodedIdToken, directory);
+      await maximumSegmentedRecovery(s, receipt.identities.reviewer as DecodedIdToken, directory, 11);
     }
     console.log(`Recovery ${process.env.PRIVACYPAL_RECOVERY_PHASE}: exact document comparison, password sign-in, disabled/revoked accounts, role denials and public projections passed.`);
   }

@@ -272,7 +272,7 @@ export async function resumeSegmentedRecovery(s: Services, actor: DecodedIdToken
   await verifySegmentedRecovery(s, actor, receipt);
 }
 
-export async function maximumSegmentedRecovery(s: Services, actor: DecodedIdToken, directory: string) {
+export async function maximumSegmentedRecovery(s: Services, actor: DecodedIdToken, directory: string, expectedSchema: 10 | 11 = 10) {
   let ordinal = 0; let exhausted = false;
   const maximalInvalid = async (): Promise<SegmentedTransportResult> => {
     const prefix = Buffer.from(` \ninvalid maximum fixture ${++ordinal}\t`, 'utf8');
@@ -327,7 +327,7 @@ export async function maximumSegmentedRecovery(s: Services, actor: DecodedIdToke
   assert.ok(graph.logicalBytes <= L.installationBytes); assert.ok(graph.recordCount <= L.installationRecords);
   assert.ok(ordinal > 0, 'Maximum outputs must exercise real stored transport bytes.');
   const backup = await saveBackup(s); const manifest = verifyBackup(backup, s.config);
-  assert.equal(manifest.dataSchema, 10);
+  assert.equal(manifest.dataSchema, expectedSchema);
   const exportedBytes = manifest.files.reduce((total, file) => total + file.bytes, 0);
   const largestFile = Math.max(...manifest.files.map(file => file.bytes));
   assert.ok(exportedBytes <= 64 * 1024 * 1024); assert.ok(largestFile <= 32 * 1024 * 1024); assert.ok(manifest.files.length <= 10000);

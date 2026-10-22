@@ -74,7 +74,7 @@ test('suggestion-aware schema-5 archives identify their new private records', t 
 test('context-aware schema-6 archives are explicit and unknown future schemas fail closed', t => {
   const root=fixture();t.after(()=>rmSync(root,{recursive:true}));
   const manifest=sealBackup(root,config,randomUUID(),6);assert.equal(verifyBackup(root,config).dataSchema,6);
-  writeFileSync(join(root,'privacypal-backup.json'),JSON.stringify({...manifest,dataSchema:11}));
+  writeFileSync(join(root,'privacypal-backup.json'),JSON.stringify({...manifest,dataSchema:12}));
   assert.throws(()=>verifyBackup(root,config));
 });
 

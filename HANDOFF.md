@@ -1,3 +1,84 @@
+# Explicit public policy links — October 22, 2026
+
+The normal publication projection now allowlists a safe saved service `policyUrl`. Both the public
+notice and reviewer audience preview display it with a new-tab label and `noopener noreferrer`.
+Existing public records remain unchanged until explicit republishing. No private review lookup,
+URL guessing, fetching or DPA automation is added. The service form explains publication visibility.
+See [service detail](docs/service-detail.md#public-vendor-policy-link).
+
+Validation passed in the matching local source copy: `npm run ci` (548 tests, typecheck, build and
+isolation), `npm run test:integration` (236 tests), and focused missing-URL/no-private-fallback tests.
+The anonymous browser notice shows the policy link after an explicit normal publish command for
+the existing synthetic Cedar Browser QA review; all other public entries were verified unchanged.
+No external URL was fetched. Screenshot: `.local/public-policy-link.png`.
+
+The running preview remains `/private/tmp/privacypal-request-validation` at port 5173. Its latest
+verified schema-11 backup is `.local/backups/2026-10-22T19-35-04-646Z-14c2fc1c-96b9-4af6-bcc2-2f5ea4f3f182`.
+This checkpoint includes request workflows, public notice details, policy links and their updated
+documentation on `codex/coordinated-milestone-2026-10-19`. No main merge or deployment is included.
+Before this checkpoint, local main was `cb5bb04cde8d900f0376d11f5676369636845eae` and fresh remote
+main was `6edf69cf7b36a40a54fa5b335ed38b67e611e375`; both are left untouched.
+
+
+---
+
+# Public library detail interaction — October 22, 2026
+
+Cards now offer **View full notice**; Compact resource names open the same native modal dialog.
+It displays only the existing public projection: summary, scope, data involvement, conditions,
+parent permission, alternatives and district contact. Unknown fields remain explicitly unknown.
+The selected entry is derived from current public data, so updates stay current and withdrawal
+removes the dialog. Escape/Close returns focus; background interaction is blocked while open.
+No private-review fetch, authorization, projection, saved-data or DPA automation change was made.
+The subsequent policy-link increment above adds the explicit public projection contract; internal
+URLs are not fetched to fill gaps. Preview source was synced to the running local validation copy. `npm run ci` passed there
+(547 tests, typecheck, build and isolation). Browser checks passed for Cards and Compact opening,
+Escape and focus return. Screenshot: `.local/public-notice-detail.png`.
+
+---
+
+# Request lifecycle implementation — October 22, 2026
+
+Current branch remains `codex/coordinated-milestone-2026-10-19`; main remains
+`cb5bb04cde8d900f0376d11f5676369636845eae`. This implementation is included in the development
+checkpoint described above.
+
+[Request workflow](docs/request-workflow.md) documents the new server-owned request states,
+permissions, before/after history, actor receipts, revision checks, protected tab drafts and explicit
+retry reconciliation. Existing pending requests are adopted honestly on first command. Schema 11
+adds fenced request graph validation to backup/restore. DPA automation remains excluded.
+
+Implemented UI is in My workspace. Dashboard totals/attention queues, dedicated queue destinations,
+catalogue matching and a review picker/create-review handoff remain pending. Existing-review linking
+never approves or publishes a service. The parity checklist and improvement register are updated.
+
+Validation: `npm run ci` passed (545 tests plus typecheck/build/isolation); `npm run test:integration`
+passed (235 tests). Primary-checkout file reads stalled, so checks used
+`/private/tmp/privacypal-request-validation` with the matching installed dependencies. A Git-index
+hash comparison verified unchanged executable source against HEAD; every changed/new executable
+file was overlaid from this checkout. This is environment-specific validation, not a production trial.
+`npm run test:recovery` passed: schema-9 import and two schema-11 shutdown/import cycles,
+including exact document comparisons, preserved request receipts and maximum segmented storage.
+
+Browser smoke check passed in the restored preview: draft survives navigation/reload; create,
+claim and decline produce three ordered events. The fixture is named “Request lifecycle — synthetic
+check”; the earlier pending request and five public entries were preserved. Screenshot/logs remain
+private under `.local/request-workflow-validation-2026-10-22/`. The final spacing change passed
+fresh typecheck/build. The full independent multi-role browser checklist remains pending.
+
+Preview is running at `http://127.0.0.1:5173/` from
+`/private/tmp/privacypal-request-validation` using Node 24 and Java 21. It is a validated source copy,
+so later edits in this repository need to be synced before they appear there. The newest schema-11
+preview backup, including the synthetic request, is
+`.local/backups/2026-10-22T17-23-36-408Z-a1ea0494-3f97-4d1e-b2bd-a372f96f62e6`.
+Save and verify before stopping its owned emulator processes. Original local account passwords apply.
+
+The prior preview was saved and verified before stopping. Its unchanged schema-10 archive is
+`.local/backups/2026-10-22T17-10-58-850Z-2c4bb69b-6c4d-4e96-9130-898a96eca1c8`, backup identity
+`df00a8a6-cbb5-44e2-a291-dc77b755dbfd`. Keep it private. No original project or live provider was used.
+
+---
+
 # Component parity and next restoration — October 22, 2026
 
 The owner requested a component-by-component comparison after inspecting the local preview.

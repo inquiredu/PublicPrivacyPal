@@ -10,7 +10,7 @@ const fingerprint = () => sha(readFileSync('package-lock.json'));
 const cliVersion = () => JSON.parse(readFileSync('package.json', 'utf8')).devDependencies['firebase-tools'] as string;
 const entrySchema = z.object({ path: z.string().min(1).max(300), bytes: z.number().int().nonnegative(), sha256: z.string().regex(/^[a-f0-9]{64}$/) }).strict();
 const manifestSchema = z.object({
-  format: z.literal('privacypal-local-backup-v1'), dataSchema: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5), z.literal(6), z.literal(7), z.literal(8), z.literal(9), z.literal(10)]),
+  format: z.literal('privacypal-local-backup-v1'), dataSchema: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5), z.literal(6), z.literal(7), z.literal(8), z.literal(9), z.literal(10), z.literal(11)]),
   backupId: z.uuid(), createdAt: z.iso.datetime(), config: configSchema,
   dependencyHash: z.string().regex(/^[a-f0-9]{64}$/), files: z.array(entrySchema).min(4).max(10000),
 }).strict();
@@ -58,7 +58,7 @@ function checkNative(root: string, files: z.infer<typeof entrySchema>[]) {
   if (!files.some(f => f.path.startsWith('firestore_export/') && f.path !== metadata.firestore.metadata_file)) throw new Error('Incomplete Firestore export.');
   if (!Array.isArray(JSON.parse(readFileSync(join(root, 'auth_export/accounts.json'), 'utf8')).users)) throw new Error('Invalid account export.');
 }
-export function sealBackup(root: string, config: LocalConfig, backupId: string, dataSchema: 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 = 3): BackupManifest {
+export function sealBackup(root: string, config: LocalConfig, backupId: string, dataSchema: 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 = 3): BackupManifest {
   const files = inventory(root); checkNative(root, files);
   const manifest = manifestSchema.parse({ format: 'privacypal-local-backup-v1', dataSchema, backupId, createdAt: new Date().toISOString(), config, dependencyHash: fingerprint(), files });
   for (const f of files) chmodSync(join(root, f.path), 0o600);

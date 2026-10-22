@@ -1,3 +1,4 @@
+import { publicPolicyUrl } from './public-policy';
 import { z } from 'zod';
 import { tiers, type TierPolicy } from './service-policy.ts';
 import type { Review } from './review.ts';
@@ -48,6 +49,7 @@ export function audienceProjection(r: Review, audience: 'public' | 'staff') {
   const base = { name: r.name, category: d.category, summary: d.summary, outcome: d.outcome, conditions: d.conditions, reviewedAt: d.at, synthetic: r.sourceKind !== 'pasted' };
   if (!r.service) return base;
   const v = r.service.values;
-  const publicFields = { ...base, tierLevel: v.tier, grades: v.grades, dataUse: v.dataUse, dataCategories: v.dataCategories, approvedWhen: v.approvedWhen, permissionWhen: v.permissionWhen, alternative: v.alternative };
+  const policyUrl = publicPolicyUrl(v.policyUrl);
+  const publicFields = { ...base, ...(policyUrl ? { policyUrl } : {}), tierLevel: v.tier, grades: v.grades, dataUse: v.dataUse, dataCategories: v.dataCategories, approvedWhen: v.approvedWhen, permissionWhen: v.permissionWhen, alternative: v.alternative };
   return audience === 'public' ? publicFields : { ...publicFields, support: v.support, ageGuidance: v.ageGuidance, curriculum: v.curriculum, educationVersion: v.educationVersion, educationNotes: v.educationNotes, score: r.analysis?.score.total ?? null, evidenceCount: r.analysis?.evidenceCount ?? 0, measureCount: r.contract?.criteria.filter(c => c.weight > 0).length ?? 8 };
 }

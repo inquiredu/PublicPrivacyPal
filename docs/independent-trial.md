@@ -295,3 +295,11 @@ an aggregate score or approval. Source and dependency changes require a new revi
 The recorded Cedar suggestions, saved Lantern lab and offline segment tools demonstrate contracts and failure handling.
 They do not enable a live provider, automatic fetching or automatic acceptance of model findings.
 No production credentials or real policies are required for any step in this trial.
+
+## Request workflow increment
+
+Run the [request lifecycle acceptance checklist](request-workflow.md#independent-local-acceptance)
+with separate synthetic staff/reviewer/admin accounts. This adds states, permissions, private history,
+archive separation, draft continuity and response-loss reconciliation. Dashboard totals and dedicated
+queues are still pending; do not mark the whole restoration milestone accepted from these tests.
+DPA automation remains excluded.
