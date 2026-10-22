@@ -1,5 +1,5 @@
 import { LONG_BUNDLE_VERSION } from '../shared/source-segments';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { User } from 'firebase/auth';
 import type { Review } from '../shared/review';
 import { measuresFor } from '../shared/evaluation';
@@ -13,7 +13,6 @@ import { requirementCitations } from '../shared/requirements';
 export function AssistancePanel({ review: r, user, readOnly, disabled, commands }: { review: Review; user: User; readOnly: boolean; disabled: boolean; commands: ReviewCommands }) {
   const [job, setJob] = useState<AssistanceView | null>(null);
   const [error, setError] = useState(''); const [refresh, setRefresh] = useState(0);
-  const [prompt, setPrompt] = useState(''); const [loadingPrompt, setLoadingPrompt] = useState(false);
   const store = useDraftStore(); const criteria = measuresFor(r);
   useEffect(() => {
     let alive = true; let timer: ReturnType<typeof setTimeout>;
@@ -24,18 +23,12 @@ export function AssistancePanel({ review: r, user, readOnly, disabled, commands 
         if (!alive) return;
         setJob(value);
         if (value && ['queued', 'running', 'unknown'].includes(value.status)) timer = setTimeout(() => void load(), value.status === 'unknown' ? 10000 : 2000);
-      } catch (e) { if (alive) { setJob(null); setPrompt(''); setError(e instanceof Error ? e.message : 'Suggestions are unavailable.'); } }
+      } catch (e) { if (alive) { setJob(null); setError(e instanceof Error ? e.message : 'Suggestions are unavailable.'); } }
     }
     void load(); return () => { alive = false; clearTimeout(timer); };
   }, [r.id, r.assistanceId, user, refresh]);
   const active = job && ['queued', 'running', 'unknown'].includes(job.status);
   const result = job?.result; const example = !r.sourceBundle && r.sourceText === ANALYSIS_EXAMPLE;
-  async function preview() {
-    setLoadingPrompt(true); setError('');
-    try { setPrompt(JSON.stringify(await api(`/api/reviews/${r.id}/prompt`, user), null, 2)); }
-    catch (e) { setPrompt(''); setError(e instanceof Error ? e.message : 'Prompt is unavailable.'); }
-    finally { setLoadingPrompt(false); }
-  }
   return <section className="assistance-panel" aria-labelledby="assistance-title">
     <h3 id="assistance-title">Policy suggestions</h3>
     <p>The Cedar Intelligence Lab example includes recorded suggestions for trying this workflow offline. Check each interpretation and its scope before saving evidence. Suggestions do not change scores or district decisions.</p>
@@ -71,6 +64,23 @@ export function AssistancePanel({ review: r, user, readOnly, disabled, commands 
         </details>;
       })}</div>
     </>}
+    <AnalysisInstructions review={r} user={user}/>
+  </section>;
+}
+
+/** Shared read-only inspection remains available for manual and segmented source reviews. */
+export function AnalysisInstructions({ review: r, user }: { review: Review; user: User }) {
+  const [prompt, setPrompt] = useState(''); const [error, setError] = useState('');
+  const [loadingPrompt, setLoadingPrompt] = useState(false); const generation = useRef(0);
+  useEffect(() => { generation.current++; setPrompt(''); setError(''); setLoadingPrompt(false); return () => { generation.current++; }; }, [r.id, user]);
+  async function preview() {
+    const request = generation.current; setLoadingPrompt(true); setError('');
+    try { const value = await api(`/api/reviews/${r.id}/prompt`, user); if (request === generation.current) setPrompt(JSON.stringify(value, null, 2)); }
+    catch (e) { if (request === generation.current) { setPrompt(''); setError(e instanceof Error ? e.message : 'Prompt is unavailable.'); } }
+    finally { if (request === generation.current) setLoadingPrompt(false); }
+  }
+  return <section aria-label="Analysis instructions">
     <details><summary>Review the analysis instructions</summary><p>The prompt includes the saved source, enabled measure definitions and adopted district guidance. It excludes identities, district decisions and credentials.</p><button className="secondary" disabled={loadingPrompt} onClick={() => void preview()}>Load prompt preview</button>{prompt && <>{r.sourceBundle?.version === LONG_BUNDLE_VERSION && <button type="button" className="secondary" onClick={() => { const url = URL.createObjectURL(new Blob([JSON.stringify(JSON.parse(prompt))], { type: 'application/json' })); const a = document.createElement('a'); a.href = url; a.download = `source-review-packet-${r.id}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }}>Save offline review packet</button>}<pre className="policy-source">{prompt}</pre></>}</details>
+    {error && <p role="alert" className="notice">{error}</p>}
   </section>;
 }

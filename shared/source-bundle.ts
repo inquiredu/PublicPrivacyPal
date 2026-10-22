@@ -25,8 +25,8 @@ export const sourceBundleInputSchema = z.object({ version: z.enum([BUNDLE_VERSIO
 export type SourceBundleInput = z.infer<typeof sourceBundleInputSchema>;
 const scopeDraft = sourceScopeSchema.extend({ product: z.string().max(160), accounts: z.string().max(160), jurisdiction: z.string().max(160) });
 export const sourceBundleDraftSchema = sourceBundleInputSchema.extend({ scope: scopeDraft, documents: z.array(bundleDocumentInputSchema.extend({
-  label: z.string().max(160), origin: z.string().max(400), scope: scopeDraft, text: z.string().max(SEGMENT_LIMITS.textLength), effectiveDates: z.array(z.string().max(80)).max(3),
-})).min(1).max(BUNDLE_LIMITS.documents) });
+  label: z.string().max(160), origin: z.string().max(400), scope: scopeDraft, text: z.string().max(SEGMENT_LIMITS.textLength), effectiveDates: z.array(z.string().max(80)).max(3), exclusionReason: z.string().max(400),
+})).min(1).max(BUNDLE_LIMITS.documents), links: z.array(sourceBundleInputSchema.shape.links.element.extend({ label: z.string().max(400), exclusionReason: z.string().max(400) })).max(BUNDLE_LIMITS.links) });
 export function emptySourceBundle(): SourceBundleInput {
   const scope = { product: '', accounts: '', jurisdiction: '' };
   return { version: BUNDLE_VERSION, scope, documents: [{ id: 'document-1', label: '', origin: '', scope, applicability: 'unresolved', effectiveDates: [], capture: 'complete', text: '', requiredFor: ['*'], exclusionReason: '' }], links: [] };

@@ -4,6 +4,21 @@ The owner requested a reusable parallel-work structure for a fresh session on `m
 prepares that session; it does not start agents or change the Git baseline. Start at
 [the kickoff](../../START_PARALLEL_WORK.md) and satisfy [baseline preparation](baseline.md).
 
+The original first wave is recorded in [its coordinator report](reports/coordinator-wave1.md).
+The later INT-002 implementation uses the `segmentedImplementation` assignments and baseline in
+[the workboard](workboard.json). Its application scope is the authored
+[segmented review lab](../segmented-reviews.md); the original briefs below remain historical scope.
+
+## Current adoption wave
+
+The next wave continues from GitHub development checkpoint `2f3709f`, with assignments and source
+identity in `adoptionWave` in the [workboard](workboard.json). Its focused briefs are
+[fresh installation](briefs/adoption-installation.md),
+[source-form accessibility](briefs/adoption-accessibility.md), and
+[read-only operator checks](briefs/adoption-operations.md). The coordinator retains shared-contract,
+runtime/browser and integration ownership. The original first-wave scopes below are historical.
+Main remains a separate integration decision; the new work continues on the existing development branch.
+
 ## Roles and first wave
 
 Use one coordinator plus up to three workers, adapting to available capacity. The coordinator owns

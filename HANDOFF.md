@@ -1,3 +1,162 @@
+# Component parity and next restoration — October 22, 2026
+
+The owner requested a component-by-component comparison after inspecting the local preview.
+[Component parity](docs/component-parity.md) inventories all 56 original component/support files
+against public commit `f31c874` and the pinned original archive. Dashboard and request lifecycle
+restoration now precede broader adoption acceptance; the older consolidation priority below is
+superseded. Core service tabs alone do not imply full product parity.
+
+[Public-version improvements](docs/public-improvements.md) records inherited strengths, stronger
+local contracts, evidence limits and possible original-project backports. No original change is
+authorized. Owner decision: exclude DPA generation, signing, vendor upload and delivery; legal
+documents will use other methods. Existing manual agreement facts remain separate.
+
+This increment changes documentation only. No implementation, suite rerun, saved data, runtime,
+branch/main, commit or push change is part of this inventory. Use the P1 acceptance checklist to
+scope the next implementation; no agents or historical workboard reservations have been activated.
+
+---
+
+# Baseline consolidation — October 22, 2026
+
+Documentation now uses [the current status index](docs/open-source-plan.md#current-implementation-and-remaining-work)
+and [the independent local trial checklist](docs/independent-trial.md). At this checkpoint, next work was an outside-person
+synthetic local trial, with accessibility and human rubric acceptance alongside it; operational
+continuity and any hosted/provider pilot follow separate gates.
+
+The clean source baseline before these documentation edits was `186c48d505fa275e0e6eff769c4ceb6a11dbfb9f`
+on `codex/coordinated-milestone-2026-10-19`, matching GitHub. Local/fresh remote main remained
+`cb5bb04cde8d900f0376d11f5676369636845eae`. The adoption-wave source is already checkpointed on
+the development branch; older “being checkpointed” and “uncommitted” notes below are historical.
+No branch switch, merge, commit, push, runtime change or test-suite rerun was part of consolidation.
+The October 20 evidence below remains the latest recorded validation, not a new result.
+
+The saved-preview/backup information below is the latest recorded handoff, not a current liveness
+or integrity check. Inspect ownership and save/verify before any future runtime shutdown. Do not
+bootstrap over a saved installation. Fresh trial participants use their own synthetic installation.
+
+---
+
+# Adoption wave checkpoint — October 20, 2026
+
+This checkpoint supersedes historical runtime/backup/next-work statements below. The owner's
+next-wave instruction is implemented on `codex/coordinated-milestone-2026-10-19` over
+`2f3709f37c601815bed653a468d062c15aff3067`; source is being checkpointed on that GitHub branch.
+`main` remains `cb5bb04cde8d900f0376d11f5676369636845eae`, with a separate merge decision.
+
+- Three agents delivered fresh-installation/startup guidance, actionable accessible validation,
+  and a read-only local operator check. Shared contracts and file ownership were recorded first,
+  and non-author review completed. Protected-admin succession remains a proposal.
+- Passed 544 unit/isolation tests, TypeScript/build/bundle/isolation, 224 emulator tests, a schema-9
+  fixture import and two schema-10 recovery cycles. Fresh River Valley bootstrap/API access and
+  native backup/restore passed. Native Chrome passed keyboard/draft/320px/200% acceptance.
+- Saved preview: http://127.0.0.1:5173/ from
+  `/private/tmp/privacypal-adoption-wave-IiILu6/integration`, project `demo-privacypal-local`.
+  Ten reviews and five public entries remain. Only the named unsaved QA draft was discarded.
+- Latest verified saved-preview archive:
+  `.local/backups/2026-10-21T02-14-43-293Z-06886d3c-568c-4299-92c4-d5d90bedc670`, id
+  `1ef70c3f-8ac4-4123-bc68-d5deda429fa3`, schema 10. Saved/copied/hash-compared/verified, then
+  restored with exact configuration without bootstrap. The new operator check and supplied
+  archive verification passed; no second administrator is an explicit advisory.
+- Private source snapshots: `.local/source-checkpoints/adoption-wave-2026-10-20/`. Private
+  evidence/trial archives/accounts/screenshots: `.local/validation/adoption-wave/`. Preserve
+  these and older private artifacts. Save and verify again before future shutdown after edits.
+
+Continue with [the workstation guide](docs/workstation-handoff.md),
+[the coordinator report](docs/parallel-work/reports/coordinator-adoption.md),
+[contracts](docs/parallel-work/contracts.md) and [workboard](docs/parallel-work/workboard.json).
+An outside-person adoption pilot, screen-reader coverage, human rubric decisions, live providers,
+protected-admin succession and production operations remain open. No main merge, deployment,
+release, repository-visibility change or new saved-preview publication occurred.
+
+---
+
+# Durable segmented review checkpoint — October 20, 2026
+
+The INT-002 application increment is implemented on `codex/coordinated-milestone-2026-10-19`
+over `cb89a66c200f7f26fec812a331743a9e54e0fd55`. This section supersedes the historical next-work,
+preview and backup statements below. The owner authorized the source checkpoint on GitHub;
+`main` remains `cb5bb04cde8d900f0376d11f5676369636845eae` and requires a separate merge decision.
+
+- Durable synthetic segmented runs retain frozen requests, original responses and attempt history.
+  Explicit human handoff starts unresolved; citations, acknowledgments, corrections, deterministic
+  scoring and district decisions retain their separate responsibilities.
+- Assembled validation passed 518 unit/isolation tests, TypeScript, build/bundle gates and 209
+  emulator integration tests. Recovery passed the original schema-9 archive, a schema-9 fixture
+  and two schema-10 shutdown/import cycles. Native Chrome passed the focused draft, correction,
+  evidence-inspection and 320px walkthrough. See the report for the final UI check and test limits.
+- The saved preview runs at http://127.0.0.1:5173/ from
+  `/private/tmp/privacypal-segmented-app-zhubduyq/integration`, using `demo-privacypal-local`.
+  Ten synthetic reviews include the original nine and one named Lantern browser-QA review.
+  The five public entries remain unchanged. Existing accounts remain private.
+- Latest verified schema-10 backup:
+  `.local/backups/2026-10-21T01-40-29-576Z-9bc2bd80-9c1b-4784-8ef0-4138f7b1b6dd`, id
+  `d4b37fb9-b18c-494b-9891-1c4d499830bb`. It was saved, hash-compared after copying and verified
+  again. Restore that exact configuration without bootstrap. Preserve older archives and save
+  another verified backup before stopping after any future saved changes.
+- Private source archive and inventory: `.local/source-checkpoints/segmented-app-2026-10-20/`.
+  Private final validation evidence: `.local/validation/segmented-app-final/`.
+
+Continue with [the workstation guide](docs/workstation-handoff.md),
+[the coordinator report](docs/parallel-work/reports/coordinator-segmented.md),
+[the walkthrough](docs/segmented-reviews.md), [contracts](docs/parallel-work/contracts.md) and
+[the workboard](docs/parallel-work/workboard.json). A Git clone contains source and synthetic
+fixtures, not private installation backups or credentials. Live providers, general model-output
+adoption, independent installation, human rubric adjudication and broader accessibility remain open.
+
+---
+
+# GitHub continuation checkpoint — October 19, 2026
+
+The owner authorized committing and pushing all releasable work to
+`codex/coordinated-milestone-2026-10-19` in `inquiredu/PublicPrivacyPal` for use from another
+workstation. Start with [the workstation guide](docs/workstation-handoff.md), which provides clone,
+installation, verification and fresh synthetic-preview steps. The branch's Git commit identifies
+the source checkpoint; `main` remains a separate merge decision.
+
+All 218 source files matched the verified milestone before this continuation documentation was
+added. Private accounts, installation backups, tab drafts and audit material remain on the original
+Mac and are not available from a Git clone. The historical paths and “uncommitted” statements below
+describe the October 18 checkpoint, not the branch's eventual GitHub commit status.
+
+## Coordinated milestone complete — October 18, 2026
+
+The owner resumed after unlocking the Mac. This checkpoint supersedes the earlier pause and all
+historical branch, runtime and next-work statements below.
+
+- Work is uncommitted on `main` over `cb5bb04cde8d900f0376d11f5676369636845eae`. Local, cached and
+  fresh remote main matched at kickoff; all 136 baseline implementation inputs matched. PR #2 was
+  already merged before this session. No branch switch, commit, push or main merge occurred here.
+- The dependency/exclusion editor and bounded definition/draft/API wiring are implemented and
+  accepted. First-wave intelligence design and installation guidance are accepted within their
+  documented limits. Rubric, provider, operations and accessibility follow-ups are reviewed.
+- Final assembled CI passed **481 tests**, TypeScript, build, bundle budgets and source isolation.
+  Fresh integration passed **164 tests** and recovery passed **two complete shutdown/import cycles**.
+  Native Chrome passed the focused draft, validation, keyboard, 320px and 200% zoom walkthrough.
+- The restored synthetic preview remains at http://127.0.0.1:5173/ from
+  `/private/tmp/privacypal-wave1-0amrk031/integration`. Nine reviews, five public entries and the
+  existing verified administrator remain. Only the temporary validation draft was discarded.
+- Latest verified schema-9 archive:
+  `.local/backups/2026-10-18T19-46-20-790Z-a067cfd3-50dc-4a1a-846c-9f41bcdfa1f0`.
+  Restore that exact configuration without bootstrap. Save and verify another backup before
+  stopping a preview after any future saved changes. Accounts and older archives remain private.
+- Private final source inventory/archive and logs are under `.local/validation/coordinated-wave1/`.
+  A source archive is separate from the installation backup and contains no private accounts/data.
+
+Read [the coordinator report](docs/parallel-work/reports/coordinator-wave1.md),
+[the workboard](docs/parallel-work/workboard.json) and [contracts](docs/parallel-work/contracts.md).
+Remaining work includes durable segmented application storage, provider reconciliation/original
+output retention, independent runtime installation, human rubric adjudication and full accessibility
+coverage. These are explicitly deferred; reviewed proposals are not implemented operational authority.
+
+The in-app browser still has a local streaming issue; native Chrome passed with unchanged transport
+code. No live provider call, original/district change, publication, deployment, release or repository
+visibility change occurred. No automatic continuation is scheduled.
+
+---
+
+## Historical checkpoints
+
 # PrivacyPal local handoff — reviewer overview refined
 
 ## Main-readiness audit

@@ -67,9 +67,10 @@ review/unpublication. The server rechecks dates on the next approval/publication
 reflect the current date when rendered. Card warnings summarize the last write. Automated expiry
 monitoring must be designed before using this workflow with real agreements.
 
-Backups containing service records use **schema 4**, including archives with mixed legacy records.
-Older readers reject them; never relabel an archive. The current reader accepts schemas 1–4 and
-converts any legacy inline reviews under maintenance when restoring a mixed schema-4 archive.
+Service records introduced **backup schema 4**, including archives with mixed legacy records.
+Later features require newer schemas; see the current [backup compatibility runbook](backup-recovery.md).
+Older readers reject unsupported archives; never relabel one. Restoration converts legacy inline
+reviews under maintenance when restoring a mixed schema-4 archive.
 Rollback means restoring the preserved pre-service backup with compatible source, not opening a
 new service backup in the checkpoint build. Export includes the current service snapshot; importing
 an inspection archive does not confer its tier policy, document confirmations or approval.

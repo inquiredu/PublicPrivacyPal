@@ -13,6 +13,7 @@ import { HttpError } from './operations.ts';
 import { PRECISION_DEFINITION } from '../shared/requirements.ts';
 import { verifySourceBundle, bundleText } from './source-bundle.ts';
 import type { SourceBundle } from '../shared/source-bundle.ts';
+import { segmentedProvenanceSchema } from '../shared/segmented-assistance.ts';
 
 // Conservative UTF-8 JSON bounds leave room for Firestore field/path encoding overhead.
 export const BYTE_LIMITS = { service: 48 * 1024, head: 8192, source: 128 * 1024, definition: 256 * 1024, evaluation: 64 * 1024, finding: 64 * 1024, decision: 32 * 1024, history: 160 * 1024, detail: 4 * 1024 * 1024 };
@@ -26,6 +27,15 @@ export type ReviewHead = Omit<Review, 'sourceBundle' | 'sourceText' | 'analysis'
   score: number | null; reviewed: number; measureCount: number;
 };
 type StoredEvaluation = Omit<Analysis, 'findings'> & { sourceId: string; definitionId: string; findingIds: string[] };
+function checkSegmentedFindingVersions(analysis: Analysis, sourceId: string, definitionId: string) {
+  const attributed = analysis.findings.filter(f => f.segmentedProvenance);
+  if (!attributed.length && analysis.schemaVersion !== 'findings-v7' && analysis.adapterVersion !== 'human-evidence-v6') return;
+  if (!attributed.length || analysis.schemaVersion !== 'findings-v7' || analysis.adapterVersion !== 'human-evidence-v6') throw new HttpError(409, 'Segmented finding versions do not agree.');
+  for (const finding of attributed) {
+    const parsed = segmentedProvenanceSchema.safeParse(finding.segmentedProvenance);
+    if (!parsed.success || parsed.data.bundleId !== sourceId || parsed.data.definitionId !== definitionId || parsed.data.reference.measureId !== finding.id || finding.provenance) throw new HttpError(409, 'Segmented finding attribution does not match this evaluation.');
+  }
+}
 const refId = (id: unknown): string => { if (typeof id !== 'string' || !/^[a-zA-Z0-9_-]{1,128}$/.test(id)) throw new HttpError(409, 'Invalid stored reference.'); return id; };
 function required(snap: DocumentSnapshot, kind: keyof typeof BYTE_LIMITS) {
   if (!snap.exists) throw new HttpError(409, 'A versioned review record is missing. Restore a verified backup.');
@@ -63,7 +73,9 @@ export async function readEvaluation(s: Services, tx: Transaction, reviewId: str
     const finding = required(d, 'finding'); if (digest(finding) !== stored.findingIds[i]) throw new HttpError(409, 'Finding integrity check failed.'); return finding;
   }) : [];
   const { findingIds: _, sourceId: _s, definitionId: _d, ...analysis } = stored;
-  return bounded('detail', { source, contract, analysis: { ...analysis, findings } as Analysis });
+  const full = { ...analysis, findings } as Analysis;
+  checkSegmentedFindingVersions(full, stored.sourceId, stored.definitionId);
+  return bounded('detail', { source, contract, analysis: full });
 }
 export async function readReview(s: Services, tx: Transaction, id: string, existing?: DocumentSnapshot): Promise<Review> {
   const root = reviewCollection(s).doc(id); const snap = existing || await tx.get(root);
@@ -89,6 +101,7 @@ export async function readReview(s: Services, tx: Transaction, id: string, exist
 }
 export function writeEvaluation(s: Services, tx: Transaction, r: Review, analysis: Analysis, seen = new Set<string>()) {
   const root = reviewCollection(s).doc(r.id); const contract = r.contract!;
+  checkSegmentedFindingVersions(analysis, reviewSourceId(r), contract.id);
   const ids = measuresFor(r).map(c => c.id);
   if (analysis.findings.length !== ids.length || new Set(analysis.findings.map(f => f.id)).size !== ids.length || analysis.findings.some(f => !ids.includes(f.id)) || analysis.sourceHash !== reviewSourceId(r) || analysis.profileVersion !== contract.profileVersion || analysis.score.engineVersion !== contract.engineVersion) throw new HttpError(409, 'Evaluation does not match the adopted source and rubric.');
   const findingIds = analysis.findings.map(f => { bounded('finding', f); const id = digest(f); if (!seen.has(id)) { tx.set(root.collection('findings').doc(id), f); seen.add(id); } return id; });
@@ -98,7 +111,8 @@ export function writeEvaluation(s: Services, tx: Transaction, r: Review, analysi
 /** All version writes and the small current pointer are part of the caller's transaction. */
 export function writeReview(s: Services, tx: Transaction, r: Review, previous?: Review, migrating = false) {
   const root = reviewCollection(s).doc(r.id);
-  if (r.sourceBundle?.version === LONG_BUNDLE_VERSION || previous?.evidenceVersion === 6) r.evidenceVersion = 6;
+  if (r.analysis?.schemaVersion === 'findings-v7' || previous?.evidenceVersion === 7) r.evidenceVersion = 7;
+  else if (r.sourceBundle?.version === LONG_BUNDLE_VERSION || previous?.evidenceVersion === 6) r.evidenceVersion = 6;
   else if (r.sourceBundle || previous?.evidenceVersion === 5) r.evidenceVersion = 5;
   else if (r.contract?.definitionVersion === PRECISION_DEFINITION || previous?.evidenceVersion === 4) r.evidenceVersion = 4;
   else if (r.analysis?.schemaVersion === 'findings-v3' || previous?.evidenceVersion === 3) r.evidenceVersion = 3;

@@ -1,4 +1,5 @@
 import { LONG_BUNDLE_VERSION, sourceSegments } from '../shared/source-segments.ts';
+import { segmentedProposalRefSchema, type SegmentedDraftSeed, type SegmentedProvenance } from '../shared/segmented-assistance.ts';
 import { measuresFor, type EvaluationContract } from '../shared/evaluation.ts';
 import { createHash } from 'node:crypto';
 import { getProfile } from '../shared/scoring/profiles.ts';
@@ -67,7 +68,9 @@ export function validateEvidence(source: string, raw: unknown, contract?: Evalua
   return edit;
 }
 export type VerifiedProposal = { provenance: ProposalProvenance; context: Pick<ReviewContext, 'scope' | 'uncertainty' | 'question'>; requirements?: RequirementReview };
-export function editAnalysis(source: string, profileVersion: string, previous: Analysis | null, edit: EvidenceEdit, id: string, actorUid: string, at: string, contract?: EvaluationContract, proposal?: VerifiedProposal, requireExplicitReview = true, bundle?: SourceBundle): Analysis {
+export type VerifiedSegmentedProposal = { provenance: SegmentedProvenance; seed: SegmentedDraftSeed; unavailable: boolean };
+const sameSegmentedReference = (a: unknown, b: unknown) => JSON.stringify(segmentedProposalRefSchema.parse(a)) === JSON.stringify(segmentedProposalRefSchema.parse(b));
+export function editAnalysis(source: string, profileVersion: string, previous: Analysis | null, edit: EvidenceEdit, id: string, actorUid: string, at: string, contract?: EvaluationContract, proposal?: VerifiedProposal, requireExplicitReview = true, bundle?: SourceBundle, segmented?: VerifiedSegmentedProposal): Analysis {
   const validated = validateEvidence(source, edit, contract, bundle);
   const hash = bundle?.id || sourceHash(source);
   if (previous && previous.sourceHash !== hash) throw new Error('Earlier evidence refers to a different source.');
@@ -76,10 +79,16 @@ export function editAnalysis(source: string, profileVersion: string, previous: A
   const prior = previous?.findings.find(f => f.id === edit.criterionId);
   if (edit.proposalId && (!proposal || proposal.provenance.jobId !== edit.proposalId)) throw new Error('Suggestion provenance must be verified by the server.');
   if (prior?.provenance && edit.proposalId !== prior.provenance.jobId) throw new Error('Keep the original suggestion reference when correcting this finding.');
-  for (const original of [proposal?.context, prior?.context]) {
+  if (edit.segmentedProposal && (!segmented || !sameSegmentedReference(edit.segmentedProposal, segmented.provenance.reference))) throw new Error('Segmented suggestion provenance must be verified by the server.');
+  if (segmented && (!edit.segmentedProposal || !bundle || bundle.version !== LONG_BUNDLE_VERSION || !contract || segmented.provenance.bundleId !== bundle.id || segmented.provenance.definitionId !== contract.id || edit.criterionId !== segmented.provenance.reference.measureId)) throw new Error('Segmented suggestion belongs to a different source, definition or measure.');
+  if (prior?.segmentedProvenance && (!edit.segmentedProposal || !sameSegmentedReference(prior.segmentedProvenance.reference, edit.segmentedProposal))) throw new Error('Keep the original segmented suggestion reference when correcting this finding.');
+  if ((segmented || prior?.segmentedProvenance) && (proposal || prior?.provenance)) throw new Error('A finding cannot replace its original suggestion attribution.');
+  for (const original of [proposal?.context, segmented?.seed.context, prior?.context]) {
     if (original && (!validated.context || (['scope', 'uncertainty', 'question'] as const).some(k => original[k] !== validated.context![k]))) throw new Error('Retain the original scope, uncertainty and question; record any correction in the resolution.');
   }
   if (proposal && proposal.provenance.sourceStatus !== 'usable' && edit.finding !== 'unresolved') throw new Error('An incomplete source remains unresolved. Capture a complete source in a new review.');
+  if (segmented?.unavailable && edit.finding !== 'unresolved') throw new Error('Missing captured documents remain unresolved. Capture a complete source in a new review.');
+  if (segmented && validated.finding !== 'unresolved' && validated.context?.resolution !== 'resolved') throw new Error('Resolve the retained applicability and interpretation question before saving a resolved finding.');
   if (validated.requirements && validated.context && validated.requirements.scope !== validated.context.scope && validated.context.resolution !== 'resolved') throw new Error('Explain a changed scope in the retained qualification resolution.');
   const findings: Finding[] = criteria.map(c => {
     const f = previous?.findings.find(f => f.id === c.id);
@@ -90,13 +99,15 @@ export function editAnalysis(source: string, profileVersion: string, previous: A
   const replacement: Finding = { id: validated.criterionId, finding: validated.finding, quote: first?.quote || '', start: first?.start ?? null, end: first?.end ?? null, additionalEvidence, rationale: validated.rationale, reviewedBy: actorUid, reviewedAt: at,
     ...(validated.context ? { context: { ...validated.context, ...(validated.context.resolution === 'resolved' ? { resolvedBy: actorUid, resolvedAt: at } : {}) } } : {}),
     ...(proposal ? { provenance: proposal.provenance } : {}),
+    ...(segmented ? { segmentedProvenance: segmented.provenance } : {}),
     ...(validated.sourceReview ? { sourceReview: validated.sourceReview } : {}),
     ...(validated.requirements ? { requirements: validated.requirements } : {}),
     ...(bundle && contract ? { coverage: measureCoverage(bundle, contract, edit.criterionId) } : {}),
     ...(proposal?.requirements ? { proposalRequirements: proposal.requirements } : prior?.proposalRequirements ? { proposalRequirements: prior.proposalRequirements } : {}) };
   findings[criteria.findIndex(c => c.id === replacement.id)] = replacement;
+  const segmentedEvidence = findings.some(f => !!f.segmentedProvenance) || previous?.schemaVersion === 'findings-v7';
   return {
-    id, profileVersion: profile.version, adapterVersion: bundle?.version === LONG_BUNDLE_VERSION ? 'human-evidence-v5' : bundle ? 'human-evidence-v4' : contract?.definitionVersion === PRECISION_DEFINITION ? 'human-evidence-v3' : 'human-evidence-v2', schemaVersion: bundle?.version === LONG_BUNDLE_VERSION ? 'findings-v6' : bundle ? 'findings-v5' : contract?.definitionVersion === PRECISION_DEFINITION ? 'findings-v4' : 'findings-v3', sourceHash: hash, findings,
+    id, profileVersion: profile.version, adapterVersion: segmentedEvidence ? 'human-evidence-v6' : bundle?.version === LONG_BUNDLE_VERSION ? 'human-evidence-v5' : bundle ? 'human-evidence-v4' : contract?.definitionVersion === PRECISION_DEFINITION ? 'human-evidence-v3' : 'human-evidence-v2', schemaVersion: segmentedEvidence ? 'findings-v7' : bundle?.version === LONG_BUNDLE_VERSION ? 'findings-v6' : bundle ? 'findings-v5' : contract?.definitionVersion === PRECISION_DEFINITION ? 'findings-v4' : 'findings-v3', sourceHash: hash, findings,
     evidenceCount: findings.filter(f => !!f.quote).length,
     score: { ...calculateScore(criteria.map((c, i) => ({ id: c.id, weight: c.weight, assessment: !findingResolved(findings[i]) ? 'unresolved' : ({ yes: 'meets', no: 'does_not_meet', partial: 'partial', not_specified: 'not_addressed', unresolved: 'unresolved' } as const)[findings[i].finding] })), profile.engineVersion), coverageVersion: 'review-coverage-v1' },
   };

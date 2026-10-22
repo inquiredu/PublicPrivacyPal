@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import type { Services } from '../server/firebase.ts';
 import { installation } from '../server/operations.ts';
 import { acquireMaintenance, releaseMaintenance } from '../server/maintenance.ts';
+import { validateSegmentedInstallation } from '../server/segmented-review-storage.ts';
 import { backupPaths, sealBackup, verifyBackup, finishBackup, type BackupManifest } from './backup-files.ts';
 
 async function assertHub(s: Services) {
@@ -23,6 +24,9 @@ export async function saveBackup(s: Services) {
   const paths = backupPaths();
   const lock = await acquireMaintenance(s, 'Installation backup');
   try {
+    // Inspect the stored graph, including empty/cancelled runs and orphan descendants.
+    // A current-head pointer alone cannot determine the archive's compatibility version.
+    const durableSegments = await validateSegmentedInstallation(s, { maintenanceId: lock });
     // A pre-migration (or partly migrated) archive must request conversion on restore.
     const evaluationSettings = s.db.doc(`districts/${s.config.districtId}/settings/evaluation`);
     let precision = (await evaluationSettings.get()).get('values.starterProfile') === 'pef-precision-v1' || !(await evaluationSettings.collection('versions').where('values.starterProfile', '==', 'pef-precision-v1').limit(1).get()).empty;
@@ -47,7 +51,7 @@ export async function saveBackup(s: Services) {
       body: JSON.stringify({ path: paths.pending, initiatedBy: 'privacypal-local-backup', targets: ['auth', 'firestore'] }),
     });
     if (!res.ok) throw new Error('The emulator export did not complete successfully.');
-    sealBackup(paths.pending, s.config, lock, segmented ? 9 : bundles ? 8 : precision ? 7 : evidenceV3 ? 6 : assistanceRecords ? 5 : serviceRecords ? 4 : legacy ? 2 : 3);
+    sealBackup(paths.pending, s.config, lock, durableSegments.hasArtifacts ? 10 : segmented ? 9 : bundles ? 8 : precision ? 7 : evidenceV3 ? 6 : assistanceRecords ? 5 : serviceRecords ? 4 : legacy ? 2 : 3);
     verifyBackup(paths.pending, s.config);
     finishBackup(paths.pending, paths.complete);
     await releaseMaintenance(s, lock);
@@ -65,6 +69,15 @@ export async function finishRestore(s: Services, manifest: BackupManifest) {
   if (admin.disabled || !admin.emailVerified || admin.email !== s.config.bootstrapAdminEmail || member.get('role') !== 'admin' || member.get('active') !== true || member.get('email') !== admin.email) {
     throw new Error('Restored administrator identity and membership do not agree. Recovery stopped.');
   }
+  // Always inspect artifacts, even when the manifest advertises an older schema. This
+  // runs before migration, so a mislabeled archive cannot be silently rewritten/promoted.
+  const durableSegments = await validateSegmentedInstallation(s, { maintenanceId: manifest.backupId });
+  if (manifest.dataSchema < 10 && durableSegments.hasArtifacts) {
+    throw new Error('Segmented run records require backup schema 10. Recovery stopped; maintenance remains active. Do not relabel the archive.');
+  }
   if (manifest.dataSchema < 3 || manifest.dataSchema >= 4) await migrateReviews(s, manifest.backupId);
+  // Migration is idempotent for bounded reviews, but the final gate still validates the
+  // imported immutable graph and its references before any worker can claim work.
+  if (durableSegments.hasArtifacts) await validateSegmentedInstallation(s, { maintenanceId: manifest.backupId });
   await releaseMaintenance(s, manifest.backupId);
 }

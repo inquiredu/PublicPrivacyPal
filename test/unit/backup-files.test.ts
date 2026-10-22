@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { loadConfig } from '../../server/config.ts';
-import { sealBackup, verifyBackup } from '../../scripts/backup-files.ts';
+import { sealBackup, verifyBackup, stageRestore } from '../../scripts/backup-files.ts';
 
 const config = loadConfig('config/test.example.json');
 const cliVersion = JSON.parse(readFileSync('package.json', 'utf8')).devDependencies['firebase-tools'];
@@ -74,7 +74,7 @@ test('suggestion-aware schema-5 archives identify their new private records', t 
 test('context-aware schema-6 archives are explicit and unknown future schemas fail closed', t => {
   const root=fixture();t.after(()=>rmSync(root,{recursive:true}));
   const manifest=sealBackup(root,config,randomUUID(),6);assert.equal(verifyBackup(root,config).dataSchema,6);
-  writeFileSync(join(root,'privacypal-backup.json'),JSON.stringify({...manifest,dataSchema:10}));
+  writeFileSync(join(root,'privacypal-backup.json'),JSON.stringify({...manifest,dataSchema:11}));
   assert.throws(()=>verifyBackup(root,config));
 });
 
@@ -94,4 +94,41 @@ test('long-source schema-9 archives retain segmented sources and human range ack
   const root = fixture(); t.after(() => rmSync(root, { recursive: true }));
   const manifest = sealBackup(root, config, randomUUID(), 9);
   assert.equal(manifest.dataSchema, 9); assert.deepEqual(verifyBackup(root, config), manifest);
+});
+
+test('durable segmented-run schema-10 archives verify without changing the archive format or file limits', t => {
+  const root = fixture(); t.after(() => rmSync(root, { recursive: true }));
+  const manifest = sealBackup(root, config, randomUUID(), 10);
+  assert.equal(manifest.dataSchema, 10);
+  assert.equal(manifest.format, 'privacypal-local-backup-v1');
+  assert.deepEqual(verifyBackup(root, config), manifest);
+  const oversized = fixture(); t.after(() => rmSync(oversized, { recursive: true }));
+  writeFileSync(join(oversized, 'firestore_export/output-0'), Buffer.alloc(32 * 1024 * 1024 + 1));
+  assert.throws(() => sealBackup(oversized, config, randomUUID(), 10), /size limit/);
+  assert.throws(() => verifyBackup(oversized, config), /ENOENT/);
+});
+
+for (const dataSchema of [1, 2, 3, 4, 5, 6, 7, 8, 9] as const) test(`schema-${dataSchema} verification preserves every original archive byte`, t => {
+  const root = fixture(); t.after(() => rmSync(root, { recursive: true }));
+  const manifest = sealBackup(root, config, randomUUID(), dataSchema === 1 ? 2 : dataSchema);
+  // A fixture for the historical schema-1 reader; verification must never relabel it.
+  if (dataSchema === 1) writeFileSync(join(root, 'privacypal-backup.json'), JSON.stringify({ ...manifest, dataSchema }));
+  const paths = ['privacypal-backup.json', ...manifest.files.map(file => file.path)];
+  const original = paths.map(path => readFileSync(join(root, path)));
+  assert.equal(verifyBackup(root, config).dataSchema, dataSchema);
+  paths.forEach((path, index) => assert.deepEqual(readFileSync(join(root, path)), original[index]));
+});
+
+test('restoring schema 9 or 10 stages a separate private copy and never edits the source archive', t => {
+  for (const dataSchema of [9, 10] as const) {
+    const root = fixture(); t.after(() => rmSync(root, { recursive: true }));
+    const manifest = sealBackup(root, config, randomUUID(), dataSchema);
+    const originalManifest = readFileSync(join(root, 'privacypal-backup.json'));
+    const prepared = stageRestore(root, config); t.after(() => rmSync(prepared.path, { recursive: true }));
+    assert.notEqual(prepared.path, root); assert.deepEqual(prepared.manifest, manifest);
+    writeFileSync(join(prepared.path, 'auth_export/accounts.json'), '{"users":[{"synthetic":"copy only"}]}');
+    assert.throws(() => verifyBackup(prepared.path, config), /integrity/);
+    assert.deepEqual(verifyBackup(root, config), manifest);
+    assert.deepEqual(readFileSync(join(root, 'privacypal-backup.json')), originalManifest);
+  }
 });

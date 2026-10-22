@@ -1,6 +1,24 @@
 # Main readiness before parallel implementation
 
+> Superseded baseline note (October 18, 2026): the coordinated session independently verified
+> actual checkout, local main and fresh GitHub main at `cb5bb04` after PR #2 was already merged.
+> The application and packet were present; all 136 implementation inputs matched at kickoff.
+> See [the completed coordinator report](reports/coordinator-wave1.md) for current uncommitted
+> work, validation, preserved source and preview/backup references. The audit below is historical.
+
 Audit: October 17, 2026 (America/Chicago). This records a development baseline, not release approval.
+
+## Current development continuation — October 20, 2026
+
+The adoption wave verified local main and fresh GitHub main at `cb5bb04cde8d900f0376d11f5676369636845eae`.
+The clean working checkout and fresh development branch were both
+`2f3709f37c601815bed653a468d062c15aff3067`, with 242 source files. Four independent GitHub clones
+matched the complete validated source inventory. The development branch contains the coordinated
+milestones and segmented implementation absent from main; the accepted continuation keeps that
+branch and does not merge or switch the primary checkout. See `adoptionWave` in the workboard for
+the preserved source archive, fresh verified installation backup and resource assignments.
+
+The remaining audit below records October 17 history.
 
 ## What is actually on main
 

@@ -1,4 +1,6 @@
 import { assistanceDetail } from './analysis/jobs.ts';
+import { z } from 'zod';
+import { segmentedRunSummary, segmentedRunDetail, segmentedAttemptDetail, segmentedRequestDetail, segmentedOutputDetail, segmentedProposalDetail } from './segmented-reviews.ts';
 import { commandIdentity, commandStatus } from './commands.ts';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { rubricStatus, reviewDetail, listReviews, createReview, reviewAction, reviewHistory, exportReview, importReview } from './reviews.ts';
@@ -46,9 +48,21 @@ export function apiServer(s: Services) {
       const evaluationRoute = /^\/api\/reviews\/([a-f0-9-]{36})\/evaluations\/([a-f0-9-]{36})$/.exec(req.url);
       const reviewRoute = /^\/api\/reviews\/([a-f0-9-]{36})(?:\/(history|export|assistance|prompt))?$/.exec(req.url || '');
       const commandRoute = /^\/api\/commands\/([a-f0-9-]{36})$/.exec(req.url || '');
-      if (!['/api/review-rubric', '/api/me', '/api/members', '/api/settings', '/api/reviews', '/api/reviews/import'].includes(req.url || '') && !reviewRoute && !commandRoute && !evaluationRoute) throw new HttpError(404, 'Endpoint not found.');
+      const segmentedRoute = /^\/api\/reviews\/([a-f0-9-]{36})\/segmented-runs(?:\/([a-f0-9-]{36})(?:\/(attempts|requests|outputs)\/([a-f0-9-]{36}|[a-f0-9]{64})|\/proposals\/([a-f0-9]{64})\/([a-zA-Z0-9_-]{1,80}))?)?$/.exec(req.url);
+      if (!['/api/review-rubric', '/api/me', '/api/members', '/api/settings', '/api/reviews', '/api/reviews/import'].includes(req.url || '') && !reviewRoute && !commandRoute && !evaluationRoute && !segmentedRoute) throw new HttpError(404, 'Endpoint not found.');
       if (req.method === 'POST' && !origins.has(req.headers.origin || '')) throw new HttpError(403, 'Local origin required.');
       const identity = await authenticate(s, req.headers.authorization);
+      if (segmentedRoute && req.method === 'GET') {
+        const [, reviewId, runId, kind, itemId, outcomeId, measureId] = segmentedRoute;
+        if (!z.uuid().safeParse(reviewId).success || (runId && !z.uuid().safeParse(runId).success) || (kind === 'attempts' && !z.uuid().safeParse(itemId).success) || ((kind === 'requests' || kind === 'outputs') && !/^[a-f0-9]{64}$/.test(itemId))) throw new HttpError(400, 'Invalid segmented record reference.');
+        if (!runId) return send(res, 200, await segmentedRunSummary(s, identity, reviewId, cursor));
+        if (outcomeId) return send(res, 200, await segmentedProposalDetail(s, identity, reviewId, runId, outcomeId, measureId, cursor));
+        if (!kind) return send(res, 200, await segmentedRunDetail(s, identity, reviewId, runId, cursor));
+        if (cursor) throw new HttpError(400, 'This record does not accept a page cursor.');
+        if (kind === 'attempts') return send(res, 200, await segmentedAttemptDetail(s, identity, reviewId, runId, itemId));
+        if (kind === 'requests') return send(res, 200, await segmentedRequestDetail(s, identity, reviewId, runId, itemId));
+        return send(res, 200, await segmentedOutputDetail(s, identity, reviewId, runId, itemId));
+      }
       if (req.method === 'GET' && req.url === '/api/review-rubric') return send(res, 200, await rubricStatus(s, identity));
       if (req.method === 'GET' && evaluationRoute) return send(res, 200, await reviewDetail(s, identity, evaluationRoute[1], evaluationRoute[2]));
       if (req.method === 'GET' && reviewRoute && !reviewRoute[2]) return send(res, 200, await reviewDetail(s, identity, reviewRoute[1]));

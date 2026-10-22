@@ -1,9 +1,9 @@
 import { spawn, type ChildProcess } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { createServer } from 'node:net';
 import { loadConfig, emulatorEnvironment } from '../server/config.ts';
 import { stageRestore } from './backup-files.ts';
+import { assertLocalPortsAvailable } from './local-ports.ts';
 
 const mode = process.argv[2];
 // Firebase's native exporter creates temporary files in its working directory before moving them.
@@ -16,12 +16,7 @@ const config = loadConfig(configPath);
 const options = process.argv.slice(3);
 if (options.length && (mode !== 'dev' || options.length !== 2 || options[0] !== '--restore')) throw new Error('Use npm run dev, or npm run dev -- --restore BACKUP_PATH.');
 // A restore never attaches to an existing emulator or merges with a running installation.
-for (const port of [5173, 8787, 9099, 8080, 4400, 4500, 9150]) {
-  await new Promise<void>((accept, reject) => {
-    const socket = createServer(); socket.once('error', () => reject(new Error(`Port ${port} is occupied. Stop the local services before starting a fresh session.`)));
-    socket.listen(port, '127.0.0.1', () => socket.close(error => error ? reject(error) : accept()));
-  });
-}
+await assertLocalPortsAvailable([5173, 8787, 9099, 8080, 4400, 4500, 9150]);
 const cleanEnv = emulatorEnvironment(config);
 const restored = options.length ? stageRestore(options[1], config) : undefined;
 const env = { ...cleanEnv, PRIVACYPAL_CONFIG: configPath, FIREBASE_CLI_DISABLE_UPDATE_CHECK: 'true', PRIVACYPAL_RESTORE: restored?.path || '' };

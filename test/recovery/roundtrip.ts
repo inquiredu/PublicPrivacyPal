@@ -6,6 +6,7 @@ import { processNextAssistance, assistanceDetail } from '../../server/analysis/j
 import { exampleTierPolicy } from '../../shared/service-policy.ts';
 import { serviceValues } from '../fixtures/service.ts';
 import { readReview, readEvaluation } from '../../server/review-storage.ts';
+import { digest } from '../../server/evaluation.ts';
 import { measuresFor } from '../../shared/evaluation.ts';
 import { commandIdentity, commandStatus } from '../../server/commands.ts';
 import assert from 'node:assert/strict';
@@ -31,8 +32,12 @@ import { saveBackup, finishRestore } from '../../scripts/backup-operations.ts';
 import { verifyBackup } from '../../scripts/backup-files.ts';
 import { acquireMaintenance, releaseMaintenance } from '../../server/maintenance.ts';
 import { migrateReviews } from '../../server/review-migration.ts';
+import { configSchema } from '../../shared/config.ts';
+import { seedSegmentedRecovery, verifySegmentedRecovery, resumeSegmentedRecovery, maximumSegmentedRecovery } from './segmented.ts';
 
-const config = loadConfig('config/test.example.json'); childEnvironment(config); delete process.env.FIREBASE_CONFIG;
+const historicalBaseline = process.env.PRIVACYPAL_RECOVERY_PHASE === 'historical-nine';
+const config = historicalBaseline ? configSchema.parse(JSON.parse(process.env.PRIVACYPAL_RECOVERY_BASELINE_CONFIG!)) : loadConfig('config/test.example.json');
+childEnvironment(config); delete process.env.FIREBASE_CONFIG;
 assert.equal(process.env.PRIVACYPAL_CONFIG, 'config/test.example.json');
 const directory = process.env.PRIVACYPAL_RECOVERY_TEST!;
 assert.ok(directory && directory.includes('/.local/recovery-tests/'));
@@ -49,12 +54,76 @@ async function allDocuments() {
   for (const collection of await s.db.listCollections()) await scan(collection);
   return JSON.parse(JSON.stringify(result)); // Firestore timestamps retain their exact seconds/nanos.
 }
+type AccountRecords = Record<string, Record<string, unknown>>;
+async function allAccounts(): Promise<AccountRecords> {
+  const result: Record<string, unknown> = {};
+  let cursor: string | undefined;
+  do {
+    const page = await s.auth.listUsers(1000, cursor);
+    for (const user of page.users) result[user.uid] = user.toJSON();
+    cursor = page.pageToken;
+  } while (cursor);
+  return JSON.parse(JSON.stringify(result));
+}
+function differingAccountFields(actual: unknown, expected: unknown, path = ''): string[] {
+  if (Object.is(actual, expected)) return [];
+  if (actual && expected && typeof actual === 'object' && typeof expected === 'object' && Array.isArray(actual) === Array.isArray(expected)) {
+    const a = actual as Record<string, unknown>; const e = expected as Record<string, unknown>;
+    return [...new Set([...Object.keys(a), ...Object.keys(e)])].sort().flatMap(key => differingAccountFields(a[key], e[key], path ? `${path}.${key}` : key));
+  }
+  return [path];
+}
+function assertImportedAccounts(actual: AccountRecords, expected: AccountRecords, exportedAt: string) {
+  assert.equal(digest(Object.keys(actual).sort()), digest(Object.keys(expected).sort()), 'The imported account identity set changed.');
+  const startedAt = Number(process.env.PRIVACYPAL_RECOVERY_IMPORT_STARTED_AT);
+  const observedAt = Date.now(); const exported = Date.parse(exportedAt);
+  assert.ok(Number.isFinite(startedAt) && startedAt > 0 && startedAt <= observedAt, 'The import start time must be recorded by the recovery runner.');
+  assert.ok(Number.isFinite(exported), 'The source export must have a valid creation time.');
+  const earliest = Math.floor(Math.max(startedAt, exported) / 1000) * 1000;
+  for (const uid of Object.keys(expected)) {
+    const { tokensValidAfterTime: priorCutoff, ...priorAccount } = expected[uid];
+    const { tokensValidAfterTime: importedCutoff, ...importedAccount } = actual[uid];
+    // Bundled Auth batchCreate preserves passwordHash/salt and lastLoginAt, resets
+    // validSince to uploadTime, and omits lastRefreshAt. UserRecord maps the omitted
+    // lastRefreshAt to metadata.lastRefreshTime=null. Every other field remains exact.
+    assert.ok(priorAccount.metadata && typeof priorAccount.metadata === 'object' && !Array.isArray(priorAccount.metadata), 'The source account metadata must be present.');
+    const expectedAccount = { ...priorAccount, metadata: { ...priorAccount.metadata, lastRefreshTime: null } };
+    const differingFields = differingAccountFields(importedAccount, expectedAccount);
+    // Diagnostics contain field paths and digests only, never account/password values.
+    assert.equal(digest(importedAccount), digest(expectedAccount), `Imported account fields changed outside documented import normalization: ${differingFields.join(', ')}.`);
+    assert.ok(typeof priorCutoff === 'string' && typeof importedCutoff === 'string', 'Both account snapshots must expose their token cutoff.');
+    const before = Date.parse(priorCutoff); const after = Date.parse(importedCutoff);
+    assert.ok(Number.isFinite(before) && Number.isFinite(after) && after % 1000 === 0, 'Token cutoffs must be valid second-resolution timestamps.');
+    assert.ok(after >= before, 'Import must not move the token cutoff backward and revive older tokens.');
+    assert.ok(after >= earliest && after <= observedAt, 'The imported token cutoff must fall inside this recorded import window.');
+  }
+}
 async function signIn(email: string, password: string) {
   const res = await fetch('http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=local-demo-key', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, returnSecureToken: true }) });
   return { status: res.status, body: await res.json() as { idToken: string; localId: string } };
 }
 try {
-  if (process.env.PRIVACYPAL_RECOVERY_PHASE === 'seed') {
+  if (historicalBaseline) {
+    const manifest = verifyBackup(process.env.PRIVACYPAL_RESTORE!, config);
+    assert.equal(manifest.dataSchema, 9);
+    const before = await allDocuments();
+    const accounts = await allAccounts();
+    await finishRestore(s, manifest);
+    assert.deepEqual(await allDocuments(), before, 'The historical bounded schema-9 installation must remain unchanged on restore.');
+    assert.equal(digest(await allAccounts()), digest(accounts), 'Historical account records must not change during post-import validation.');
+    // Read every recorded current/historical evaluation with existing readers; no login,
+    // bootstrap, worker, fixture mutation, or password knowledge is needed for this phase.
+    for (const [path, value] of Object.entries(before)) {
+      const pieces = path.split('/');
+      if (pieces[0] !== 'districts' || pieces[1] !== config.districtId || pieces[2] !== 'reviews') continue;
+      if (pieces.length === 4) await s.db.runTransaction(tx => readReview(s, tx, pieces[3]));
+      if (pieces.length === 6 && pieces[4] === 'evaluations') {
+        assert.equal(typeof value, 'object');
+        await s.db.runTransaction(tx => readEvaluation(s, tx, pieces[3], pieces[5]));
+      }
+    }
+    console.log('Historical schema-9 identity, immutable evaluations and exact Firestore state validated before any worker startup.');
+  } else if (process.env.PRIVACYPAL_RECOVERY_PHASE === 'seed') {
     const password = randomBytes(24).toString('base64url');
     const admin = await bootstrap(s, password); assert.ok(admin.created);
     const identities: Record<string, { uid: string; email: string }> = { admin: { uid: admin.uid, email: config.bootstrapAdminEmail } };
@@ -147,13 +216,19 @@ try {
     const backup = await saveBackup(s); assert.equal(verifyBackup(backup, config).dataSchema, 9);
     const lock = await acquireMaintenance(s, 'Establish synthetic migration expectation');
     await migrateReviews(s, lock); await releaseMaintenance(s, lock);
-    writeFileSync(receiptPath, JSON.stringify({ password, identities, commandId, longId: longReview.id, bundleId: bundled.id, precisionId: precision.id, assistedId: assisted.id, pendingAssistedId: pendingAssisted.id, fullId: full.id, firstEvaluation, reviewId: review.id, pastedId: pasted.id, partialId: partial.id, failedId: failed.id, pendingId: pending.id, backup, documents: await allDocuments() }), { mode: 0o600 });
+    const schema9 = { backup, manifest: readFileSync(resolve(backup, 'privacypal-backup.json'), 'utf8') };
+    writeFileSync(receiptPath, JSON.stringify({ password, identities, commandId, longId: longReview.id, bundleId: bundled.id, precisionId: precision.id, assistedId: assisted.id, pendingAssistedId: pendingAssisted.id, fullId: full.id, firstEvaluation, reviewId: review.id, pastedId: pasted.id, partialId: partial.id, failedId: failed.id, pendingId: pending.id, backup, schema9, documents: await allDocuments(), accounts: await allAccounts() }), { mode: 0o600 });
     console.log('Recovery seed saved: synthetic identities, published decision, failed and queued analyses, requests and audit history.');
   } else {
     const receipt = JSON.parse(readFileSync(receiptPath, 'utf8'));
     const manifest = verifyBackup(process.env.PRIVACYPAL_RESTORE!, config);
+    assert.equal(manifest.dataSchema, process.env.PRIVACYPAL_RECOVERY_PHASE === 'restore-nine' ? 9 : 10);
     await finishRestore(s, manifest);
     assert.deepEqual(await allDocuments(), receipt.documents, 'Every Firestore document must survive exactly, including history, timestamps, quota and projections.');
+    assertImportedAccounts(await allAccounts(), receipt.accounts, manifest.createdAt);
+    verifyBackup(receipt.schema9.backup, config);
+    assert.equal(readFileSync(resolve(receipt.schema9.backup, 'privacypal-backup.json'), 'utf8'), receipt.schema9.manifest, 'The pre-upgrade schema-9 archive must never be rewritten.');
+    if (receipt.segmented) await verifySegmentedRecovery(s, receipt.identities.reviewer as DecodedIdToken, receipt.segmented);
     const longReview = await s.db.runTransaction(tx => readReview(s, tx, receipt.longId));
     assert.equal(longReview.sourceVersion, 3); assert.equal(longReview.evidenceVersion, 6); assert.equal(longReview.analysis!.schemaVersion, 'findings-v6');
     assert.ok(longReview.sourceText.length > 100000); assert.equal(longReview.analysis!.score.total, null);
@@ -224,7 +299,15 @@ try {
       await assertFails(getDoc(doc(db, `${base}/reviews/${receipt.reviewId}`)));
       await assertFails(getDoc(doc(db, 'installation/maintenance')));
     } finally { await rules.cleanup(); server.close(); await once(server, 'close'); }
-    if (process.env.PRIVACYPAL_RECOVERY_PHASE === 'restore') {
+    if (process.env.PRIVACYPAL_RECOVERY_PHASE === 'restore-nine') {
+      receipt.segmented = await seedSegmentedRecovery(s, receipt.identities.reviewer as DecodedIdToken);
+      receipt.backup = await saveBackup(s);
+      assert.equal(verifyBackup(receipt.backup, config).dataSchema, 10);
+      receipt.documents = await allDocuments();
+      receipt.accounts = await allAccounts();
+      writeFileSync(receiptPath, JSON.stringify(receipt), { mode: 0o600 });
+    } else if (process.env.PRIVACYPAL_RECOVERY_PHASE === 'restore') {
+      await resumeSegmentedRecovery(s, receipt.identities.reviewer as DecodedIdToken, receipt.segmented);
       assert.equal(await processNextAssistance(s), true);
       assert.equal((await assistanceDetail(s, receipt.identities.reviewer as DecodedIdToken, receipt.pendingAssistedId))?.status, 'succeeded');
       assert.equal(await processNextReview(s), true);
@@ -233,9 +316,11 @@ try {
       assert.equal((await s.db.doc(`${base}/reviews/${receipt.failedId}`).get()).get('job.status'), 'failed');
       const originalManifest = readFileSync(resolve(receipt.backup, 'privacypal-backup.json'), 'utf8');
       const nextBackup = await saveBackup(s); assert.notEqual(nextBackup, receipt.backup);
-      assert.equal(verifyBackup(nextBackup, config).dataSchema, 9);
+      assert.equal(verifyBackup(nextBackup, config).dataSchema, 10);
       assert.equal(readFileSync(resolve(receipt.backup, 'privacypal-backup.json'), 'utf8'), originalManifest);
-      receipt.backup = nextBackup; receipt.documents = await allDocuments(); writeFileSync(receiptPath, JSON.stringify(receipt), { mode: 0o600 });
+      receipt.backup = nextBackup; receipt.documents = await allDocuments(); receipt.accounts = await allAccounts(); writeFileSync(receiptPath, JSON.stringify(receipt), { mode: 0o600 });
+    } else if (process.env.PRIVACYPAL_RECOVERY_PHASE === 'restore-again') {
+      await maximumSegmentedRecovery(s, receipt.identities.reviewer as DecodedIdToken, directory);
     }
     console.log(`Recovery ${process.env.PRIVACYPAL_RECOVERY_PHASE}: exact document comparison, password sign-in, disabled/revoked accounts, role denials and public projections passed.`);
   }

@@ -1,0 +1,15 @@
+.segmented-panel, .segmented-proposal { min-width: 0; }
+.segmented-panel .segmented-status { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: .75rem; margin: 1rem 0; }
+.segmented-status > div { padding: .75rem; border: 1px solid var(--border, #cbd5e1); border-radius: .5rem; }
+.segmented-status dt { font-weight: 700; }
+.segmented-status dd { margin: .25rem 0 0; }
+.segmented-panel .segmented-target, .segmented-proposal .segmented-target { margin: .75rem 0; padding: .75rem; border: 1px solid var(--border, #cbd5e1); border-radius: .5rem; }
+.segmented-proposal .segmented-candidates { padding-left: 1.5rem; }
+.segmented-candidates > li { margin: 1rem 0; padding-bottom: 1rem; border-bottom: 1px solid var(--border, #cbd5e1); }
+.segmented-panel pre, .segmented-proposal pre, .segmented-panel small, .segmented-proposal small, .segmented-proposal blockquote { white-space: pre-wrap; overflow-wrap: anywhere; }
+.segmented-panel pre, .segmented-proposal pre { max-height: 24rem; overflow: auto; }
+.segmented-panel summary, .segmented-proposal summary { overflow-wrap: anywhere; }
+.segmented-panel button, .segmented-proposal button { white-space: normal; }
+.segmented-panel select { max-width: 100%; }
+.segmented-proposal .segmented-original { border-inline-start: .2rem solid var(--border, #cbd5e1); padding-inline-start: .75rem; }
+.segmented-panel .actions, .segmented-proposal .actions { flex-wrap: wrap; }

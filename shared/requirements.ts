@@ -18,7 +18,8 @@ export const requirementReviewSchema = z.object({
   }).strict()).min(1).max(8),
 }).strict();
 export type RequirementReview = z.infer<typeof requirementReviewSchema>;
-export const requirementDraftSchema = requirementReviewSchema.extend({ scope: z.string().max(400), requirements: z.array(requirementReviewSchema.shape.requirements.element.extend({ rationale: z.string().max(1000) })).min(1).max(8) });
+// Controlled fields retain unfinished text exactly; normalization belongs to an explicit save.
+export const requirementDraftSchema = requirementReviewSchema.extend({ scope: z.string().max(400), scopeQuestion: z.string().max(500), requirements: z.array(requirementReviewSchema.shape.requirements.element.extend({ rationale: z.string().max(1000), question: z.string().max(500) })).min(1).max(8) });
 export function requirementCitations(review: RequirementReview) {
   const seen = new Set<string>();
   return review.requirements.flatMap(r => r.citations).filter(c => { const key = `${c.start}:${c.end}`; if (seen.has(key)) return false; seen.add(key); return true; }).map(({ role: _, ...c }) => c);
