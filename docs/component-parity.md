@@ -23,7 +23,7 @@ were inspected for requests, publication and analysis. This is not an exhaustive
 Inventory: **56 files — 10 present, 29 simplified, 17 missing**. These include utility files and
 intentionally excluded DPA workflows; the totals are not a feature-completion percentage.
 
-October 22 implementation update: [request lifecycle foundation](request-workflow.md) adds server states, permissions, private history, retries and local controls. Request dashboard totals, attention queues and dedicated request navigation are implemented locally; review-specific dashboard summaries remain pending.
+October 22 implementation update: [request lifecycle foundation](request-workflow.md) adds server states, permissions, private history, retries and local controls. Request dashboard totals, attention queues and dedicated request navigation are implemented locally; review/publication totals and review attention queues are now implemented locally; tier distributions remain pending.
 
 All rows are assessed; only unfinished restoration acceptance below uses unchecked boxes. Do not
 use file counts as a completion percentage. Four tab names do not establish full product parity.
@@ -34,7 +34,7 @@ complete-service tabs; this inventory adds source review, not a new full browser
 
 | Original component | Status | Current equivalent / observed scope | Remaining work / priority |
 | --- | --- | --- | --- |
-| [DashboardHub.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/DashboardHub.tsx) | Simplified | `RequestDashboard.tsx`: complete bounded request counts, attention rows and matching queue links. | P1: review/publication totals, review attention and tier distribution; score bands must not imply approval. |
+| [DashboardHub.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/DashboardHub.tsx) | Simplified | `RequestDashboard.tsx` / `ReviewDashboard.tsx`: bounded request/review counts, actual publication presence, attention and queue links. | P1: tier distribution and broader review search; score bands must not imply approval. |
 | [InputDashboard.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/InputDashboard.tsx) | Simplified | `Reviews.tsx`: paste text/document sets or synthetic fixtures. | P2: guided intake and duplicate hints; URL discovery/live analysis and CSV batches remain gated. |
 | [ResultsDashboard.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/ResultsDashboard.tsx) | Simplified | `Reviews.tsx` / `ReviewCard.tsx`: paged cards and detail selection. | P1 search/filter navigation; P2 sorting, selection, reorder, CSV and batch commands. |
 | [FilterSidebar.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/FilterSidebar.tsx) | Simplified | `LibraryView.tsx`: public name/category search and tier filter; no reviewer facet sidebar. | P1 reviewer attention filters; P2 grade/data/curriculum facets with audience-safe fields. |
@@ -169,13 +169,13 @@ Implemented contract details and intentionally pending guidance/handoff behavior
 
 ### P1-1 — Dashboard and find-work navigation
 
-- [ ] Restore Dashboard, reviewer Requests and staff My Requests destinations, keeping role-based
+- [x] Restore Dashboard, reviewer Requests and staff My Requests destinations, keeping role-based
   access and draft retention. Cards/queue rows open the existing authoritative review or request detail.
-- [ ] Add total reviews, actual publications, unassigned/in-review requests and actionable attention
-  categories (failed jobs, unfinished evidence, stale decisions, unmet service requirements).
+- [x] Add total reviews, actual publications, unassigned/in-review requests and actionable attention
+  categories (failed primary jobs, unfinished evidence, stale decisions, service requirement gaps at last save).
 - [ ] Add tier distribution and optional descriptive score distribution. Unknown scores stay unknown;
   no score band means approved. Label request counts separately from service/review counts.
-- [ ] Implement bounded summary queries/aggregates and matching filters. `Reviews.tsx` currently reads
+- [x] Implement bounded summary queries/aggregates and matching filters. `Reviews.tsx` currently reads
   pages of 20: never label the loaded page's count as an installation total or fetch all source/evidence
   documents to draw a dashboard. Define freshness/as-of semantics and prevent duplicate counts.
 - [ ] Verify empty/loading/error/revoked-access states and keyboard navigation. An unavailable query
@@ -235,3 +235,5 @@ weak write validation or publication success disconnected from actual audience r
 See [the improvement and backport register](public-improvements.md). It records what is new or
 stronger, which strengths were inherited, local evidence and limitations, and the dependencies of
 a possible original-project patch. No row authorizes editing, migrating or deploying the original.
+
+See [review dashboard](review-dashboard.md) for count semantics, limits and pending independent acceptance.

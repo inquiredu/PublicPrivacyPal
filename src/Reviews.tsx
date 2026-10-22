@@ -8,7 +8,7 @@ import { PAGE_SIZE, type ReviewSummary } from '../shared/evaluation';
 import { z } from 'zod';
 import { captureDraftSchema } from '../shared/drafts';
 import { useDraftStore, useReviewCommands } from './ReviewDrafts';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { User } from 'firebase/auth';
 import { collection, doc, documentId, onSnapshot, orderBy, query, limit, startAfter } from 'firebase/firestore';
 import type { Client } from './firebase';
@@ -19,7 +19,7 @@ import { ReviewDetail, type RubricStatus } from './ReviewDetail';
 import { ReviewCard } from './ReviewCard';
 const message = (e: unknown) => e instanceof Error ? e.message : 'The action could not be completed.';
 
-export function Reviews({ client, user, readOnly }: { client: Client; user: User; readOnly: boolean }) {
+export function Reviews({ client, user, readOnly, initialId, openVisit }: { client: Client; user: User; readOnly: boolean; initialId?: string; openVisit?: number }) {
   const [rows, setRows] = useState<ReviewSummary[]>([]);
   const [active, setActive] = useState<Review>();
   const [detailError, setDetailError] = useState('');
@@ -39,6 +39,9 @@ export function Reviews({ client, user, readOnly }: { client: Client; user: User
   ] : [];
   const selected = store.get('location', z.string()) || '';
   const setSelected = (id: string) => store.set('location', id);
+  const detailRegion = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (initialId) setSelected(initialId); }, [initialId, openVisit]);
+  useEffect(() => { if (active?.id === selected) detailRegion.current?.focus(); }, [active?.id, selected]);
   const changeCapture = (patch: Partial<typeof capture>) => store.set('capture', { ...capture, ...patch });
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -90,7 +93,7 @@ export function Reviews({ client, user, readOnly }: { client: Client; user: User
       {error && <div className="notice" role="alert">{error}</div>}
     </details></section>
     <div className="review-layout"><aside className="review-list" aria-label="Reviews"><h2>Reviews <span className="count">{rows.length}</span></h2><p className="subtle review-list-help">Select a service to inspect its evidence and district decision.</p>{!rows.length && <p>No reviews yet.</p>}{rows.map(r => <ReviewCard key={r.id} review={r} selected={r.id === selected} onSelect={() => setSelected(r.id)}/>)}<div className="actions review-pagination"><button className="secondary" disabled={!page.length} onClick={() => setPage(p => p.slice(0, -1))}>Previous reviews</button><button className="secondary" disabled={!hasNext} onClick={() => { const last = rows.at(-1); if (last) setPage(p => [...p, { at: last.createdAt, id: last.id }]); }}>Next reviews</button></div></aside>
-      <div>{active?.id === selected ? <ReviewDetail key={active.id} review={active} client={client} user={user} readOnly={readOnly} commands={commands} rubric={rubric}/> : <section className="panel">{detailError && <div role="alert" className="notice">{detailError} <button className="secondary" onClick={() => setLoadAttempt(n => n + 1)}>Retry loading review</button></div>}{selected && !detailError && <p role="status">Loading selected review…</p>}<h2>From evidence to a district decision</h2><ol className="review-steps"><li>Paste policy text or analyze a synthetic policy.</li><li>Inspect the score, quotes, and evidence gaps.</li><li>Record the district’s decision and public wording.</li><li>Publish to the local library, or remove it.</li></ol></section>}</div>
+      <div ref={detailRegion} tabIndex={-1} aria-label="Selected policy review">{active?.id === selected ? <ReviewDetail key={active.id} review={active} client={client} user={user} readOnly={readOnly} commands={commands} rubric={rubric}/> : <section className="panel">{detailError && <div role="alert" className="notice">{detailError} <button className="secondary" onClick={() => setLoadAttempt(n => n + 1)}>Retry loading review</button></div>}{selected && !detailError && <p role="status">Loading selected review…</p>}<h2>From evidence to a district decision</h2><ol className="review-steps"><li>Paste policy text or analyze a synthetic policy.</li><li>Inspect the score, quotes, and evidence gaps.</li><li>Record the district’s decision and public wording.</li><li>Publish to the local library, or remove it.</li></ol></section>}</div>
     </div>
   </>;
 }

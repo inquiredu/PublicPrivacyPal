@@ -15,7 +15,7 @@ feature map, concrete improvements and next milestone.
 These identities precede this documentation consolidation; no merge, release or deployment is implied.
 
 The review draft/retry gate, bounded/versioned evaluation storage, setup and complete-service
-restoration are implemented locally. The request lifecycle foundation is now implemented: states, assignment, independent archives, private history, permissions and explicit retry reconciliation; see [request workflow](request-workflow.md). Request dashboard totals/attention queues and dedicated request destinations are implemented locally. Review-specific dashboard summaries and richer request-to-review handoff remain pending. The active milestone is **dashboard and request-workflow restoration**, following
+restoration are implemented locally. The request lifecycle foundation is now implemented: states, assignment, independent archives, private history, permissions and explicit retry reconciliation; see [request workflow](request-workflow.md). Request dashboard totals/attention queues and dedicated request destinations are implemented locally. Review/publication totals and attention queues are implemented locally; see [review dashboard](review-dashboard.md). Tier distributions and richer request-to-review handoff remain pending. The active milestone is **dashboard and request-workflow restoration**, following
 [the component parity checklist](component-parity.md). The [independent trial](independent-trial.md)
 can assess the current slice, but broader workflow acceptance follows restoration. Reliability
 remains the gate for expansion. Preserve [public-version improvements](public-improvements.md)

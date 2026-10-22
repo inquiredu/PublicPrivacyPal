@@ -72,3 +72,11 @@ transaction; it never calls a loaded page an installation total. Counts and matc
 share one definition, with audience-specific archives and explicit unavailable states. Attention
 rows contain only identifiers, names and states. This is a possible separately reviewed backport;
 it does not authorize changing the original. Production-scale aggregates remain future work.
+
+### Review/publication dashboard candidate
+
+The overview counts actual audience projection presence, flags disagreements with private publication
+state, and keeps score/approval separate. Lightweight, role-checked transaction snapshots replace
+loaded-page totals; attention rows open authoritative details without loading every policy's evidence.
+Counts distinguish archived request audiences, service requirements at last save and review outcomes.
+This remains a bounded local design; unmatched publications fail visibly. See [review dashboard](review-dashboard.md).

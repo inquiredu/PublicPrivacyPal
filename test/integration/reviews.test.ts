@@ -211,6 +211,63 @@ test('unconfirmed backup export remains in maintenance instead of claiming succe
   assert.equal((await call('', 'reviewer', { name: 'Still blocked', fixtureId: 'complete' })).status, 503);
   await releaseMaintenance(s, lock.get('id'));
 });
+test('review dashboard enforces all reader roles and actual publication lifecycle without private detail', async () => {
+  const dashboard = async (role: string, query = '') => {
+    const res = await fetch(`http://127.0.0.1:8787/api/review-dashboard${query}`, { headers: tokens[role] ? { Authorization: `Bearer ${tokens[role]}` } : {} });
+    return { status: res.status, data: await res.json() };
+  };
+  for (const role of ['anonymous','nonmember','staff']) assert.equal((await dashboard(role)).status, role === 'anonymous' ? 401 : 403);
+  for (const role of ['viewer','reviewer','admin']) assert.equal((await dashboard(role)).status,200);
+  assert.equal((await dashboard('reviewer','?queue=bogus')).status,400);
+  assert.equal((await dashboard('reviewer','?queue=failed&queue=all')).status,400);
+  assert.equal((await dashboard('reviewer','?cursor=bad')).status,400);
+  const baseline=(await dashboard('reviewer')).data;
+  let r=await published();
+  let data=(await dashboard('reviewer')).data;
+  assert.equal(data.counts.public,baseline.counts.public+1); assert.equal(data.counts.staff,baseline.counts.staff+1);
+  const publicRow=(await dashboard('reviewer','?queue=public')).data.items.find((x: {id:string})=>x.id===r.id);
+  assert.ok(publicRow); assert.deepEqual(Object.keys(publicRow).sort(),['id','name','queues']);
+  await s.db.doc(publicPath(r)).delete();
+  data=(await dashboard('reviewer','?queue=publication')).data;
+  assert.ok(data.items.some((x: {id:string})=>x.id===r.id)); assert.equal(data.counts.public,baseline.counts.public);
+  assert.equal((await action(r,'unpublish')).status,200);
+  data=(await dashboard('reviewer','?queue=publication')).data;
+  assert.ok(!data.items.some((x: {id:string})=>x.id===r.id));
+  const headRef=s.db.doc(`${base}/reviews/${r.id}`); const saved=(await headRef.get()).data()!;
+  try {
+    await headRef.update({analysisId:randomUUID(), 'job.status':'succeeded', serviceSummary:{blockers:['Synthetic recorded requirement']}});
+    assert.ok((await dashboard('reviewer','?queue=decision')).data.items.some((x:{id:string})=>x.id===r.id));
+    assert.ok((await dashboard('reviewer','?queue=requirements')).data.items.some((x:{id:string})=>x.id===r.id));
+    await headRef.update({'job.status':'awaiting_review'});
+    assert.ok((await dashboard('reviewer','?queue=evidence')).data.items.some((x:{id:string})=>x.id===r.id));
+  } finally { await headRef.set(saved); }
+  const member=s.db.doc(`${base}/members/${uids.viewer}`); await member.update({active:false});
+  try { assert.equal((await dashboard('viewer')).status,403); } finally { await member.update({active:true}); }
+  const orphan=s.db.doc(`publicDistricts/${config.districtId}/tools/review-${randomUUID()}`); await orphan.set({name:'Synthetic orphan'});
+  try { assert.equal((await dashboard('reviewer')).status,409); } finally { await orphan.delete(); }
+});
+
+test('review dashboard counts beyond the first page and refuses unsupported inventory', async () => {
+  const { reviewDashboard } = await import('../../server/review-dashboard.ts');
+  const actor=await s.auth.verifyIdToken(tokens.reviewer);
+  const sample=(await s.db.collection(`${base}/reviews`).limit(1).get()).docs[0].data();
+  const refs=Array.from({length:1001},()=>s.db.doc(`${base}/reviews/${randomUUID()}`));
+  const existing=(await s.db.collection(`${base}/reviews`).get()).size;
+  try {
+    const writer=s.db.bulkWriter();
+    for (const ref of refs.slice(0,1000-existing)) writer.create(ref,{...sample,id:ref.id,name:'Synthetic dashboard bound',decisionId:null,serviceId:null,serviceSummary:null,published:false,analysisId:null,job:{...sample.job,status:'failed'}});
+    // Optional fields must be absent, not null.
+    await writer.close();
+    const fix=s.db.bulkWriter(); const { FieldValue }=await import('firebase-admin/firestore');
+    for(const ref of refs.slice(0,1000-existing)) fix.update(ref,{serviceId:FieldValue.delete(),serviceSummary:FieldValue.delete()});
+    await fix.close();
+    const result=await reviewDashboard(s,actor,'failed'); assert.equal(result.counts.all,1000); assert.ok(result.counts.failed>20); assert.equal(result.items.length,20); assert.ok(result.nextCursor);
+    const next=await reviewDashboard(s,actor,'failed',result.nextCursor!); assert.ok(!next.items.some(r=>result.items.some(p=>p.id===r.id)));
+    await refs[1000].set({...sample,id:refs[1000].id});
+    await assert.rejects(reviewDashboard(s,actor), (e: unknown)=>(e as {status:number}).status===409);
+  } finally { const writer=s.db.bulkWriter(); for(const ref of refs) writer.delete(ref); await writer.close(); }
+});
+
 test('daily analysis quota is transactional, applies to retries, and does not alter denied records', async () => {
   const r = await create('retry'); await processNextReview(s); const failed = await get(r.id);
   const quota = s.db.doc(`${base}/analysisUsage/${new Date().toISOString().slice(0, 10)}`); await quota.set({ count: 99 });

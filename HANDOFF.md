@@ -1,3 +1,36 @@
+# Review and publication dashboard — October 22, 2026
+
+Development checkpoint on `codex/coordinated-milestone-2026-10-19`, following `ffec0f4`.
+Dashboard now includes role-checked review totals, actual public/staff review projection counts,
+failed primary jobs, unfinished evidence, decision-needed, saved requirement gaps and publication
+mismatches. Each total filters a complete bounded queue; rows open authoritative review details.
+Draft journals remain intact. See [review dashboard](docs/review-dashboard.md) for exact semantics.
+Tier distributions, separate assistance/segmented-job attention, live requirement monitoring and
+independent acceptance remain pending. DPA automation, main and original systems remain untouched.
+
+Validation: `npm run ci` passed (551 tests, typecheck/build/isolation). The initial build exceeded the
+entry budget; deferred dashboard loading corrected this without raising budgets. Final focus/navigation
+changes passed fresh typecheck/build. `npm run test:integration` passed all 240 tests in the matching
+local validation copy; an initial fixture-creation failure was caused by the prior quota-exhaustion
+test and resolved by test ordering. The 189 executable/config/test files matched the checkout.
+Coverage includes all reader roles, staff/anonymous/revoked denial, actual publish/unpublish counts,
+publication mismatch/orphan failure, stale decision and evidence flags, 1,000-review totals/paging
+and overflow refusal. Full source/evidence is not read for summaries.
+
+Browser checks passed: two public review notices versus five total public resources, keyboard queue
+selection/focus, published and unfinished review detail navigation, reopening the active queue and
+capture draft retention across a different review. Only the temporary synthetic browser draft was
+removed; no saved review/publication records were changed. Screenshot: `.local/review-dashboard.png`.
+Independent multi-role and spoken accessibility acceptance remain pending.
+
+Preview is restored and running from `/private/tmp/privacypal-request-validation` at port 5173.
+Pre-test schema-11 backup was saved, verified and copied to this checkout:
+`.local/backups/2026-10-22T20-20-02-301Z-2b2fdc27-2b85-4591-9b2c-ca7e0320c9ba`.
+Save/verify before stopping the owned preview. Logs are `.local/review-dashboard-ci.log` and
+`.local/review-dashboard-integration.log`. Private backups/logs/screenshots remain untracked.
+
+---
+
 # Request dashboard restoration — October 22, 2026
 
 Development checkpoint on `codex/coordinated-milestone-2026-10-19`, following `a3d85ac`.

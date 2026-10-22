@@ -314,3 +314,5 @@ DPA automation remains excluded.
 - [ ] Interrupt API access: totals must say unavailable, never zero. Restore access and refresh.
 - [ ] Revoke membership and verify dashboard/detail access disappears. Navigate away from a partial
       request/review draft and return; confirm text and unresolved command identity are preserved.
+
+Review/publication dashboard follow-up: complete the [dashboard acceptance checklist](review-dashboard.md#independent-acceptance), including publication totals, queue navigation and draft continuity.

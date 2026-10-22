@@ -16,6 +16,7 @@ import { collection, doc, onSnapshot, updateDoc, serverTimestamp } from 'firebas
 import { connectLocal, type Client } from './firebase';
 import { roles, type Role } from '../shared/config';
 
+const ReviewDashboard = lazy(() => import('./ReviewDashboard').then(m => ({ default: m.ReviewDashboard })));
 const Reviews = lazy(() => import('./Reviews').then(m => ({ default: m.Reviews })));
 const Settings = lazy(() => import('./Settings').then(m => ({ default: m.Settings })));
 type Profile = LibraryProfile;
@@ -65,6 +66,8 @@ function Workspace({ client }: { client: Client }) {
     requestOwner.current = owner;
   }, [authReady, accountReady, user?.uid, member?.role]);
   const [tab, setTab] = useState<'library' | 'dashboard' | 'requests' | 'workspace' | 'people' | 'reviews' | 'settings'>('library');
+  const [reviewTarget, setReviewTarget] = useState<{ id?: string; visit: number }>({ visit: 0 });
+  function openReview(id?: string) { setReviewTarget(t => ({ id, visit: t.visit + 1 })); setTab('reviews'); }
   const [requestTarget, setRequestTarget] = useState<{ queue: RequestQueue; id?: string; visit: number }>({ queue: 'active', visit: 0 });
   function openRequests(queue: RequestQueue, id?: string) { setRequestTarget(t => ({ queue, id, visit: t.visit + 1 })); setTab('requests'); }
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -142,7 +145,8 @@ function Workspace({ client }: { client: Client }) {
         </dialog>}
         {currentTab === 'library' && <>{libraryError && <Notice>{libraryError}</Notice>}{library ? <LibraryView settings={library} profiles={profiles} onCustomize={member?.role === 'admin' ? () => { setTab('settings'); setCustomizeRequest(n => n + 1); } : undefined}/> : !libraryError && <p role="status">Loading library settings…</p>}{!user && <Login client={client}/>}</>}
         {member?.role === 'admin' && user && (currentTab === 'settings' || settingsOwner === user.uid) && <div hidden={currentTab !== 'settings'}><DeferredScreen name="Settings"><Settings key={user.uid} user={user} openLibraryRequest={customizeRequest}/></DeferredScreen></div>}
-        {currentTab === 'reviews' && canReview && user && drafts && <DeferredScreen name="Policy reviews"><Reviews key={`${user.uid}-${member.role}`} client={client} user={user} readOnly={member.role === 'viewer'}/></DeferredScreen>}
+        {currentTab === 'reviews' && canReview && user && drafts && <DeferredScreen name="Policy reviews"><Reviews key={`${user.uid}-${member.role}`} client={client} user={user} readOnly={member.role === 'viewer'} initialId={reviewTarget.id} openVisit={reviewTarget.visit}/></DeferredScreen>}
+        {currentTab === 'dashboard' && canReview && user && <DeferredScreen name="Review dashboard"><ReviewDashboard key={`${user.uid}/${member!.role}`} user={user} onOpen={openReview}/></DeferredScreen>}
         {currentTab === 'dashboard' && member && user && <RequestDashboard key={`${user.uid}/${member.role}`} user={user} onOpen={openRequests}/>}
         {currentTab === 'requests' && member && user && <RequestPanel key={`${user.uid}/${member.role}/${requestTarget.visit}`} user={user} role={member.role} scope={`${client.config.projectId}/${client.config.districtId}`} initialQueue={requestTarget.queue} initialId={requestTarget.id}/>}
         {currentTab === 'workspace' && member && user && <DistrictWork key={`${user.uid}-${member.role}`} client={client} user={user} member={member}/>}

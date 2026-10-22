@@ -156,3 +156,10 @@ cannot write findings, scores, district decisions or public projections. Mainten
 output retention and settlement as well as eligibility. The only dispatch implementation is a
 server-approved authored synthetic recording; arbitrary packets and client output have no authority.
 See [saved segmented review lab](segmented-reviews.md).
+
+## Review dashboard
+
+Only active admin/reviewer/viewer members may call `/api/review-dashboard`. The transaction rechecks
+membership and returns counts plus ID/name/category rows. Staff and anonymous visitors cannot read
+these private summaries. No new direct Firestore grant or mutation endpoint is introduced. Public
+and staff projection presence is counted separately, not inferred from scores or approval wording.
