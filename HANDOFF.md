@@ -1,3 +1,29 @@
+# Request dashboard restoration — October 22, 2026
+
+Development checkpoint on `codex/coordinated-milestone-2026-10-19`, following `a3d85ac`.
+Dashboard totals, reviewer attention and requester outcomes link into dedicated Requests / My Requests
+queues and selected request details. Counts cover the complete bounded request inventory, filtering
+before pagination and respecting each audience's archive. Errors show unavailable; no partial totals.
+See [request workflow](docs/request-workflow.md#request-dashboard--october-22).
+Review/publication summaries, review-specific attention and tier distributions remain pending.
+DPA automation, original project changes, main changes and deployment remain excluded.
+
+Validation: `npm run ci` passed in this checkout (550 tests, typecheck/build/isolation).
+`npm run test:integration` passed (238 tests) in `/private/tmp/privacypal-request-validation`
+after the synced-folder launcher stalled before emulator startup. All 185 executable/config/test
+files compared identically with the working checkout. Final role-change queue fallback passed
+fresh typecheck/build. Browser checks verified keyboard attention-row navigation and selected-detail
+focus, matching Decided queue, and request draft retention across dashboard navigation. Independent
+multi-role browser and assistive-technology acceptance remain pending. Screenshot `.local/request-dashboard.png`.
+
+The synthetic preview is restored and running at port 5173 from the validation copy. No request
+records were changed by the browser smoke check. Its pre-test backup was saved/verified and copied
+to this checkout at `.local/backups/2026-10-22T19-57-33-169Z-0ae16a02-b23a-4562-b3cb-1d1a854c5624`.
+Save/verify before stopping the owned preview. Logs are `.local/dashboard-ci.log` and
+`.local/dashboard-integration.log`; private artifacts remain untracked.
+
+---
+
 # Explicit public policy links — October 22, 2026
 
 The normal publication projection now allowlists a safe saved service `policyUrl`. Both the public

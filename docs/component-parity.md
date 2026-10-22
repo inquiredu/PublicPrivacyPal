@@ -23,7 +23,7 @@ were inspected for requests, publication and analysis. This is not an exhaustive
 Inventory: **56 files — 10 present, 29 simplified, 17 missing**. These include utility files and
 intentionally excluded DPA workflows; the totals are not a feature-completion percentage.
 
-October 22 implementation update: [request lifecycle foundation](request-workflow.md) adds server states, permissions, private history, retries and local controls. Dashboard restoration remains pending.
+October 22 implementation update: [request lifecycle foundation](request-workflow.md) adds server states, permissions, private history, retries and local controls. Request dashboard totals, attention queues and dedicated request navigation are implemented locally; review-specific dashboard summaries remain pending.
 
 All rows are assessed; only unfinished restoration acceptance below uses unchecked boxes. Do not
 use file counts as a completion percentage. Four tab names do not establish full product parity.
@@ -34,7 +34,7 @@ complete-service tabs; this inventory adds source review, not a new full browser
 
 | Original component | Status | Current equivalent / observed scope | Remaining work / priority |
 | --- | --- | --- | --- |
-| [DashboardHub.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/DashboardHub.tsx) | Missing | No equivalent overview in `App.tsx` or `Reviews.tsx`. | P1: totals, actionable attention queue, tier distribution; score bands must not imply approval. |
+| [DashboardHub.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/DashboardHub.tsx) | Simplified | `RequestDashboard.tsx`: complete bounded request counts, attention rows and matching queue links. | P1: review/publication totals, review attention and tier distribution; score bands must not imply approval. |
 | [InputDashboard.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/InputDashboard.tsx) | Simplified | `Reviews.tsx`: paste text/document sets or synthetic fixtures. | P2: guided intake and duplicate hints; URL discovery/live analysis and CSV batches remain gated. |
 | [ResultsDashboard.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/ResultsDashboard.tsx) | Simplified | `Reviews.tsx` / `ReviewCard.tsx`: paged cards and detail selection. | P1 search/filter navigation; P2 sorting, selection, reorder, CSV and batch commands. |
 | [FilterSidebar.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/FilterSidebar.tsx) | Simplified | `LibraryView.tsx`: public name/category search and tier filter; no reviewer facet sidebar. | P1 reviewer attention filters; P2 grade/data/curriculum facets with audience-safe fields. |
@@ -94,7 +94,7 @@ complete-service tabs; this inventory adds source review, not a new full browser
 
 | Original component | Status | Current equivalent / observed scope | Remaining work / priority |
 | --- | --- | --- | --- |
-| [Header.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/Header.tsx) | Simplified | App shell: Public library / My workspace / Policy reviews / People & access / Settings. | P1 recognizable Dashboard / Requests / My Requests navigation; P2 remaining destinations. |
+| [Header.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/Header.tsx) | Simplified | App shell: Public library / My workspace / Policy reviews / People & access / Settings. | Dashboard / Requests / My Requests navigation restored; P2 remaining destinations. |
 | [LoginView.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/LoginView.tsx) | Simplified | Local email/password sign-in and operator-created synthetic accounts. | Hosted identity/Google sign-in is a separate production gate. |
 | [ContributorManagementModal.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/ContributorManagementModal.tsx) | Simplified | People & access manages explicit roles, revocation and protected initial admin. | Invitation/organization registration workflows absent; do not reintroduce self-claimed ownership. |
 | [AcceptInvitePage.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/AcceptInvitePage.tsx) | Missing | No invitation route or acceptance protocol. | Separate hosted identity/invitation design and tests. |

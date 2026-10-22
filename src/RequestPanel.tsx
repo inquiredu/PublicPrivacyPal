@@ -1,4 +1,5 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { requestQueues, queueLabels, type RequestQueue } from '../shared/request-dashboard';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { User } from 'firebase/auth';
 import type { Role } from '../shared/config';
 import { requestCreateSchema, requestActionSchema, type RequestView, type RequestAction, type RequestEvent } from '../shared/requests';
@@ -8,7 +9,10 @@ const statusLabel = { pending: 'Pending', in_review: 'In review', decided: 'Deci
 const emptyForm = { toolName: '', purpose: '', requestedUrl: '' };
 const explain = (e: unknown) => e instanceof Error ? e.message : 'Request service unavailable.';
 
-export function RequestPanel({ user, role, scope }: { user: User; role: Role; scope: string }) {
+export function RequestPanel({ user, role, scope, initialQueue = 'active', initialId }: { user: User; role: Role; scope: string; initialQueue?: RequestQueue; initialId?: string }) {
+  const detailHeading = useRef<HTMLHeadingElement>(null);
+  const openSequence = useRef(0);
+  useEffect(() => () => { openSequence.current++; }, []);
   const key = REQUEST_DRAFT_PREFIX + scope + '/' + user.uid;
   const [journal, setJournal] = useState<RequestJournal>(() => {
     try { return readRequestJournal(key) || { savedAt: Date.now(), form: emptyForm, pending: null, reviewDrafts: {} }; }
@@ -21,7 +25,8 @@ export function RequestPanel({ user, role, scope }: { user: User; role: Role; sc
   const [history, setHistory] = useState<RequestEvent[]>([]); const [historyCursor, setHistoryCursor] = useState<string | null>(null);
   const [busy, setBusy] = useState(false); const [notice, setNotice] = useState(''); const [reload, setReload] = useState(0);
   const [retryReady, setRetryReady] = useState(false); const [failed, setFailed] = useState(false);
-  const [showArchived, setShowArchived] = useState(false);
+  const [queue, setQueue] = useState<RequestQueue>(initialQueue === 'assigned' && role !== 'admin' && role !== 'reviewer' ? 'active' : initialQueue);
+  const [loading, setLoading] = useState(true); const [listError, setListError] = useState('');
   const actionDraft = selected ? journal.reviewDrafts[selected.id] : undefined;
   const reason = actionDraft?.reason || ''; const reviewId = actionDraft?.reviewId || '';
   function actionText(patch: Partial<{ reason: string; reviewId: string }>) {
@@ -37,11 +42,13 @@ export function RequestPanel({ user, role, scope }: { user: User; role: Role; sc
   function draft(patch: Partial<typeof emptyForm>) { try { persist({ ...journal, form: { ...journal.form, ...patch } }); } catch { setStorageError('Draft storage is unavailable. Submission is disabled to protect retry identity.'); } }
   useEffect(() => {
     let alive = true;
-    const refresh = () => void api<{ items: RequestView[]; nextCursor: string | null }>(`/api/requests${cursor ? '?cursor=' + encodeURIComponent(cursor) : ''}`, user)
-      .then(data => { if (alive) { setItems(data.items); setNext(data.nextCursor); } }).catch(e => { if (alive) { setItems([]); setNotice(explain(e)); } });
+    const refresh = () => void api<{ items: RequestView[]; nextCursor: string | null }>(`/api/requests?queue=${queue}${cursor ? '&cursor=' + encodeURIComponent(cursor) : ''}`, user)
+      .then(data => { if (alive) { setItems(data.items); setNext(data.nextCursor); setListError(''); setLoading(false); } }).catch(e => { if (alive) { setItems([]); setNext(null); setListError(explain(e)); setLoading(false); } });
     refresh(); const timer = setInterval(refresh, 15000); return () => { alive = false; clearInterval(timer); };
-  }, [user, cursor, reload]);
-  async function open(id: string) { try { setSelected(await api<RequestView>(`/api/requests/${id}`, user)); setHistory([]); setHistoryCursor(null); } catch (e) { setSelected(undefined); setNotice(explain(e)); } }
+  }, [user, cursor, queue, reload]);
+  useEffect(() => { if (initialId) void open(initialId); }, [initialId]);
+  async function open(id: string) { const sequence = ++openSequence.current; try { const row = await api<RequestView>(`/api/requests/${id}`, user); if (sequence !== openSequence.current) return; setSelected(row); setHistory([]); setHistoryCursor(null); } catch (e) { if (sequence === openSequence.current) { setSelected(undefined); setNotice(explain(e)); } } }
+  useEffect(() => { if (selected) detailHeading.current?.focus(); }, [selected?.id]);
   function accepted(r: RequestView, pending: NonNullable<RequestJournal['pending']>) {
     persist({ ...journal, pending: null, form: pending.path === '/api/requests' ? emptyForm : journal.form });
     setSelected(r); setHistory([]); setHistoryCursor(null); setReload(n => n + 1); setNotice('Request change saved. A request outcome does not approve or publish a service.'); setFailed(false); setRetryReady(false);
@@ -91,11 +98,11 @@ export function RequestPanel({ user, role, scope }: { user: User; role: Role; sc
       </fieldset>
     </form>
     <h3>{reviewer ? 'District requests' : 'Your requests'}</h3>
-    {!items.length && <p>No requests on this page.</p>}
-    <label><input type="checkbox" checked={showArchived} onChange={e => setShowArchived(e.target.checked)}/>Include archived requests on this page</label>
-    {items.filter(r => showArchived || !r.archived).map(r => <div className="request-row" key={r.id}><button className="secondary" onClick={() => void open(r.id)}>{r.toolName}</button><span>{statusLabel[r.status]}{r.archived ? ' · archived in this view' : ''}</span></div>)}
+    <label>Request queue<select value={queue} onChange={e => { setQueue(e.target.value as RequestQueue); setCursor(undefined); setItems([]); setLoading(true); }}>{requestQueues.filter(q => reviewer || q !== 'assigned').map(q => <option key={q} value={q}>{queueLabels[q]}</option>)}</select></label>
+    {listError ? <p role="alert">Requests unavailable: {listError}</p> : loading ? <p role="status">Loading requests…</p> : !items.length && <p>No requests in this queue on this page.</p>}
+    {items.map(r => <div className="request-row" key={r.id}><button className="secondary" onClick={() => void open(r.id)}>{r.toolName}</button><span>{statusLabel[r.status]}{r.archived ? ' · archived in this view' : ''}</span></div>)}
     <div className="actions"><button disabled={!cursor} onClick={() => setCursor(undefined)}>First requests</button><button disabled={!next} onClick={() => setCursor(next!)}>Next requests</button></div>
-    {selected && <section aria-label="Selected request"><h3>{selected.toolName}</h3><p>{selected.purpose}</p><p>{selected.requestedUrl}</p><p>Status: {statusLabel[selected.status]} · revision {selected.revision}</p>
+    {selected && <section aria-label="Selected request"><h3 ref={detailHeading} tabIndex={-1}>{selected.toolName}</h3><p>{selected.purpose}</p><p>{selected.requestedUrl}</p><p>Status: {statusLabel[selected.status]} · revision {selected.revision}</p>
       {selected.legacy && <p>Earlier pending request. History begins with its first lifecycle command.</p>}
       {selected.outcome && <p>Recorded request outcome: {selected.outcome.kind === 'declined' ? 'Declined' : 'Linked to a review'} — {selected.outcome.reason} {selected.outcome.reviewId && `Review reference: ${selected.outcome.reviewId}. Inspect current staff guidance; this is not approval.`}</p>}
       {selected.assignee && <p>Assigned reviewer: {selected.assignee === user.uid ? 'You' : selected.assignee}</p>}

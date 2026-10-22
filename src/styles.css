@@ -108,3 +108,7 @@ summary{cursor:pointer}
 .public-notice-body h3 { font-size: 15px; margin: 0 0 8px; }
 .public-notice-body p { line-height: 1.6; white-space: pre-wrap; margin: 8px 0; }
 .public-notice-body footer { border-top: 1px solid #e0e7da; margin-top: 24px; padding-top: 16px; font-size: 13px; }
+
+.request-totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-block: 20px; }
+.request-totals button { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 20px; text-align: left; }
+.request-totals strong { font-size: 2rem; }

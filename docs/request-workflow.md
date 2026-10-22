@@ -51,7 +51,7 @@ The local installation is bounded to 100 requests, 64 events per request and 256
 including its head, events and receipts. A full limit refuses further changes without deleting history.
 Lists/history return at most 20 items per page. Lists currently scan at most 101 heads to include legacy
 records; this is a bounded local foundation, not a scalable dashboard query. The UI polls lists every
-15 seconds and offers explicit detail refresh. Archive filtering is per loaded page.
+15 seconds and offers explicit detail refresh. Queue filtering occurs on the server before pagination.
 
 Earlier direct-write pending requests remain readable without rewriting them. Their first lifecycle
 command adopts version 1, retaining the known original timestamp (or explicit unknown timestamp),
@@ -72,12 +72,35 @@ Use synthetic accounts and records only:
 - [ ] Verify only the assignee can release/decide. Test administrator takeover and its private reason.
 - [ ] Decline with an explanation; verify the requester sees that explanation but no private history.
 - [ ] Reopen, claim and link an existing review. Verify no approval/public entry changes.
-- [ ] Archive and restore each audience independently; inspect archived entries on the loaded page.
+- [ ] Archive and restore each audience independently; inspect the Archived queue.
 - [ ] Interrupt a response, reload, check the saved result, and retry the same command if absent.
       Verify one request/event per successful command and preserved text after a definite rejection.
 - [ ] Inspect history paging; revoke membership and verify read/write/replay denial.
 - [ ] Save, shut down and restore using the runbook; verify history and receipt reconciliation.
 
-Next: dashboard totals/attention queues backed by complete bounded data; Active/Decided/Archived
-navigation; request-to-review handoff/picker and catalogue-match guidance; broader keyboard and
+Implemented: request dashboard totals/attention queues backed by complete bounded data and
+Active/Decided/Archived navigation. Next: request-to-review handoff/picker and catalogue-match guidance; broader keyboard and
 assistive-technology acceptance. Automated tests do not replace this independent walkthrough.
+
+
+## Request dashboard — October 22
+
+Dashboard and Requests (My Requests for staff/read-only reviewers) are distinct destinations.
+The dashboard API rechecks membership in the same transaction as its bounded inventory read.
+It returns counts and at most six allowlisted attention rows, never request history or policy evidence.
+Staff and read-only reviewers see only their own requests; reviewers/admins see district requests.
+
+All requests includes archives. Pending, In review and Decided exclude that audience's archives.
+Assigned to you is a subset of In review. Reviewer attention includes unassigned and self-assigned
+active requests; requester attention shows decided outcomes, not unread notifications. Rows sort by
+creation time then ID; unknown legacy dates sort first. Cards open matching server-filtered queues;
+rows open authoritative request details. Archives stay independent for requester/reviewer audiences.
+
+Counts use the complete supported inventory (100 heads maximum), not the loaded page. Inventory
+above the bound fails explicitly. A transaction snapshot supplies counts, rows and an as-of time;
+polling every 15 seconds and explicit refresh keep it current. Errors clear counts instead of showing
+zero or stale totals. Queue paging uses document IDs and may change as concurrent work changes.
+No persistent aggregates or migration were introduced. Request drafts retain the existing journal.
+
+Review/publication totals, tier distributions and review-specific attention categories remain pending.
+DPA automation remains excluded.

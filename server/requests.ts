@@ -1,3 +1,4 @@
+import { inRequestQueue, summarizeRequests, type RequestQueue } from '../shared/request-dashboard.ts';
 import { randomUUID } from 'node:crypto';
 import { FieldPath, type Transaction } from 'firebase-admin/firestore';
 import type { DecodedIdToken } from 'firebase-admin/auth';
@@ -44,15 +45,25 @@ export async function requestDetail(s: Services, actor: DecodedIdToken, id: stri
   return s.db.runTransaction(async tx => { const m = await member(s, tx, actor); const r = requestHead(id, (await tx.get(requestsRef(s).doc(id))).data()).state;
     canRead(r, actor.uid, m.role); return requestView(r, actor.uid, reviewer(m.role)); });
 }
-export async function listRequests(s: Services, actor: DecodedIdToken, cursor?: string) {
+export async function listRequests(s: Services, actor: DecodedIdToken, cursor?: string, queue: RequestQueue = 'all') {
   if (cursor) parse(requestIdSchema, cursor);
   return s.db.runTransaction(async tx => {
     const m = await member(s, tx, actor);
     // A bounded installation scan also supports legacy requestedBy fields without two divergent lists.
     const page = await tx.get(requestsRef(s).orderBy(FieldPath.documentId()).limit(L.count + 1));
     if (page.size > L.count) throw new HttpError(409, 'Request inventory exceeds its supported bound.');
-    const rows = page.docs.map(d => requestHead(d.id, d.data()).state).filter(r => reviewer(m.role) || r.requestedBy === actor.uid).filter(r => !cursor || r.id > cursor);
-    return { items: rows.slice(0, L.page).map(r => requestView(r, actor.uid, reviewer(m.role))), nextCursor: rows.length > L.page ? rows[L.page - 1].id : null };
+    const rows = page.docs.map(d => requestHead(d.id, d.data()).state).filter(r => reviewer(m.role) || r.requestedBy === actor.uid).map(r => requestView(r, actor.uid, reviewer(m.role))).filter(r => inRequestQueue(r, queue, actor.uid)).filter(r => !cursor || r.id > cursor);
+    return { items: rows.slice(0, L.page), nextCursor: rows.length > L.page ? rows[L.page - 1].id : null };
+  });
+}
+export async function requestDashboard(s: Services, actor: DecodedIdToken) {
+  return s.db.runTransaction(async tx => {
+    const m = await member(s, tx, actor);
+    const page = await tx.get(requestsRef(s).orderBy(FieldPath.documentId()).limit(L.count + 1));
+    if (page.size > L.count) throw new HttpError(409, 'Request inventory exceeds its supported bound.');
+    const rows = page.docs.map(d => requestHead(d.id, d.data()).state)
+      .filter(r => reviewer(m.role) || r.requestedBy === actor.uid).map(r => requestView(r, actor.uid, reviewer(m.role)));
+    return summarizeRequests(rows, actor.uid, reviewer(m.role), new Date().toISOString());
   });
 }
 export async function requestHistory(s: Services, actor: DecodedIdToken, id: string, cursor?: string) {

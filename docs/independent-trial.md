@@ -303,3 +303,14 @@ with separate synthetic staff/reviewer/admin accounts. This adds states, permiss
 archive separation, draft continuity and response-loss reconciliation. Dashboard totals and dedicated
 queues are still pending; do not mark the whole restoration milestone accepted from these tests.
 DPA automation remains excluded.
+
+### Request dashboard follow-up
+
+- [ ] With more than 20 synthetic requests, compare dashboard totals with all pages of each queue.
+- [ ] Open a total and an attention row using keyboard only; verify correct queue/detail and focus.
+- [ ] Verify staff/read-only reviewers see only their own totals; reviewers/admins see district work.
+- [ ] Archive independently in each audience; verify counts change in only the relevant view.
+- [ ] Claim/release/decide a request; return to Dashboard and verify refreshed totals/attention.
+- [ ] Interrupt API access: totals must say unavailable, never zero. Restore access and refresh.
+- [ ] Revoke membership and verify dashboard/detail access disappears. Navigate away from a partial
+      request/review draft and return; confirm text and unresolved command identity are preserved.

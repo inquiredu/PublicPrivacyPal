@@ -1,3 +1,4 @@
+import { requestQueues } from '../../shared/request-dashboard.ts';
 import { before, after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomBytes, randomUUID } from 'node:crypto';
@@ -10,7 +11,7 @@ import { loadConfig } from '../../server/config.ts';
 import { localServices, type Services } from '../../server/firebase.ts';
 import { bootstrap } from '../../server/operations.ts';
 import { commandIdentity } from '../../server/commands.ts';
-import { requestCommand, requestCommandStatus, requestDetail, requestHistory, listRequests } from '../../server/requests.ts';
+import { requestDashboard, requestCommand, requestCommandStatus, requestDetail, requestHistory, listRequests } from '../../server/requests.ts';
 import { validateRequestInstallation } from '../../server/request-storage.ts';
 import { acquireMaintenance, releaseMaintenance } from '../../server/maintenance.ts';
 import { saveBackup, finishRestore } from '../../scripts/backup-operations.ts';
@@ -148,11 +149,49 @@ test('HTTP request routes enforce authentication, command IDs and payload valida
   const server = apiServer(s); server.listen(8787, '127.0.0.1'); await once(server, 'listening');
   try {
     assert.equal((await fetch('http://127.0.0.1:8787/api/requests')).status, 401);
+    assert.equal((await fetch('http://127.0.0.1:8787/api/request-dashboard')).status, 401);
     const headers = { Origin: 'http://127.0.0.1:5173', Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
     assert.equal((await fetch('http://127.0.0.1:8787/api/requests', { method: 'POST', headers, body: JSON.stringify(body) })).status, 400);
+    assert.equal((await fetch('http://127.0.0.1:8787/api/request-dashboard', { headers })).status, 200);
+    for (const path of ['/api/requests?queue=wrong', '/api/requests?queue=all&queue=active', '/api/request-dashboard?cursor=bad', '/api/me?queue=all']) assert.equal((await fetch('http://127.0.0.1:8787' + path, { headers })).status, 400);
     const id = randomUUID(); const response = await fetch('http://127.0.0.1:8787/api/requests', { method: 'POST', headers: { ...headers, 'Idempotency-Key': id }, body: JSON.stringify(body) });
     assert.equal(response.status, 201); const data = await response.json() as { id: string };
     assert.equal((await fetch(`http://127.0.0.1:8787/api/requests/${data.id}/history`, { headers })).status, 403);
     assert.equal((await fetch(`http://127.0.0.1:8787/api/request-commands/${id}`, { headers })).status, 200);
   } finally { server.close(); await once(server, 'close'); }
+});
+
+test('dashboard totals cover all pages, match queue filters and enforce audience archives', async () => {
+  const created = [];
+  for (let i = 0; i < 23; i++) created.push(await run(other, null, { ...body, toolName: `Queue test ${i}` }));
+  let claimed = await run(reviewer, created[0].id, { action: 'claim', revision: 1 });
+  await run(other, claimed.id, { action: 'archive', audience: 'requester', archived: true, revision: claimed.revision });
+  const district = await requestDashboard(s, reviewer);
+  assert.equal(district.audience, 'district'); assert.ok(district.counts.all > 20);
+  assert.ok(district.counts.assigned > 0);
+  for (const actor of [admin, reviewer, staff, viewer, other]) {
+    const summary = await requestDashboard(s, actor);
+    for (const queue of requestQueues) {
+      let cursor: string | undefined; const ids: string[] = [];
+      do { const page = await listRequests(s, actor, cursor, queue); ids.push(...page.items.map(r => r.id)); cursor = page.nextCursor || undefined; } while (cursor);
+      assert.equal(ids.length, summary.counts[queue]); assert.equal(new Set(ids).size, ids.length);
+    }
+    if (actor === staff || actor === viewer || actor === other) {
+      assert.equal(summary.audience, 'own'); assert.equal(summary.counts.assigned, 0);
+      for (const row of summary.attention) { assert.equal((await requestDetail(s, actor, row.id)).own, true); assert.deepEqual(Object.keys(row).sort(), ['id', 'status', 'toolName']); }
+    }
+  }
+  assert.ok((await listRequests(s, other, undefined, 'archived')).items.some(r => r.id === claimed.id));
+  assert.ok((await listRequests(s, reviewer, undefined, 'assigned')).items.some(r => r.id === claimed.id));
+  await s.db.doc(`${base}/members/${other.uid}`).update({ active: false });
+  try { await denied(requestDashboard(s, other), 403); await denied(listRequests(s, other, undefined, 'active'), 403); }
+  finally { await s.db.doc(`${base}/members/${other.uid}`).update({ active: true }); }
+});
+
+test('dashboard refuses overflow instead of reporting a partial total', async () => {
+  const refs = Array.from({ length: 101 }, (_, i) => s.db.doc(`${base}/requests/overflow-${i}`));
+  try {
+    const batch = s.db.batch(); refs.forEach(ref => batch.set(ref, { toolName: 'Synthetic overflow', purpose: 'Bound check', requestedBy: staff.uid, status: 'pending', archived: false })); await batch.commit();
+    await denied(requestDashboard(s, admin), 409);
+  } finally { const batch = s.db.batch(); refs.forEach(ref => batch.delete(ref)); await batch.commit(); }
 });

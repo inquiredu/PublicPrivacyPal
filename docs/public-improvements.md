@@ -64,3 +64,11 @@ and separate requester/reviewer archives are inherited workflow concepts, not ne
 Consider the reliability contracts for a later original-project backport only after reviewing its current
 request persistence and migration requirements. This implementation does not authorize an original
 change, supply scalable dashboard totals or turn a request outcome into a service approval.
+
+### Request dashboard candidate
+
+The request overview counts the complete bounded installation inventory in a membership-checked
+transaction; it never calls a loaded page an installation total. Counts and matching queue filters
+share one definition, with audience-specific archives and explicit unavailable states. Attention
+rows contain only identifiers, names and states. This is a possible separately reviewed backport;
+it does not authorize changing the original. Production-scale aggregates remain future work.

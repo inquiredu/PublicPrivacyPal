@@ -78,6 +78,9 @@ assigned-reviewer outcomes and independent requester/reviewer archives. All dire
 and writes to request heads, history and receipts are denied. Staff/viewers receive only their own
 request projections; reviewers/admins may inspect district requests and private history. Commands
 recheck current membership, authority and expected revision, with actor-scoped retry receipts.
+The request dashboard uses the same transaction-time membership check and audience boundary.
+It exposes only full-inventory counts and up to six request ID/name/status rows; direct request
+reads remain denied. Queue filtering occurs before pagination within the same authorized snapshot.
 See [request lifecycle](request-workflow.md) for the state/permission matrix and local bounds.
 Internal tool writes cannot inject scores or publication fields or
 forge `updatedBy`. Review decisions use strict server commands with revision checks; direct review/job/history writes are denied.
