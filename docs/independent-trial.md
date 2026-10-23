@@ -316,3 +316,5 @@ DPA automation remains excluded.
       request/review draft and return; confirm text and unresolved command identity are preserved.
 
 Review/publication dashboard follow-up: complete the [dashboard acceptance checklist](review-dashboard.md#independent-acceptance), including publication totals, queue navigation and draft continuity.
+
+Tier/search follow-up: compare tier totals with queues, combine name/tier/attention filters across pages, test no matches and clear filters, then verify filter retention after opening review details.

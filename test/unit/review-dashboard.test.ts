@@ -11,3 +11,13 @@ test('rollups count all rows, deduplicate attention and paginate matching queues
   assert.equal(reviewRollup(rows,'public',undefined,'now').items.length,0);
   assert.equal(reviewRollup([],'all',undefined,'now').counts.all,0);
 });
+test('tier distribution distinguishes Pending from absent tiers and filters names before paging', () => {
+  const rows: ReviewDashboardRow[] = Array.from({length:46},(_,i)=>({id:String(i).padStart(3,'0'), name:i%2?'Maple Reading':'Cedar Science',tier:i%2?'Pending':'Tier 2: Site/Department Approved',queues:['all','evidence']}));
+  rows.push({id:'999',name:'Maple legacy',queues:['all']});
+  const data=reviewRollup(rows,'evidence',undefined,'now',{search:'  MAPLE  ',tier:'Pending'});
+  assert.equal(data.matchingTotal,23); assert.equal(data.items.length,20); assert.equal(data.tierCounts.Pending,23); assert.equal(data.tierCounts.unassigned,1);
+  assert.equal(Object.values(data.tierCounts).reduce((a,b)=>a+b,0),47);
+  assert.equal(reviewRollup(rows,'evidence',data.nextCursor!,'now',{search:'maple',tier:'Pending'}).items.length,3);
+  assert.equal(reviewRollup(rows,'all',undefined,'now',{search:'[.*]'}).matchingTotal,0,'Search is literal, not a regular expression');
+  assert.equal(reviewRollup(rows,'all',undefined,'now',{tier:'unassigned'}).items[0].id,'999');
+});

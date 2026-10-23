@@ -80,3 +80,10 @@ state, and keeps score/approval separate. Lightweight, role-checked transaction 
 loaded-page totals; attention rows open authoritative details without loading every policy's evidence.
 Counts distinguish archived request audiences, service requirements at last save and review outcomes.
 This remains a bounded local design; unmatched publications fail visibly. See [review dashboard](review-dashboard.md).
+
+### Tier/search navigation candidate
+
+The review dashboard keeps Pending distinct from No recorded tier, reconciles tier totals with the
+complete bounded inventory, and filters names/tier/queues before paging. Matching counts are labeled
+separately from district-wide totals. Opening review details preserves filters without polling the
+hidden dashboard. No scores establish approval and no records are reclassified. See [review dashboard](review-dashboard.md#tier-distribution-and-review-search).

@@ -32,7 +32,7 @@ unresolved commands retain their existing tab journals. Read-only reviewers keep
 ## Data and reliability boundary
 
 `GET /api/review-dashboard?queue=all` returns an explicit projection of counts, as-of time and
-ID/name/category rows. Optional `cursor` is a review UUID. Invalid queues/cursors are rejected.
+ID/name/category/tier rows. Optional `cursor` is a review UUID. Invalid queues/cursors are rejected.
 The transaction rechecks district membership and scans at most 1,001 review heads and 1,001
 review-prefixed projections per audience. More than 1,000 reviews/projections, unmatched publication
 records, unsupported heads or missing referenced decision/service summaries fail visibly rather
@@ -49,7 +49,7 @@ The UI polls every 15 seconds and offers explicit refresh. Loading is distinct f
 clear stale totals and show unavailable. The review dashboard loads separately from the initial app
 bundle and fails independently of the request overview and review editor.
 
-Tier/score distributions, live requirement checks, broader review search, assistance/segmented-job
+Score distributions, live requirement checks, full-text policy search, assistance/segmented-job
 attention and production-scale aggregation remain pending. DPA automation remains excluded.
 
 ## Independent acceptance
@@ -61,3 +61,35 @@ attention and production-scale aggregation remain pending. DPA automation remain
 - [ ] Compare reviewer and read-only reviewer behavior; verify staff has no review totals.
 - [ ] Revoke membership or interrupt API access; verify unavailable/access-loss behavior, not zero work.
 - [ ] Check empty state, narrow layout and spoken screen-reader navigation.
+
+
+## Tier distribution and review search
+
+The tier distribution counts every review exactly once using its saved service-summary tier.
+**Pending** is a recorded classification; **No recorded tier** includes practice/legacy reviews
+without a saved tier. Neither implies approval. Unknown/malformed tier values fail validation;
+missing tiers are not silently assigned a district tier. Distribution totals always cover the
+complete supported inventory, independent of active filters, and sum to All reviews.
+
+Search matches the review name only, as a literal case-insensitive substring with surrounding
+whitespace trimmed. It does not search private policies, evidence, identities or rationale. Search
+is submitted explicitly; the applied text is shown above results. Name (maximum 120 characters),
+tier and queue combine before pagination, with a full matching count and explicit empty result.
+Each result shows its recorded tier and opens authoritative review details.
+
+Selecting a tier total clears search and selects All reviews so the queue matches that total.
+Selecting a queue total preserves the current name/tier filters. The tier selector narrows the
+current queue. Clear review filters resets all three and returns to page one. Filter changes reset
+pagination and move keyboard focus to the results heading after loading. Active filters persist
+when opening another review and returning within the signed-in app session; they reset on reload
+or account change. Hidden dashboard polling stops and refreshes on return.
+
+The existing read-only endpoint accepts optional `search` and `tier` parameters. Tier accepts a
+known tier, `unassigned`, or `all`. Repeated, unsupported, oversized or misplaced filter parameters
+are rejected. Authorization, inventory bounds and publication checks are unchanged. No source or
+evidence is loaded, no record is reclassified and no publication is changed.
+
+- [ ] Compare tier totals to matching queues, including Pending and No recorded tier.
+- [ ] Combine a name search, tier and attention queue; verify matching counts across pages.
+- [ ] Open a result, return to Dashboard, and confirm filters and page remain selected.
+- [ ] Test repeated current-filter selection, no results, clear filters and keyboard focus.

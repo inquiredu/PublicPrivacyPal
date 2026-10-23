@@ -221,12 +221,14 @@ test('review dashboard enforces all reader roles and actual publication lifecycl
   assert.equal((await dashboard('reviewer','?queue=bogus')).status,400);
   assert.equal((await dashboard('reviewer','?queue=failed&queue=all')).status,400);
   assert.equal((await dashboard('reviewer','?cursor=bad')).status,400);
+  for (const query of ['?tier=bogus', '?tier=Pending&tier=all', '?search=a&search=b', '?search=' + 'x'.repeat(121)]) assert.equal((await dashboard('reviewer', query)).status,400);
+  assert.equal((await dashboard('staff','?search=Orchard&tier=Pending')).status,403);
   const baseline=(await dashboard('reviewer')).data;
   let r=await published();
   let data=(await dashboard('reviewer')).data;
   assert.equal(data.counts.public,baseline.counts.public+1); assert.equal(data.counts.staff,baseline.counts.staff+1);
   const publicRow=(await dashboard('reviewer','?queue=public')).data.items.find((x: {id:string})=>x.id===r.id);
-  assert.ok(publicRow); assert.deepEqual(Object.keys(publicRow).sort(),['id','name','queues']);
+  assert.ok(publicRow); assert.deepEqual(Object.keys(publicRow).sort(),['id','name','queues','tier']);
   await s.db.doc(publicPath(r)).delete();
   data=(await dashboard('reviewer','?queue=publication')).data;
   assert.ok(data.items.some((x: {id:string})=>x.id===r.id)); assert.equal(data.counts.public,baseline.counts.public);
@@ -235,9 +237,12 @@ test('review dashboard enforces all reader roles and actual publication lifecycl
   assert.ok(!data.items.some((x: {id:string})=>x.id===r.id));
   const headRef=s.db.doc(`${base}/reviews/${r.id}`); const saved=(await headRef.get()).data()!;
   try {
-    await headRef.update({analysisId:randomUUID(), 'job.status':'succeeded', serviceSummary:{blockers:['Synthetic recorded requirement']}});
+    await headRef.update({analysisId:randomUUID(), 'job.status':'succeeded', serviceSummary:{tier:'Pending',blockers:['Synthetic recorded requirement']}});
     assert.ok((await dashboard('reviewer','?queue=decision')).data.items.some((x:{id:string})=>x.id===r.id));
     assert.ok((await dashboard('reviewer','?queue=requirements')).data.items.some((x:{id:string})=>x.id===r.id));
+    const filtered=(await dashboard('reviewer','?queue=requirements&tier=Pending&search=fictional%20orchard')).data;
+    assert.ok(filtered.items.some((x:{id:string})=>x.id===r.id)); assert.equal(filtered.counts.all,baseline.counts.all+1);
+    assert.equal((await dashboard('reviewer','?tier=Pending&search=not-a-real-review-name')).data.matchingTotal,0);
     await headRef.update({'job.status':'awaiting_review'});
     assert.ok((await dashboard('reviewer','?queue=evidence')).data.items.some((x:{id:string})=>x.id===r.id));
   } finally { await headRef.set(saved); }
@@ -263,6 +268,11 @@ test('review dashboard counts beyond the first page and refuses unsupported inve
     await fix.close();
     const result=await reviewDashboard(s,actor,'failed'); assert.equal(result.counts.all,1000); assert.ok(result.counts.failed>20); assert.equal(result.items.length,20); assert.ok(result.nextCursor);
     const next=await reviewDashboard(s,actor,'failed',result.nextCursor!); assert.ok(!next.items.some(r=>result.items.some(p=>p.id===r.id)));
+    const filtered=await reviewDashboard(s,actor,'failed',undefined,{search:'  SYNTHETIC dashboard bound  ',tier:'unassigned'});
+    assert.equal(filtered.matchingTotal,1000-existing); assert.equal(Object.values(filtered.tierCounts).reduce((a,b)=>a+b,0),1000);
+    const seen=new Set<string>(); let cursor: string | undefined;
+    do { const page=await reviewDashboard(s,actor,'failed',cursor,{search:'Synthetic dashboard bound',tier:'unassigned'}); page.items.forEach(r=>seen.add(r.id)); cursor=page.nextCursor || undefined; } while(cursor);
+    assert.equal(seen.size,1000-existing);
     await refs[1000].set({...sample,id:refs[1000].id});
     await assert.rejects(reviewDashboard(s,actor), (e: unknown)=>(e as {status:number}).status===409);
   } finally { const writer=s.db.bulkWriter(); for(const ref of refs) writer.delete(ref); await writer.close(); }

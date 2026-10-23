@@ -1,3 +1,5 @@
+import { dashboardTiers, type ReviewFilters } from '../shared/review-dashboard.ts';
+import { tiers } from '../shared/service-policy.ts';
 import type { DecodedIdToken } from 'firebase-admin/auth';
 import { FieldPath } from 'firebase-admin/firestore';
 import { z } from 'zod';
@@ -5,13 +7,15 @@ import type { Services } from './firebase.ts';
 import { HttpError, membersRef, requireMember } from './operations.ts';
 import { reviewCollection } from './review-storage.ts';
 import { reviewRollup, type ReviewQueue, type ReviewDashboardRow } from '../shared/review-dashboard.ts';
-const headSchema = z.object({ id: z.uuid(), name: z.string().min(1).max(120), storageVersion: z.literal(3), published: z.boolean(), sourceKind: z.enum(['fixture','pasted','bundle']).optional(), analysisId: z.uuid().nullable(), decisionId: z.string().regex(/^[a-f0-9]{64}$/).nullable(), serviceId: z.string().regex(/^[a-f0-9]{64}$/).optional(), reviewed: z.number().int().min(0).max(50), measureCount: z.number().int().min(1).max(50), job: z.object({ id: z.uuid(), status: z.enum(['queued','running','failed','cancelled','awaiting_review','succeeded']) }), serviceSummary: z.object({ blockers: z.array(z.string()).max(20) }).optional() });
+const headSchema = z.object({ id: z.uuid(), name: z.string().min(1).max(120), storageVersion: z.literal(3), published: z.boolean(), sourceKind: z.enum(['fixture','pasted','bundle']).optional(), analysisId: z.uuid().nullable(), decisionId: z.string().regex(/^[a-f0-9]{64}$/).nullable(), serviceId: z.string().regex(/^[a-f0-9]{64}$/).optional(), reviewed: z.number().int().min(0).max(50), measureCount: z.number().int().min(1).max(50), job: z.object({ id: z.uuid(), status: z.enum(['queued','running','failed','cancelled','awaiting_review','succeeded']) }), serviceSummary: z.object({ tier: z.enum(tiers).optional(), blockers: z.array(z.string()).max(20) }).optional() });
 const decisionSchema = z.object({ analysisId: z.uuid(), serviceRevision: z.number().int().positive().optional(), outcome: z.enum(['approved','conditional','declined']) });
-export async function reviewDashboard(s: Services, actor: DecodedIdToken, queue: ReviewQueue = 'all', cursor?: string) {
+export async function reviewDashboard(s: Services, actor: DecodedIdToken, queue: ReviewQueue = 'all', cursor?: string, filters: ReviewFilters = {}) {
+  const checkedFilters = z.object({ search: z.string().max(120).optional(), tier: z.enum(['all', ...dashboardTiers]).optional() }).strict().safeParse(filters);
+  if (!checkedFilters.success) throw new HttpError(400, 'Invalid review filters.');
   if (cursor && !z.uuid().safeParse(cursor).success) throw new HttpError(400, 'Invalid dashboard cursor.');
   return s.db.runTransaction(async tx => {
     requireMember((await tx.get(membersRef(s).doc(actor.uid))).data(), actor, ['admin','reviewer','viewer']);
-    const heads = await tx.get(reviewCollection(s).orderBy(FieldPath.documentId()).limit(1001).select('id','name','storageVersion','published','sourceKind','analysisId','decisionId','serviceId','reviewed','measureCount','job.id','job.status','serviceSummary.blockers'));
+    const heads = await tx.get(reviewCollection(s).orderBy(FieldPath.documentId()).limit(1001).select('id','name','storageVersion','published','sourceKind','analysisId','decisionId','serviceId','reviewed','measureCount','job.id','job.status','serviceSummary.blockers','serviceSummary.tier'));
     if (heads.size > 1000) throw new HttpError(409, 'Review inventory exceeds the supported bound.');
     // Only review-prefixed projections count; bootstrap catalogue examples are separate resources.
     const projections = async (path: string) => tx.get(s.db.collection(path).orderBy(FieldPath.documentId()).startAt('review-').endBefore('review.').limit(1001).select());
@@ -45,8 +49,8 @@ export async function reviewDashboard(s: Services, actor: DecodedIdToken, queue:
       if (h.job.status === 'awaiting_review' || (['pasted','bundle'].includes(h.sourceKind || '') && h.analysisId && h.reviewed < h.measureCount)) queues.push('evidence');
       if (h.job.status === 'succeeded' && h.analysisId && !current) queues.push('decision');
       if (h.serviceSummary?.blockers.length) queues.push('requirements');
-      rows.push({ id: h.id, name: h.name, queues });
+      rows.push({ id: h.id, name: h.name, queues, tier: h.serviceSummary?.tier ?? 'unassigned' });
     }
-    return reviewRollup(rows, queue, cursor, new Date().toISOString());
+    return reviewRollup(rows, queue, cursor, new Date().toISOString(), checkedFilters.data);
   });
 }

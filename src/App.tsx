@@ -66,6 +66,7 @@ function Workspace({ client }: { client: Client }) {
     requestOwner.current = owner;
   }, [authReady, accountReady, user?.uid, member?.role]);
   const [tab, setTab] = useState<'library' | 'dashboard' | 'requests' | 'workspace' | 'people' | 'reviews' | 'settings'>('library');
+  const [dashboardVisited, setDashboardVisited] = useState(false);
   const [reviewTarget, setReviewTarget] = useState<{ id?: string; visit: number }>({ visit: 0 });
   function openReview(id?: string) { setReviewTarget(t => ({ id, visit: t.visit + 1 })); setTab('reviews'); }
   const [requestTarget, setRequestTarget] = useState<{ queue: RequestQueue; id?: string; visit: number }>({ queue: 'active', visit: 0 });
@@ -78,7 +79,7 @@ function Workspace({ client }: { client: Client }) {
   const mainRef = useRef<HTMLElement>(null);
   const previousTab = useRef(tab);
   const [error, setError] = useState('');
-  useEffect(() => onAuthStateChanged(client.auth, next => { setAuthReady(true); setUser(next); setMember(null); setAccountReady(!next); setTab('library'); }), [client]);
+  useEffect(() => onAuthStateChanged(client.auth, next => { setAuthReady(true); setUser(next); setMember(null); setAccountReady(!next); setDashboardVisited(false); setTab('library'); }), [client]);
   useEffect(() => {
     if (!user) return;
     return onSnapshot(doc(client.db, `districts/${client.config.districtId}/members/${user.uid}`), snap => {
@@ -128,7 +129,7 @@ function Workspace({ client }: { client: Client }) {
   const content = <div className="app-shell"><a className="skip-link" href="#main-content">Skip to main content</a>
     <aside className="sidebar"><Brand/><div className="district-label"><span className="eyebrow">DISTRICT WORKSPACE</span><strong>{client.config.districtName}</strong></div><nav aria-label="Main navigation">
       <button aria-current={currentTab === 'library' ? 'page' : undefined} className={currentTab === 'library' ? 'nav active' : 'nav'} onClick={() => setTab('library')}><span aria-hidden="true">▦</span>Public library</button>
-      {member && <><button aria-current={currentTab === 'dashboard' ? 'page' : undefined} className={currentTab === 'dashboard' ? 'nav active' : 'nav'} onClick={() => setTab('dashboard')}>Dashboard</button><button aria-current={currentTab === 'requests' ? 'page' : undefined} className={currentTab === 'requests' ? 'nav active' : 'nav'} onClick={() => openRequests('active')}>{member.role === 'admin' || member.role === 'reviewer' ? 'Requests' : 'My Requests'}</button></>}
+      {member && <><button aria-current={currentTab === 'dashboard' ? 'page' : undefined} className={currentTab === 'dashboard' ? 'nav active' : 'nav'} onClick={() => { setDashboardVisited(true); setTab('dashboard'); }}>Dashboard</button><button aria-current={currentTab === 'requests' ? 'page' : undefined} className={currentTab === 'requests' ? 'nav active' : 'nav'} onClick={() => openRequests('active')}>{member.role === 'admin' || member.role === 'reviewer' ? 'Requests' : 'My Requests'}</button></>}
       {member && <button aria-current={currentTab === 'workspace' ? 'page' : undefined} className={currentTab === 'workspace' ? 'nav active' : 'nav'} onClick={() => setTab('workspace')}><span aria-hidden="true">▤</span>My workspace</button>}
       {canReview && <button aria-current={currentTab === 'reviews' ? 'page' : undefined} className={currentTab === 'reviews' ? 'nav active' : 'nav'} onClick={() => setTab('reviews')}><span aria-hidden="true">✓</span>Policy reviews</button>}
       {member?.role === 'admin' && <button aria-current={currentTab === 'people' ? 'page' : undefined} className={currentTab === 'people' ? 'nav active' : 'nav'} onClick={() => setTab('people')}><span aria-hidden="true">♧</span>People & access</button>}
@@ -146,7 +147,7 @@ function Workspace({ client }: { client: Client }) {
         {currentTab === 'library' && <>{libraryError && <Notice>{libraryError}</Notice>}{library ? <LibraryView settings={library} profiles={profiles} onCustomize={member?.role === 'admin' ? () => { setTab('settings'); setCustomizeRequest(n => n + 1); } : undefined}/> : !libraryError && <p role="status">Loading library settings…</p>}{!user && <Login client={client}/>}</>}
         {member?.role === 'admin' && user && (currentTab === 'settings' || settingsOwner === user.uid) && <div hidden={currentTab !== 'settings'}><DeferredScreen name="Settings"><Settings key={user.uid} user={user} openLibraryRequest={customizeRequest}/></DeferredScreen></div>}
         {currentTab === 'reviews' && canReview && user && drafts && <DeferredScreen name="Policy reviews"><Reviews key={`${user.uid}-${member.role}`} client={client} user={user} readOnly={member.role === 'viewer'} initialId={reviewTarget.id} openVisit={reviewTarget.visit}/></DeferredScreen>}
-        {currentTab === 'dashboard' && canReview && user && <DeferredScreen name="Review dashboard"><ReviewDashboard key={`${user.uid}/${member!.role}`} user={user} onOpen={openReview}/></DeferredScreen>}
+        {dashboardVisited && canReview && user && <div hidden={currentTab !== 'dashboard'}><DeferredScreen name="Review dashboard"><ReviewDashboard key={`${user.uid}/${member!.role}`} user={user} onOpen={openReview} active={currentTab === 'dashboard'}/></DeferredScreen></div>}
         {currentTab === 'dashboard' && member && user && <RequestDashboard key={`${user.uid}/${member.role}`} user={user} onOpen={openRequests}/>}
         {currentTab === 'requests' && member && user && <RequestPanel key={`${user.uid}/${member.role}/${requestTarget.visit}`} user={user} role={member.role} scope={`${client.config.projectId}/${client.config.districtId}`} initialQueue={requestTarget.queue} initialId={requestTarget.id}/>}
         {currentTab === 'workspace' && member && user && <DistrictWork key={`${user.uid}-${member.role}`} client={client} user={user} member={member}/>}

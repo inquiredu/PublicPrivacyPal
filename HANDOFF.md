@@ -1,3 +1,34 @@
+# Tier distribution and review navigation — October 22, 2026
+
+Development checkpoint on `codex/coordinated-milestone-2026-10-19`, following `d44e453`.
+Dashboard tier totals now link to matching reviews, with separate Pending and No recorded tier
+categories. Case-insensitive literal name search combines with tier and attention queue filters
+before pagination. Matching counts cover the complete bounded inventory; overall totals and
+attention remain clearly labeled as all reviews. Opening a review and returning retains filters
+and page during the signed-in session; hidden dashboard polling stops. See
+[review dashboard](docs/review-dashboard.md) for semantics and the independent trial checklist.
+No classification, publication or saved review data is changed by these navigation controls.
+DPA automation remains excluded. Independent multi-role and spoken accessibility acceptance,
+score distributions, assistance-job attention and live requirement monitoring remain pending.
+
+Validation: `npm run ci` passed (552 tests, typecheck/build/isolation), and
+`npm run test:integration` passed all 240 tests in the matching local validation copy.
+All 189 executable/config/test files matched the checkout. Coverage includes combined filters
+across 1,000 reviews, pagination, tier sum consistency, Pending versus absent tier, literal name
+matching, empty results, invalid/repeated/oversized parameters and staff denial.
+Browser checks passed for keyboard tier selection, combined name/tier/attention filtering,
+authoritative review navigation, retained filters on return, empty results and clearing all filters.
+No saved records changed. Screenshots: `.local/tier-dashboard.png` and `.local/tier-distribution.png`.
+
+The restored synthetic preview runs at port 5173 from
+`/private/tmp/privacypal-request-validation`. The pre-test backup was saved, verified and copied to
+`.local/backups/2026-10-22T20-42-46-334Z-0f908939-2260-4c80-91a5-d306de073eb6`.
+Save/verify before stopping the owned preview. Logs: `.local/tier-dashboard-ci.log` and
+`.local/tier-dashboard-integration.log`. Private backups/logs/screenshots remain untracked.
+This increment is prepared for the current development branch; main and original systems remain unchanged.
+
+---
+
 # Review and publication dashboard — October 22, 2026
 
 Development checkpoint on `codex/coordinated-milestone-2026-10-19`, following `ffec0f4`.

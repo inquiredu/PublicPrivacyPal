@@ -48,8 +48,10 @@ export function apiServer(s: Services) {
       const url = new URL(req.url || '/', 'http://127.0.0.1');
       const queue = url.searchParams.get('queue') || 'all';
       if (!(url.pathname === '/api/review-dashboard' ? reviewQueues : requestQueues).includes(queue as never) || (url.searchParams.has('queue') && (!['/api/requests', '/api/review-dashboard'].includes(url.pathname) || req.method !== 'GET')) || url.searchParams.getAll('queue').length > 1) throw new HttpError(400, 'Invalid request queue.');
+      const reviewFilters = { search: url.searchParams.get('search') ?? undefined, tier: url.searchParams.get('tier') ?? undefined };
+      if (['search','tier'].some(k => url.searchParams.getAll(k).length > 1 || (url.searchParams.has(k) && (url.pathname !== '/api/review-dashboard' || req.method !== 'GET')))) throw new HttpError(400, 'Invalid review filters.');
       const cursor = url.searchParams.get('cursor') || undefined;
-      if ([...url.searchParams.keys()].some(k => k !== 'cursor' && k !== 'queue') || url.searchParams.getAll('cursor').length > 1 || (req.method !== 'GET' && url.search)) throw new HttpError(400, 'Invalid query parameters.');
+      if ([...url.searchParams.keys()].some(k => !['cursor','queue','search','tier'].includes(k)) || url.searchParams.getAll('cursor').length > 1 || (req.method !== 'GET' && url.search)) throw new HttpError(400, 'Invalid query parameters.');
       req.url = url.pathname;
       const evaluationRoute = /^\/api\/reviews\/([a-f0-9-]{36})\/evaluations\/([a-f0-9-]{36})$/.exec(req.url);
       const reviewRoute = /^\/api\/reviews\/([a-f0-9-]{36})(?:\/(history|export|assistance|prompt))?$/.exec(req.url || '');
@@ -60,7 +62,7 @@ export function apiServer(s: Services) {
       if (!['/api/review-rubric', '/api/me', '/api/members', '/api/settings', '/api/reviews', '/api/reviews/import', '/api/requests', '/api/request-dashboard', '/api/review-dashboard'].includes(req.url || '') && !reviewRoute && !commandRoute && !evaluationRoute && !segmentedRoute && !requestRoute && !requestReceiptRoute) throw new HttpError(404, 'Endpoint not found.');
       if (req.method === 'POST' && !origins.has(req.headers.origin || '')) throw new HttpError(403, 'Local origin required.');
       const identity = await authenticate(s, req.headers.authorization);
-      if (req.method === 'GET' && req.url === '/api/review-dashboard') return send(res, 200, await reviewDashboard(s, identity, queue as typeof reviewQueues[number], cursor));
+      if (req.method === 'GET' && req.url === '/api/review-dashboard') return send(res, 200, await reviewDashboard(s, identity, queue as typeof reviewQueues[number], cursor, reviewFilters as import('../shared/review-dashboard.ts').ReviewFilters));
       if (req.method === 'GET' && req.url === '/api/request-dashboard') { if (cursor) throw new HttpError(400, 'No cursor allowed.'); return send(res, 200, await requestDashboard(s, identity)); }
       if (req.method === 'GET' && requestReceiptRoute) { if (cursor) throw new HttpError(400, 'No cursor allowed.'); return send(res, 200, await requestCommandStatus(s, identity, requestReceiptRoute[1])); }
       if (req.method === 'GET' && req.url === '/api/requests') return send(res, 200, await listRequests(s, identity, cursor, queue as typeof requestQueues[number]));
