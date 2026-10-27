@@ -87,3 +87,13 @@ The review dashboard keeps Pending distinct from No recorded tier, reconciles ti
 complete bounded inventory, and filters names/tier/queues before paging. Matching counts are labeled
 separately from district-wide totals. Opening review details preserves filters without polling the
 hidden dashboard. No scores establish approval and no records are reclassified. See [review dashboard](review-dashboard.md#tier-distribution-and-review-search).
+
+## October 26 — request outcome guidance
+
+Candidate refinement: keep the historical request disposition separate from currently published
+staff guidance. A linked outcome can open the staff projection without exposing private findings;
+withdrawal removes guidance, and an unavailable/cached read does not masquerade as current permission.
+The existing-review picker uses bounded name search and preserves the selected reference/reason
+across inspect/return navigation. Selection itself has no approval or publication effect.
+These are local workflow refinements, not an assertion that review linking originated here.
+Reassess the original's current behavior and publication consistency before any separately authorized backport.

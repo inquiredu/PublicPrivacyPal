@@ -20,8 +20,8 @@ is recorded, never fetched. The server sets requester identity, time and initial
 
 A linked review is a work reference, **not service approval or publication**. The request command
 cannot alter scores, decisions, catalogue entries or public projections. Automatic request-to-new-review
-creation, duplicate matching and a review picker remain pending; the current UI accepts an existing
-review ID. No AI dispatch occurs in these commands.
+creation and duplicate matching remain pending. Reviewers now search existing review names, explicitly
+select a review and inspect it with a return-to-request action; selection is preserved in the action draft. No AI dispatch occurs in these commands.
 
 Staff and read-only reviewers see their own requests and current outcomes through explicit projections.
 Only reviewers/administrators see assignments, requester identities and paged event history. Takeover
@@ -79,7 +79,7 @@ Use synthetic accounts and records only:
 - [ ] Save, shut down and restore using the runbook; verify history and receipt reconciliation.
 
 Implemented: request dashboard totals/attention queues backed by complete bounded data and
-Active/Decided/Archived navigation. Next: request-to-review handoff/picker and catalogue-match guidance; broader keyboard and
+Active/Decided/Archived navigation. Next: create-review handoff and submission catalogue-match suggestions; broader keyboard and
 assistive-technology acceptance. Automated tests do not replace this independent walkthrough.
 
 
@@ -102,5 +102,27 @@ polling every 15 seconds and explicit refresh keep it current. Errors clear coun
 zero or stale totals. Queue paging uses document IDs and may change as concurrent work changes.
 No persistent aggregates or migration were introduced. Request drafts retain the existing journal.
 
-Review/publication totals, tier distributions and review-specific attention categories remain pending.
+Review/publication totals, tier distributions and review-specific attention categories are implemented locally; independent acceptance remains pending.
 DPA automation remains excluded.
+
+## Existing-review picker and current staff guidance — October 26
+
+The picker reuses `/api/review-dashboard` name search: full bounded inventory matching, 20-row pages,
+reader authorization and explicit loading/error/empty states. Only assigned editors can record a
+link; selection alone does not mutate anything. The existing server validates review existence,
+revision, assignment and retry identity. No request or backup schema changes are needed.
+
+Linked request outcomes offer **View current staff guidance** using only
+`districts/{districtId}/staffTools/review-{reviewId}` under existing membership rules. The subscription
+removes displayed guidance on withdrawal and denies cached/offline results the label of current.
+Absent guidance does not claim a decline: it can mean not yet published or withdrawn. Read failures
+are separate from absence. Historical outcome text is never rewritten by publication changes.
+Reviewers can open the private linked review; staff receive no private review navigation or evidence.
+
+Additional acceptance:
+- [ ] Search duplicate names and more than 20 matches; explicitly select and inspect the intended review.
+- [ ] Return to the request; verify selection/reason survive and only the assignee can record the link.
+- [ ] Open staff guidance as requester; verify only published conditions/fields appear.
+- [ ] Withdraw or correct the review while guidance is open; verify guidance disappears, outcome remains.
+- [ ] Disconnect/revoke access; verify no cached guidance is presented as current.
+- [ ] Exercise keyboard controls, narrow screens, empty search and failed search without losing text.

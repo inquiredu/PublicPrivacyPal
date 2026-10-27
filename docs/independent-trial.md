@@ -301,7 +301,7 @@ No production credentials or real policies are required for any step in this tri
 Run the [request lifecycle acceptance checklist](request-workflow.md#independent-local-acceptance)
 with separate synthetic staff/reviewer/admin accounts. This adds states, permissions, private history,
 archive separation, draft continuity and response-loss reconciliation. Dashboard totals and dedicated
-queues are still pending; do not mark the whole restoration milestone accepted from these tests.
+queues are implemented locally; independent acceptance remains pending; do not mark the whole restoration milestone accepted from these tests.
 DPA automation remains excluded.
 
 ### Request dashboard follow-up
@@ -318,3 +318,5 @@ DPA automation remains excluded.
 Review/publication dashboard follow-up: complete the [dashboard acceptance checklist](review-dashboard.md#independent-acceptance), including publication totals, queue navigation and draft continuity.
 
 Tier/search follow-up: compare tier totals with queues, combine name/tier/attention filters across pages, test no matches and clear filters, then verify filter retention after opening review details.
+
+Request link follow-up: complete the existing-review picker and current staff-guidance acceptance in [request workflow](request-workflow.md#existing-review-picker-and-current-staff-guidance--october-26).

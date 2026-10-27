@@ -68,7 +68,8 @@ function Workspace({ client }: { client: Client }) {
   const [tab, setTab] = useState<'library' | 'dashboard' | 'requests' | 'workspace' | 'people' | 'reviews' | 'settings'>('library');
   const [dashboardVisited, setDashboardVisited] = useState(false);
   const [reviewTarget, setReviewTarget] = useState<{ id?: string; visit: number }>({ visit: 0 });
-  function openReview(id?: string) { setReviewTarget(t => ({ id, visit: t.visit + 1 })); setTab('reviews'); }
+  const [returnRequest, setReturnRequest] = useState<string>();
+  function openReview(id?: string) { setReturnRequest(undefined); setReviewTarget(t => ({ id, visit: t.visit + 1 })); setTab('reviews'); }
   const [requestTarget, setRequestTarget] = useState<{ queue: RequestQueue; id?: string; visit: number }>({ queue: 'active', visit: 0 });
   function openRequests(queue: RequestQueue, id?: string) { setRequestTarget(t => ({ queue, id, visit: t.visit + 1 })); setTab('requests'); }
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -79,7 +80,7 @@ function Workspace({ client }: { client: Client }) {
   const mainRef = useRef<HTMLElement>(null);
   const previousTab = useRef(tab);
   const [error, setError] = useState('');
-  useEffect(() => onAuthStateChanged(client.auth, next => { setAuthReady(true); setUser(next); setMember(null); setAccountReady(!next); setDashboardVisited(false); setTab('library'); }), [client]);
+  useEffect(() => onAuthStateChanged(client.auth, next => { setAuthReady(true); setUser(next); setMember(null); setAccountReady(!next); setDashboardVisited(false); setReturnRequest(undefined); setTab('library'); }), [client]);
   useEffect(() => {
     if (!user) return;
     return onSnapshot(doc(client.db, `districts/${client.config.districtId}/members/${user.uid}`), snap => {
@@ -146,10 +147,11 @@ function Workspace({ client }: { client: Client }) {
         </dialog>}
         {currentTab === 'library' && <>{libraryError && <Notice>{libraryError}</Notice>}{library ? <LibraryView settings={library} profiles={profiles} onCustomize={member?.role === 'admin' ? () => { setTab('settings'); setCustomizeRequest(n => n + 1); } : undefined}/> : !libraryError && <p role="status">Loading library settings…</p>}{!user && <Login client={client}/>}</>}
         {member?.role === 'admin' && user && (currentTab === 'settings' || settingsOwner === user.uid) && <div hidden={currentTab !== 'settings'}><DeferredScreen name="Settings"><Settings key={user.uid} user={user} openLibraryRequest={customizeRequest}/></DeferredScreen></div>}
+        {currentTab === 'reviews' && returnRequest && canReview && <button onClick={() => { openRequests('active', returnRequest); setReturnRequest(undefined); }}>Return to request</button>}
         {currentTab === 'reviews' && canReview && user && drafts && <DeferredScreen name="Policy reviews"><Reviews key={`${user.uid}-${member.role}`} client={client} user={user} readOnly={member.role === 'viewer'} initialId={reviewTarget.id} openVisit={reviewTarget.visit}/></DeferredScreen>}
         {dashboardVisited && canReview && user && <div hidden={currentTab !== 'dashboard'}><DeferredScreen name="Review dashboard"><ReviewDashboard key={`${user.uid}/${member!.role}`} user={user} onOpen={openReview} active={currentTab === 'dashboard'}/></DeferredScreen></div>}
         {currentTab === 'dashboard' && member && user && <RequestDashboard key={`${user.uid}/${member.role}`} user={user} onOpen={openRequests}/>}
-        {currentTab === 'requests' && member && user && <RequestPanel key={`${user.uid}/${member.role}/${requestTarget.visit}`} user={user} role={member.role} scope={`${client.config.projectId}/${client.config.districtId}`} initialQueue={requestTarget.queue} initialId={requestTarget.id}/>}
+        {currentTab === 'requests' && member && user && <RequestPanel client={client} onOpenReview={(id, requestId) => { openReview(id); setReturnRequest(requestId); }} key={`${user.uid}/${member.role}/${requestTarget.visit}`} user={user} role={member.role} scope={`${client.config.projectId}/${client.config.districtId}`} initialQueue={requestTarget.queue} initialId={requestTarget.id}/>}
         {currentTab === 'workspace' && member && user && <DistrictWork key={`${user.uid}-${member.role}`} client={client} user={user} member={member}/>}
         {currentTab === 'people' && member?.role === 'admin' && user && <People client={client} user={user}/>}
         <footer>PrivacyPal Community <span>District-owned tools. Informed decisions.</span></footer>

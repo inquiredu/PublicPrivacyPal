@@ -1,3 +1,39 @@
+# Existing-review picker and request guidance — October 26, 2026
+
+Development increment on `codex/coordinated-milestone-2026-10-19`, following `6367c5b`.
+Request assignees can search bounded existing-review summaries, explicitly select a reference,
+inspect the review and return to the request with their reason/selection preserved. Linking uses
+the existing revision-checked, actor-scoped command; it does not approve or publish a service.
+Linked outcomes expand only the current staff projection, removing guidance on withdrawal or
+unverified cached/error reads. Private review navigation remains reviewer/admin-only.
+Parity/request/trial/status docs are reconciled; create-review handoff, submission suggestions,
+configured tier help and independent multi-role/accessibility acceptance remain pending.
+DPA automation is excluded; main and original systems are unchanged.
+
+Validation: `npm run ci` passed (552 unit/isolation tests, typecheck/build); final navigation cleanup
+passed fresh typecheck/build. All 240 integration tests passed, including expanded linked-outcome
+checks for staff projection access, private/anonymous denial and withdrawal retaining historical
+outcomes. No authorization rules, API contracts or backup schemas changed. The primary synced-folder
+Firebase launcher stalled; the matching temporary source copy used its own fresh pinned npm install
+and a restored Java 21 runtime after the previous temporary dependencies were found incomplete.
+196 executable/config/test files matched. Logs: `.local/request-picker-ci.log`,
+`.local/request-picker-integration.log` and `.local/request-picker-final-build.log`.
+
+Browser checks passed: name search, keyboard selection, authoritative detail navigation,
+return-to-request selection/reason preservation, explicit recording and expanded published conditions.
+One new synthetic request, “Cedar guidance link — synthetic QA”, was created, claimed and linked
+for this walkthrough. Existing requests, reviews and publications were not changed. Screenshots:
+`.local/request-review-picker.png` and `.local/request-staff-guidance.png`.
+Independent staff-role UI, spoken accessibility and narrow-screen acceptance remain pending.
+
+Preview restored from verified schema-11 backup and running at port 5173 from
+`/private/tmp/privacypal-request-validation`. Pre-test backup:
+`.local/backups/2026-10-27T01-34-52-106Z-cccab687-4a20-46c4-9ca4-8dbb6b4b892b`
+(UTC filename; October 26 local date). It predates the new synthetic QA request.
+Save and verify again before stopping the preview. Private artifacts remain untracked.
+
+---
+
 # Tier distribution and review navigation — October 22, 2026
 
 Development checkpoint on `codex/coordinated-milestone-2026-10-19`, following `d44e453`.

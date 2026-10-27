@@ -1,3 +1,6 @@
+import type { Client } from './firebase';
+import { RequestReviewPicker } from './RequestReviewPicker';
+import { RequestStaffGuidance } from './RequestStaffGuidance';
 import { requestQueues, queueLabels, type RequestQueue } from '../shared/request-dashboard';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { User } from 'firebase/auth';
@@ -9,7 +12,7 @@ const statusLabel = { pending: 'Pending', in_review: 'In review', decided: 'Deci
 const emptyForm = { toolName: '', purpose: '', requestedUrl: '' };
 const explain = (e: unknown) => e instanceof Error ? e.message : 'Request service unavailable.';
 
-export function RequestPanel({ user, role, scope, initialQueue = 'active', initialId }: { user: User; role: Role; scope: string; initialQueue?: RequestQueue; initialId?: string }) {
+export function RequestPanel({ client, onOpenReview, user, role, scope, initialQueue = 'active', initialId }: { client: Client; onOpenReview: (id: string, requestId: string) => void; user: User; role: Role; scope: string; initialQueue?: RequestQueue; initialId?: string }) {
   const detailHeading = useRef<HTMLHeadingElement>(null);
   const openSequence = useRef(0);
   useEffect(() => () => { openSequence.current++; }, []);
@@ -105,6 +108,7 @@ export function RequestPanel({ user, role, scope, initialQueue = 'active', initi
     {selected && <section aria-label="Selected request"><h3 ref={detailHeading} tabIndex={-1}>{selected.toolName}</h3><p>{selected.purpose}</p><p>{selected.requestedUrl}</p><p>Status: {statusLabel[selected.status]} · revision {selected.revision}</p>
       {selected.legacy && <p>Earlier pending request. History begins with its first lifecycle command.</p>}
       {selected.outcome && <p>Recorded request outcome: {selected.outcome.kind === 'declined' ? 'Declined' : 'Linked to a review'} — {selected.outcome.reason} {selected.outcome.reviewId && `Review reference: ${selected.outcome.reviewId}. Inspect current staff guidance; this is not approval.`}</p>}
+      {selected.outcome?.reviewId && <><RequestStaffGuidance key={selected.outcome.reviewId} client={client} reviewId={selected.outcome.reviewId}/>{reviewer && <button onClick={() => onOpenReview(selected.outcome!.reviewId!, selected.id)}>Open linked review</button>}</>}
       {selected.assignee && <p>Assigned reviewer: {selected.assignee === user.uid ? 'You' : selected.assignee}</p>}
       <button onClick={() => void open(selected.id)}>Refresh request</button>
       <fieldset disabled={locked}><legend>Request actions</legend>
@@ -116,7 +120,7 @@ export function RequestPanel({ user, role, scope, initialQueue = 'active', initi
           {role === 'admin' && selected.status === 'in_review' && selected.assignee !== user.uid && <button disabled={!reason.trim()} onClick={() => act({ action: 'takeover', reason } as RequestAction)}>Take over with private reason</button>}
           {role === 'admin' && selected.status === 'decided' && <button disabled={!reason.trim()} onClick={() => act({ action: 'reopen', reason } as RequestAction)}>Reopen with private reason</button>}
           {selected.status === 'in_review' && selected.assignee === user.uid && <><button disabled={!reason.trim()} onClick={() => act({ action: 'decide', outcome: 'declined', reason, reviewId: null } as RequestAction)}>Record declined request</button>
-            <label>Existing review ID<input maxLength={128} value={reviewId} onChange={e => actionText({ reviewId: e.target.value })}/></label>
+            <RequestReviewPicker key={selected.id} user={user} selectedId={reviewId} onSelect={id => actionText({ reviewId: id })} onOpen={id => onOpenReview(id, selected.id)}/>
             <button disabled={!reason.trim() || !reviewId.trim()} onClick={() => act({ action: 'decide', outcome: 'review_linked', reason, reviewId } as RequestAction)}>Record link to review</button></>}
         </>}
       </fieldset>

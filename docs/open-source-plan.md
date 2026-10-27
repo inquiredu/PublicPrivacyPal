@@ -15,7 +15,7 @@ feature map, concrete improvements and next milestone.
 These identities precede this documentation consolidation; no merge, release or deployment is implied.
 
 The review draft/retry gate, bounded/versioned evaluation storage, setup and complete-service
-restoration are implemented locally. The request lifecycle foundation is now implemented: states, assignment, independent archives, private history, permissions and explicit retry reconciliation; see [request workflow](request-workflow.md). Request dashboard totals/attention queues and dedicated request destinations are implemented locally. Review/publication totals and attention queues are implemented locally; see [review dashboard](review-dashboard.md). Tier distribution and review-name/tier/queue filtering are implemented locally. Richer request-to-review handoff remains pending. The active milestone is **dashboard and request-workflow restoration**, following
+restoration are implemented locally. The request lifecycle foundation is now implemented: states, assignment, independent archives, private history, permissions and explicit retry reconciliation; see [request workflow](request-workflow.md). Request dashboard totals/attention queues and dedicated request destinations are implemented locally. Review/publication totals and attention queues are implemented locally; see [review dashboard](review-dashboard.md). Tier distribution and review-name/tier/queue filtering are implemented locally. Existing-review selection and current staff-guidance links are implemented locally. Create-review handoff and submission catalogue suggestions remain pending. The active milestone is **dashboard and request-workflow restoration**, following
 [the component parity checklist](component-parity.md). The [independent trial](independent-trial.md)
 can assess the current slice, but broader workflow acceptance follows restoration. Reliability
 remains the gate for expansion. Preserve [public-version improvements](public-improvements.md)
@@ -202,9 +202,9 @@ update. A fresh adopter must create their own installation and backup, not use t
 1. **Baseline consolidation — this documentation increment.** Use this status index, the dated
    handoff and the trial checklist. Preserve historical evidence. Review actual branch changes
    and candidate checks before any separately authorized main integration.
-2. **Dashboard/request restoration — next implementation.** Complete the P1 contract, dashboard,
-   reviewer queue and requester outcome gates in [component parity](component-parity.md). The current
-   request form/list is not a complete lifecycle. DPA document automation is intentionally excluded.
+2. **Request handoff and integrated acceptance — next implementation.** Dashboard totals/filtering,
+   lifecycle queues, existing-review selection and staff-guidance links are implemented locally. Complete
+   create-review handoff, submission suggestions and the remaining requester outcome gates in [component parity](component-parity.md). Independent end-to-end acceptance remains pending. DPA document automation is intentionally excluded.
 3. **Independent local acceptance — pending.** An outside participant uses a fresh source checkout
    and synthetic accounts on another machine. Record each trial step, assistance, failure and retest.
    Completion requires the core checklist, not only automated tests. Extend it with the P1 request/dashboard

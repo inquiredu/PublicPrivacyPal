@@ -93,6 +93,18 @@ test('linking a review requires a district review and never publishes or changes
   try {
     r = await run(reviewer, r.id, { action: 'decide', revision: r.revision, outcome: 'review_linked', reason: 'See current staff guidance', reviewId });
     assert.equal(r.outcome?.reviewId, reviewId);
+    const staffDb = env.authenticatedContext(staff.uid, { email: staff.email, email_verified: true }).firestore();
+    const guidancePath = `${base}/staffTools/review-${reviewId}`;
+    assert.equal((await getDoc(doc(staffDb, guidancePath))).exists(), false);
+    const published = { name: 'Synthetic linked service', summary: 'Published guidance only', conditions: 'Teacher supervised use' };
+    await s.db.doc(guidancePath).set(published);
+    assert.deepEqual((await getDoc(doc(staffDb, guidancePath))).data(), published);
+    await assertFails(getDoc(doc(staffDb, `${base}/reviews/${reviewId}`)));
+    await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(), guidancePath)));
+    await s.db.doc(guidancePath).delete();
+    assert.equal((await getDoc(doc(staffDb, guidancePath))).exists(), false);
+    assert.equal((await requestDetail(s, staff, r.id)).outcome?.reviewId, reviewId, 'Withdrawal does not rewrite the historical outcome');
+
     assert.deepEqual((await s.db.doc(`${base}/reviews/${reviewId}`).get()).data(), { syntheticReference: true });
     assert.equal((await s.db.doc(`publicDistricts/${config.districtId}/tools/${reviewId}`).get()).exists, false);
   } finally { await s.db.doc(`${base}/reviews/${reviewId}`).delete(); }
