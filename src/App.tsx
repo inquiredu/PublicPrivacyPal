@@ -1,3 +1,6 @@
+import { RequestDashboard } from './RequestDashboard';
+import type { RequestQueue } from '../shared/request-dashboard';
+import { clearRequestDrafts, hasRequestDrafts } from './request-journal';
 import { ServiceNotice } from './ServiceNotice';
 import { DraftProvider } from './ReviewDrafts';
 import { browserDraftStore, clearReviewDrafts, type DraftStore } from './draft-store';
@@ -8,16 +11,17 @@ import { LibraryView } from './LibraryView';
 import { defaultLibrary, librarySettingsSchema, type LibrarySettings, type LibraryProfile } from '../shared/settings';
 import { lazy, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, type User } from 'firebase/auth';
-import { addDoc, collection, doc, onSnapshot, query, where, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { connectLocal, type Client } from './firebase';
 import { roles, type Role } from '../shared/config';
 
+const RequestPanel = lazy(() => import('./RequestPanel').then(m => ({ default: m.RequestPanel })));
+const ReviewDashboard = lazy(() => import('./ReviewDashboard').then(m => ({ default: m.ReviewDashboard })));
 const Reviews = lazy(() => import('./Reviews').then(m => ({ default: m.Reviews })));
 const Settings = lazy(() => import('./Settings').then(m => ({ default: m.Settings })));
 type Profile = LibraryProfile;
 type Member = { uid: string; email: string; role: Role; active: boolean; protected?: boolean };
 type Tool = { id: string; name: string; url: string; notes: string };
-type RequestRow = { id: string; toolName: string; purpose: string; status: string; requestedBy: string; archived: boolean };
 const roleLabels: Record<Role, string> = { admin: 'Administrator', reviewer: 'Reviewer', viewer: 'Read-only reviewer', staff: 'Staff' };
 const message = (e: unknown) => e instanceof Error ? e.message : 'Something went wrong. Please try again.';
 function Brand() { return <span className="brand"><span className="brand-mark" aria-hidden="true">P</span>PrivacyPal<span className="edition">community</span></span>; }
@@ -52,9 +56,22 @@ function Workspace({ client }: { client: Client }) {
   const [signingOut, setSigningOut] = useState(false);
   const signOutDialog = useRef<HTMLDialogElement>(null);
   const draftOwner = useRef('');
+  const requestOwner = useRef('');
   const [member, setMember] = useState<Member | null>(null);
   const [accountReady, setAccountReady] = useState(false);
-  const [tab, setTab] = useState<'library' | 'workspace' | 'people' | 'reviews' | 'settings'>('library');
+  useEffect(() => {
+    if (!authReady || (user && !accountReady)) return;
+    const owner = user && member ? `${user.uid}/${member.role}` : '';
+    if (!owner || requestOwner.current && requestOwner.current !== owner) clearRequestDrafts();
+    requestOwner.current = owner;
+  }, [authReady, accountReady, user?.uid, member?.role]);
+  const [tab, setTab] = useState<'library' | 'dashboard' | 'requests' | 'workspace' | 'people' | 'reviews' | 'settings'>('library');
+  const [dashboardVisited, setDashboardVisited] = useState(false);
+  const [reviewTarget, setReviewTarget] = useState<{ id?: string; visit: number }>({ visit: 0 });
+  const [returnRequest, setReturnRequest] = useState<string>();
+  function openReview(id?: string) { setReturnRequest(undefined); setReviewTarget(t => ({ id, visit: t.visit + 1 })); setTab('reviews'); }
+  const [requestTarget, setRequestTarget] = useState<{ queue: RequestQueue; id?: string; visit: number }>({ queue: 'active', visit: 0 });
+  function openRequests(queue: RequestQueue, id?: string) { setRequestTarget(t => ({ queue, id, visit: t.visit + 1 })); setTab('requests'); }
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [library, setLibrary] = useState<LibrarySettings>();
   const [libraryError, setLibraryError] = useState('');
@@ -63,7 +80,7 @@ function Workspace({ client }: { client: Client }) {
   const mainRef = useRef<HTMLElement>(null);
   const previousTab = useRef(tab);
   const [error, setError] = useState('');
-  useEffect(() => onAuthStateChanged(client.auth, next => { setAuthReady(true); setUser(next); setMember(null); setAccountReady(!next); setTab('library'); }), [client]);
+  useEffect(() => onAuthStateChanged(client.auth, next => { setAuthReady(true); setUser(next); setMember(null); setAccountReady(!next); setDashboardVisited(false); setReturnRequest(undefined); setTab('library'); }), [client]);
   useEffect(() => {
     if (!user) return;
     return onSnapshot(doc(client.db, `districts/${client.config.districtId}/members/${user.uid}`), snap => {
@@ -96,15 +113,15 @@ function Workspace({ client }: { client: Client }) {
   function keepEditing() { signOutDialog.current?.close(); setConfirmSignOut(false); }
   async function leaveAccount(confirmed = false) {
     if (signingOut) return;
-    if (!confirmed && drafts?.has()) { setConfirmSignOut(true); return; }
+    if (!confirmed && (drafts?.has() || hasRequestDrafts())) { setConfirmSignOut(true); return; }
     setSigningOut(true);
-    try { await signOut(client.auth); clearReviewDrafts(); setConfirmSignOut(false); }
+    try { await signOut(client.auth); clearReviewDrafts(); clearRequestDrafts(); setConfirmSignOut(false); }
     catch (e) { setError(message(e)); setConfirmSignOut(false); }
     finally { setSigningOut(false); }
   }
-  const currentTab = (tab === 'reviews' && !canReview) || (['people', 'settings'].includes(tab) && member?.role !== 'admin') || (tab === 'workspace' && !member) ? 'library' : tab;
+  const currentTab = (tab === 'reviews' && !canReview) || (['people', 'settings'].includes(tab) && member?.role !== 'admin') || (['workspace', 'dashboard', 'requests'].includes(tab) && !member) ? 'library' : tab;
   useEffect(() => {
-    document.title = `${currentTab === 'library' ? 'Public library' : currentTab === 'reviews' ? 'Policy reviews' : currentTab === 'settings' ? 'Settings' : currentTab === 'people' ? 'People & access' : 'My workspace'} · PrivacyPal`;
+    document.title = `${currentTab === 'dashboard' ? 'Dashboard' : currentTab === 'requests' ? (member?.role === 'admin' || member?.role === 'reviewer' ? 'Requests' : 'My Requests') : currentTab === 'library' ? 'Public library' : currentTab === 'reviews' ? 'Policy reviews' : currentTab === 'settings' ? 'Settings' : currentTab === 'people' ? 'People & access' : 'My workspace'} · PrivacyPal`;
     if (previousTab.current !== currentTab) mainRef.current?.focus();
     previousTab.current = currentTab;
     if (currentTab === 'settings' && user) setSettingsOwner(user.uid);
@@ -113,23 +130,28 @@ function Workspace({ client }: { client: Client }) {
   const content = <div className="app-shell"><a className="skip-link" href="#main-content">Skip to main content</a>
     <aside className="sidebar"><Brand/><div className="district-label"><span className="eyebrow">DISTRICT WORKSPACE</span><strong>{client.config.districtName}</strong></div><nav aria-label="Main navigation">
       <button aria-current={currentTab === 'library' ? 'page' : undefined} className={currentTab === 'library' ? 'nav active' : 'nav'} onClick={() => setTab('library')}><span aria-hidden="true">▦</span>Public library</button>
+      {member && <><button aria-current={currentTab === 'dashboard' ? 'page' : undefined} className={currentTab === 'dashboard' ? 'nav active' : 'nav'} onClick={() => { setDashboardVisited(true); setTab('dashboard'); }}>Dashboard</button><button aria-current={currentTab === 'requests' ? 'page' : undefined} className={currentTab === 'requests' ? 'nav active' : 'nav'} onClick={() => openRequests('active')}>{member.role === 'admin' || member.role === 'reviewer' ? 'Requests' : 'My Requests'}</button></>}
       {member && <button aria-current={currentTab === 'workspace' ? 'page' : undefined} className={currentTab === 'workspace' ? 'nav active' : 'nav'} onClick={() => setTab('workspace')}><span aria-hidden="true">▤</span>My workspace</button>}
       {canReview && <button aria-current={currentTab === 'reviews' ? 'page' : undefined} className={currentTab === 'reviews' ? 'nav active' : 'nav'} onClick={() => setTab('reviews')}><span aria-hidden="true">✓</span>Policy reviews</button>}
       {member?.role === 'admin' && <button aria-current={currentTab === 'people' ? 'page' : undefined} className={currentTab === 'people' ? 'nav active' : 'nav'} onClick={() => setTab('people')}><span aria-hidden="true">♧</span>People & access</button>}
       {member?.role === 'admin' && <button aria-current={currentTab === 'settings' ? 'page' : undefined} className={currentTab === 'settings' ? 'nav active' : 'nav'} onClick={() => setTab('settings')}><span aria-hidden="true">⚙</span>Settings</button>}
     </nav><div className="sidebar-bottom"><span className="sandbox-dot"/>Local sandbox<p>Independent by design.<br/>Built for district ownership.</p></div></aside>
-    <div className="main-shell"><header className="topbar"><span>Community edition <span className="divider">/</span> {currentTab === 'library' ? 'Public library' : currentTab === 'people' ? 'People & access' : currentTab === 'reviews' ? 'Policy reviews' : currentTab === 'settings' ? 'Settings' : 'My workspace'}</span><span className="pill">Local sandbox</span></header>
-      <main id="main-content" ref={mainRef} tabIndex={-1} aria-label={currentTab === 'library' ? 'Public library' : currentTab === 'reviews' ? 'Policy reviews' : currentTab === 'settings' ? 'Settings' : currentTab === 'people' ? 'People & access' : 'My workspace'}>{currentTab !== 'library' && currentTab !== 'settings' && <div className="page-heading"><div><p className="eyebrow">YOUR DISTRICT WORKSPACE</p><h1>{currentTab === 'people' ? 'People & access' : currentTab === 'reviews' ? 'Evidence. Review. Publication.' : 'Welcome to your workspace.'}</h1><p>{currentTab === 'people' ? 'Give each colleague the access they need.' : `You’re signed in as ${member ? roleLabels[member.role].toLowerCase() : 'a district user'}.`}</p></div></div>}
+    <div className="main-shell"><header className="topbar"><span>Community edition <span className="divider">/</span> {currentTab === 'dashboard' ? 'Dashboard' : currentTab === 'requests' ? (member?.role === 'admin' || member?.role === 'reviewer' ? 'Requests' : 'My Requests') : currentTab === 'library' ? 'Public library' : currentTab === 'people' ? 'People & access' : currentTab === 'reviews' ? 'Policy reviews' : currentTab === 'settings' ? 'Settings' : 'My workspace'}</span><span className="pill">Local sandbox</span></header>
+      <main id="main-content" ref={mainRef} tabIndex={-1} aria-label={currentTab === 'dashboard' ? 'Dashboard' : currentTab === 'requests' ? (member?.role === 'admin' || member?.role === 'reviewer' ? 'Requests' : 'My Requests') : currentTab === 'library' ? 'Public library' : currentTab === 'reviews' ? 'Policy reviews' : currentTab === 'settings' ? 'Settings' : currentTab === 'people' ? 'People & access' : 'My workspace'}>{currentTab !== 'library' && currentTab !== 'settings' && <div className="page-heading"><div><p className="eyebrow">YOUR DISTRICT WORKSPACE</p><h1>{currentTab === 'dashboard' ? 'Dashboard' : currentTab === 'requests' ? 'Tool requests' : currentTab === 'people' ? 'People & access' : currentTab === 'reviews' ? 'Evidence. Review. Publication.' : 'Welcome to your workspace.'}</h1><p>{currentTab === 'people' ? 'Give each colleague the access they need.' : `You’re signed in as ${member ? roleLabels[member.role].toLowerCase() : 'a district user'}.`}</p></div></div>}
         {error && <Notice>{error}</Notice>}
         <section className="session-bar" aria-label="Account"><div><strong>{user ? user.email : 'You’re viewing the public library'}</strong><p>{member ? roleLabels[member.role] : user ? accountReady ? 'No active membership. Ask your local administrator to assign access.' : 'Checking your membership…' : 'Anyone can browse. District team members can sign in below.'}</p></div>{user && <button className="secondary" disabled={signingOut} onClick={() => { void leaveAccount(); }}>Sign out</button>}</section>
         {confirmSignOut && <dialog ref={signOutDialog} className="draft-signout-dialog" aria-labelledby="draft-signout-title" aria-describedby="draft-signout-description" onCancel={e => { e.preventDefault(); if (!signingOut) keepEditing(); }}>
           <h2 id="draft-signout-title">Sign out and erase this tab’s drafts?</h2>
-          <p id="draft-signout-description">Unsaved policy text, evidence and decision drafts will be erased. An unconfirmed save may still complete; check review history when you return.</p>
+          <p id="draft-signout-description">Unsaved request text, policy text, evidence and decision drafts will be erased. An unconfirmed save may still complete; check your requests and review history when you return.</p>
           <div className="actions"><button type="button" className="secondary" autoFocus disabled={signingOut} onClick={keepEditing}>Keep editing</button><button type="button" disabled={signingOut} onClick={() => void leaveAccount(true)}>{signingOut ? 'Signing out…' : 'Erase drafts and sign out'}</button></div>
         </dialog>}
         {currentTab === 'library' && <>{libraryError && <Notice>{libraryError}</Notice>}{library ? <LibraryView settings={library} profiles={profiles} onCustomize={member?.role === 'admin' ? () => { setTab('settings'); setCustomizeRequest(n => n + 1); } : undefined}/> : !libraryError && <p role="status">Loading library settings…</p>}{!user && <Login client={client}/>}</>}
         {member?.role === 'admin' && user && (currentTab === 'settings' || settingsOwner === user.uid) && <div hidden={currentTab !== 'settings'}><DeferredScreen name="Settings"><Settings key={user.uid} user={user} openLibraryRequest={customizeRequest}/></DeferredScreen></div>}
-        {currentTab === 'reviews' && canReview && user && drafts && <DeferredScreen name="Policy reviews"><Reviews key={`${user.uid}-${member.role}`} client={client} user={user} readOnly={member.role === 'viewer'}/></DeferredScreen>}
+        {currentTab === 'reviews' && returnRequest && canReview && <button onClick={() => { openRequests('active', returnRequest); setReturnRequest(undefined); }}>Return to request</button>}
+        {currentTab === 'reviews' && canReview && user && drafts && <DeferredScreen name="Policy reviews"><Reviews onReturnRequest={id => openRequests('active', id)} key={`${user.uid}-${member.role}`} client={client} user={user} readOnly={member.role === 'viewer'} initialId={reviewTarget.id} openVisit={reviewTarget.visit}/></DeferredScreen>}
+        {dashboardVisited && canReview && user && <div hidden={currentTab !== 'dashboard'}><DeferredScreen name="Review dashboard"><ReviewDashboard key={`${user.uid}/${member!.role}`} user={user} onOpen={openReview} active={currentTab === 'dashboard'}/></DeferredScreen></div>}
+        {currentTab === 'dashboard' && member && user && <RequestDashboard key={`${user.uid}/${member.role}`} user={user} onOpen={openRequests}/>}
+        {currentTab === 'requests' && member && user && <DeferredScreen name="Requests"><RequestPanel onCreateReview={requestId => { openReview(); setReturnRequest(requestId); }} client={client} onOpenReview={(id, requestId) => { openReview(id); setReturnRequest(requestId); }} key={`${user.uid}/${member.role}/${requestTarget.visit}`} user={user} role={member.role} scope={`${client.config.projectId}/${client.config.districtId}`} initialQueue={requestTarget.queue} initialId={requestTarget.id}/></DeferredScreen>}
         {currentTab === 'workspace' && member && user && <DistrictWork key={`${user.uid}-${member.role}`} client={client} user={user} member={member}/>}
         {currentTab === 'people' && member?.role === 'admin' && user && <People client={client} user={user}/>}
         <footer>PrivacyPal Community <span>District-owned tools. Informed decisions.</span></footer>
@@ -166,23 +188,15 @@ function People({ user }: { client: Client; user: User }) {
 function DistrictWork({ client, user, member }: { client: Client; user: User; member: Member }) {
   const [staffProfiles, setStaffProfiles] = useState<LibraryProfile[]>([]);
   const [staffSearch, setStaffSearch] = useState('');
-  const [requests, setRequests] = useState<RequestRow[]>([]); const [tools, setTools] = useState<Tool[]>([]); const [notice, setNotice] = useState(''); const [busy, setBusy] = useState(false);
+  const [tools, setTools] = useState<Tool[]>([]); const [notice, setNotice] = useState('');
   const base = `districts/${client.config.districtId}`;
   const canReview = ['admin', 'reviewer'].includes(member.role);
   useEffect(() => {
-    const ref = collection(client.db, `${base}/requests`);
-    const stopRequests = onSnapshot(canReview ? ref : query(ref, where('requestedBy', '==', user.uid)), snap => setRequests(snap.docs.map(d => ({ id: d.id, ...d.data() } as RequestRow))), () => { setRequests([]); setNotice('Request access is unavailable. Your permissions may have changed.'); });
     const stopStaff = onSnapshot(collection(client.db, `${base}/staffTools`), snap => setStaffProfiles(snap.docs.map(d => ({ id: d.id, ...d.data() } as LibraryProfile))), () => { setStaffProfiles([]); setNotice('Staff catalogue could not be loaded.'); });
     const stopTools = member.role !== 'staff' ? onSnapshot(collection(client.db, `${base}/tools`), snap => setTools(snap.docs.map(d => ({ id: d.id, ...d.data() } as Tool))), () => { setTools([]); setNotice('Internal tool access is unavailable.'); }) : () => {};
-    return () => { stopRequests(); stopTools(); stopStaff(); };
+    return () => { stopTools(); stopStaff(); };
   }, [client, base, user.uid, member.role, canReview]);
-  async function request(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault(); const form = e.currentTarget; const data = new FormData(form); setBusy(true); setNotice('');
-    try { await addDoc(collection(client.db, `${base}/requests`), { toolName: String(data.get('toolName')).trim(), purpose: String(data.get('purpose')).trim(), requestedBy: user.uid, status: 'pending', archived: false, createdAt: serverTimestamp() }); form.reset(); setNotice('Request submitted for review.'); }
-    catch { setNotice('The request could not be saved. Your access may have changed.'); } finally { setBusy(false); }
-  }
-  return <><section className="panel"><h2>Staff catalogue</h2><p>Check permitted use, grade scope and conditions before choosing a resource.</p><label>Search staff resources<input type="search" value={staffSearch} onChange={e => setStaffSearch(e.target.value)}/></label><div className="catalogue">{staffProfiles.filter(p => `${p.name} ${p.category}`.toLowerCase().includes(staffSearch.toLowerCase())).map(p => <article className="tool-card" key={p.id}><h3>{p.name}</h3><ServiceNotice profile={p} staff/></article>)}</div>{!staffProfiles.length && <p>No published staff resources yet.</p>}</section><div className="panel"><h2>Request a tool</h2><p>Tell your district team what you want to use and why.</p><form className="request-form" onSubmit={e => { void request(e); }}><label>Tool name<input name="toolName" required maxLength={120}/></label><label>How would you use it?<textarea name="purpose" required maxLength={2000} rows={3}/></label><button disabled={busy}>Submit request</button></form>{notice && <Notice>{notice}</Notice>}</div>
-      <div className="panel"><h2>{canReview ? 'District requests' : 'Your requests'}</h2>{!requests.length && <p>No requests yet. Your next request will appear here.</p>}{requests.map(r => <div className="request-row" key={r.id}><div><strong>{r.toolName}</strong><p>{r.purpose}</p></div><span className="pill">{r.status}</span></div>)}</div>
+  return <><section className="panel"><h2>Staff catalogue</h2><p>Check permitted use, grade scope and conditions before choosing a resource.</p><label>Search staff resources<input type="search" value={staffSearch} onChange={e => setStaffSearch(e.target.value)}/></label><div className="catalogue">{staffProfiles.filter(p => `${p.name} ${p.category}`.toLowerCase().includes(staffSearch.toLowerCase())).map(p => <article className="tool-card" key={p.id}><h3>{p.name}</h3><ServiceNotice profile={p} staff/></article>)}</div>{!staffProfiles.length && <p>No published staff resources yet.</p>}</section>
       {member.role !== 'staff' && <div className="panel"><h2>Internal tool records</h2><p>Reviewer notes stay inside your district workspace.</p>{tools.map(tool => <ToolEditor key={tool.id} tool={tool} canEdit={canReview} onSave={async notes => { await updateDoc(doc(client.db, `${base}/tools/${tool.id}`), { notes, updatedAt: serverTimestamp(), updatedBy: user.uid }); }}/>)}</div>}
     </>;
 }

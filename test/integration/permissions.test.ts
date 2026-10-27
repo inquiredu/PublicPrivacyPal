@@ -152,9 +152,9 @@ for (const role of roleList) {
     const write = setDoc(doc(db, `${base}/tools/${name()}`), toolData(`rule-${role}`));
     await (['admin', 'reviewer'].includes(role) ? assertSucceeds : assertFails)(write);
   });
-  test(`${role}: can create a valid request but cannot forge an approval or reviewer history`, async () => {
+  test(`${role}: cannot bypass request commands with direct writes`, async () => {
     const db = dbFor(role);
-    await assertSucceeds(setDoc(doc(db, `${base}/requests/${name()}`), requestData(`rule-${role}`)));
+    await assertFails(setDoc(doc(db, `${base}/requests/${name()}`), requestData(`rule-${role}`)));
     await assertFails(setDoc(doc(db, `${base}/requests/${name()}`), { ...requestData(`rule-${role}`), status: 'approved' }));
     await assertFails(setDoc(doc(db, `${base}/requests/${name()}`), { ...requestData(`rule-${role}`), history: [{ actor: adminUid }] }));
   });
@@ -184,18 +184,18 @@ test('requester identity and timestamps cannot be forged', async () => {
   await assertFails(setDoc(doc(db, `${base}/requests/${name()}`), { ...requestData('rule-staff'), createdAt: new Date(0) }));
   await assertFails(setDoc(doc(db, `${base}/requests/${name()}`), { ...requestData('rule-staff'), toolName: '' }));
 });
-test('staff can list only their own requests and archive only the archive field', async () => {
+test('staff request reads and archives require the API', async () => {
   const db = dbFor('staff');
-  await assertSucceeds(getDocs(query(collection(db, `${base}/requests`), where('requestedBy', '==', 'rule-staff'))));
+  await assertFails(getDocs(query(collection(db, `${base}/requests`), where('requestedBy', '==', 'rule-staff'))));
   await assertFails(getDocs(collection(db, `${base}/requests`)));
-  await assertSucceeds(updateDoc(doc(db, `${base}/requests/staff-request`), { archived: true }));
+  await assertFails(updateDoc(doc(db, `${base}/requests/staff-request`), { archived: true }));
   await assertFails(updateDoc(doc(db, `${base}/requests/staff-request`), { status: 'approved' }));
   await assertFails(updateDoc(doc(db, `${base}/requests/staff-request`), { archived: 'yes' }));
   await assertFails(updateDoc(doc(dbFor('viewer'), `${base}/requests/staff-request`), { archived: false }));
 });
-test('reviewers can read district requests but cannot bypass future server review commands', async () => {
+test('reviewers cannot bypass server request commands', async () => {
   const db = dbFor('reviewer');
-  await assertSucceeds(getDocs(collection(db, `${base}/requests`)));
+  await assertFails(getDocs(collection(db, `${base}/requests`)));
   await assertFails(updateDoc(doc(db, `${base}/requests/staff-request`), { status: 'approved' }));
 });
 test('reviewers cannot add public fields or forge record authorship', async () => {

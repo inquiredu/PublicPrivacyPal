@@ -49,3 +49,20 @@ test('corrupt storage is rejected and selection alone is not an unsaved draft', 
   storage.data.set(store.key,'{invalid'); const restored = new DraftStore('one',storage); assert.match(restored.warning,/could not be recovered/); assert.equal(restored.has(),false);
   clearReviewDrafts(storage);
 });
+
+test('request context survives draft reload without becoming source evidence', () => {
+  const storage = new MemoryStorage(); const store = new DraftStore('handoff', storage);
+  const capture = { sourceKind: 'pasted', name: 'Requested tool', sourceLabel: '', sourceText: '', fixtureId: 'complete', profileVersion: 'community-evidence-v1',
+    requestContext: { requestId: 'request-1', revision: 2, reason: 'Begin review', toolName: 'Requested tool', purpose: 'Synthetic lesson', requestedUrl: 'https://tool.example' } };
+  store.set('capture', capture);
+  assert.deepEqual(new DraftStore('handoff', storage).get('capture', captureDraftSchema), capture);
+  clearReviewDrafts(storage);
+});
+
+test('saved request return navigation is not an unsaved draft', () => {
+  const store = new DraftStore('navigation', new MemoryStorage());
+  store.set('request-origin:review', 'request');
+  assert.equal(store.has(), false);
+  assert.equal(store.get('request-origin:review', z.string()), 'request');
+  clearReviewDrafts();
+});

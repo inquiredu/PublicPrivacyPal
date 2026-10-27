@@ -15,7 +15,7 @@ feature map, concrete improvements and next milestone.
 These identities precede this documentation consolidation; no merge, release or deployment is implied.
 
 The review draft/retry gate, bounded/versioned evaluation storage, setup and complete-service
-restoration are implemented locally. The next implementation milestone is **dashboard and request-workflow restoration**, following
+restoration are implemented locally. The request lifecycle foundation is now implemented: states, assignment, independent archives, private history, permissions and explicit retry reconciliation; see [request workflow](request-workflow.md). Request dashboard totals/attention queues and dedicated request destinations are implemented locally. Review/publication totals and attention queues are implemented locally; see [review dashboard](review-dashboard.md). Tier distribution and review-name/tier/queue filtering are implemented locally. Existing-review selection and current staff-guidance links are implemented locally. Create-review handoff with atomic capture/link is implemented locally. Submission catalogue suggestions remain pending. The active milestone is **dashboard and request-workflow restoration**, following
 [the component parity checklist](component-parity.md). The [independent trial](independent-trial.md)
 can assess the current slice, but broader workflow acceptance follows restoration. Reliability
 remains the gate for expansion. Preserve [public-version improvements](public-improvements.md)
@@ -174,7 +174,7 @@ support, not production readiness, independent acceptance or district policy app
 | Area | Implemented and recorded evidence | Still pending |
 | --- | --- | --- |
 | District setup and service experience | Versioned setup/library settings, reviewer cards, four tabs, manual agreement facts and separate staff/family projections. See [service detail](service-detail.md). | Owner acceptance of the refined interface, broader tag/batch workflows and independent user acceptance. |
-| Review reliability | Tab-scoped review drafts, actor-scoped retry receipts, immutable source/evaluation context, bounded findings/history, deterministic scoring and atomic publication withdrawal. See [review workflow](review-workflow.md) and [storage](review-storage.md). | Equivalent durable draft/retry guarantees for settings, requests and internal notes; production-scale validation. Settings navigation retention alone is not full draft recovery. |
+| Review reliability | Tab-scoped review drafts, actor-scoped retry receipts, immutable source/evaluation context, bounded findings/history, deterministic scoring and atomic publication withdrawal. See [review workflow](review-workflow.md) and [storage](review-storage.md). | Equivalent durable draft/retry guarantees for settings and internal notes; production-scale validation. Settings navigation retention alone is not full draft recovery. |
 | Document coverage | Pasted document sets, dependency/exclusion editor, long sources, explicit range acknowledgments and unresolved coverage gates. | Automatic retrieval/discovery and evidence interpretation qualification. |
 | Segmented assistance | Durable Lantern synthetic runs, retained original bytes/attempts, explicit unresolved human handoff and schema-10 recovery. See [segmented reviews](segmented-reviews.md). | Live adapters, general output adoption, settlement/billing reconciliation and enforced provider token/spend limits. Offline packets remain inspection artifacts. |
 | Rubric | Versioned practice/full definitions, selectable 14-measure precision pilot, and a separate three-measure offline proposal. | Independent labels/holdouts, district normative decisions and remaining precision coverage. Agent review is not human adjudication. |
@@ -192,19 +192,21 @@ Native Chrome acceptance was focused; it did not test screen-reader speech. Thes
 not rerun for the October 22 documentation consolidation. Test totals are historical observations,
 not future acceptance thresholds. A new candidate must pass its own applicable checks.
 
-The latest recorded saved-preview archive is schema 10, id
-`1ef70c3f-8ac4-4123-bc68-d5deda429fa3`; its private path and restoration instructions are in
-[HANDOFF](../HANDOFF.md). Runtime liveness and archive integrity were not rechecked for this docs
-update. A fresh adopter must create their own installation and backup, not use that private archive.
+Current handoff: implemented changes through `67af343` are committed and pushed on the development
+branch. Latest recorded implementation checks passed 552 unit/isolation and 240 integration tests;
+see [HANDOFF](../HANDOFF.md) for precise evidence and limits. At the October 26 wrap-up, the synthetic
+preview was running and a schema-11 archive was saved and verified, including the new QA request.
+The private recovery path and temporary runtime details are in HANDOFF. A fresh adopter must create
+their own installation and backup, not use that private archive.
 
 ### Ordered work plan
 
-1. **Baseline consolidation — this documentation increment.** Use this status index, the dated
+1. **Baseline consolidation — complete for this checkpoint.** Use this status index, the dated
    handoff and the trial checklist. Preserve historical evidence. Review actual branch changes
    and candidate checks before any separately authorized main integration.
-2. **Dashboard/request restoration — next implementation.** Complete the P1 contract, dashboard,
-   reviewer queue and requester outcome gates in [component parity](component-parity.md). The current
-   request form/list is not a complete lifecycle. DPA document automation is intentionally excluded.
+2. **Request handoff and integrated acceptance — next implementation.** Dashboard totals/filtering,
+   lifecycle queues, existing-review selection and staff-guidance links are implemented locally. Complete
+   create-review handoff, submission suggestions and the remaining requester outcome gates in [component parity](component-parity.md). Independent end-to-end acceptance remains pending. DPA document automation is intentionally excluded.
 3. **Independent local acceptance — pending.** An outside participant uses a fresh source checkout
    and synthetic accounts on another machine. Record each trial step, assistance, failure and retest.
    Completion requires the core checklist, not only automated tests. Extend it with the P1 request/dashboard

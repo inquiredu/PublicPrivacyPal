@@ -49,4 +49,4 @@ for (const name of ['restore-nine', 'restore', 'restore-again']) {
   const prepared = stageRestore(receipt.backup, config);
   await phase(name, prepared.path);
 }
-console.log('Recovery rehearsal passed: a schema-9 import followed by two schema-10 shutdown/import cycles preserved accounts, permissions, reviews, decisions, history and publication.');
+console.log('Recovery rehearsal passed: a schema-9 import followed by two schema-11 shutdown/import cycles preserved accounts, permissions, reviews, decisions, history and publication.');

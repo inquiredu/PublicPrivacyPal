@@ -40,7 +40,7 @@ export class DraftStore {
     const parsed = schema.safeParse(entry.value);
     return parsed.success ? parsed.data : undefined;
   }
-  has(key?: string) { return this.alive && (key ? !!this.entries[key] : Object.keys(this.entries).some(k => k !== 'location')); }
+  has(key?: string) { return this.alive && (key ? !!this.entries[key] : Object.keys(this.entries).some(k => k !== 'location' && !k.startsWith('request-origin:'))); }
   set(key: string, value: unknown) {
     if (!this.alive) return;
     this.entries[key] = { savedAt: this.clock(), value }; this.persist(); this.notify();

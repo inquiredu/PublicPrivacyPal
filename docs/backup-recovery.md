@@ -114,7 +114,7 @@ With development services stopped and exclusive use of the emulator ports, run
 `npm run test:recovery`. During coordinated work, the coordinator holds that reservation.
 The reproducible fixture uses the dedicated test demo project and random
 synthetic accounts. It saves and genuinely imports schema 9 before creating segmented records,
-then requires two complete schema-10 shutdown/import cycles. Every cycle compares Firestore
+then requires two complete schema-11 shutdown/import cycles. Every cycle compares Firestore
 documents and timestamps before workers, checks original passwords and UIDs, disabled/revoked
 accounts, role denials and public projections. The bundled Auth emulator advances the token cutoff
 and discards the last token-refresh timestamp during import. The cutoff must be monotonic and fall
@@ -207,3 +207,13 @@ schema 10; rollback means returning to the preserved pre-upgrade archive with it
 and toolchain, losing later writes unless a separately reviewed reverse migration exists. New human
 attribution uses `findings-v7` / `human-evidence-v6`; it does not confer machine authority to score,
 approve or publish. See [segmented adoption](segmented-adoption.md).
+
+## Request lifecycle storage (schema 11)
+
+Version-1 request heads, immutable events and actor-scoped receipts require schema 11, even with
+no segmented review runs. Saving and finishing a restore validate request history/transition chains,
+receipt links, bounds and byte totals under the maintenance fence; malformed/orphan descendants or
+an older manifest hiding new records fail closed. Legacy pending requests stay unchanged until their
+first lifecycle command. See [request lifecycle](request-workflow.md). Schema 10 remains valid for
+segmented-only installations; do not relabel old archives. The recovery rehearsal now checks exact
+request preservation and replay without duplicate writes across two schema-11 import cycles.

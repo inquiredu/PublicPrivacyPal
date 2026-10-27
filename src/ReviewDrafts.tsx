@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { z } from 'zod';
 import type { User } from 'firebase/auth';
 import type { Review } from '../shared/review';
@@ -20,13 +20,18 @@ export function useReviewCommands(user: User, onSaved: (review: Review) => void)
   const store = useDraftStore(); const pending = store.get('pending-command', pendingSchema);
   const [busy, setBusy] = useState(false); const [message, setMessage] = useState('');
   const [notFound, setNotFound] = useState(false);
+  const feedback = useRef<HTMLParagraphElement>(null);
+  useEffect(() => { if (message && !busy && !message.startsWith('Save confirmed.')) feedback.current?.focus(); }, [message, busy]);
   function confirmed(review: Review, command: Pending) {
     // An old request must never repopulate drafts after sign-out or permission loss.
     if (store.get('pending-command', pendingSchema)?.id !== command.id) return;
+    const origin = z.object({ requestHandoff: z.object({ requestId: z.string().regex(/^[a-zA-Z0-9_-]{1,128}$/) }) }).safeParse(command.body);
+    if (command.path === '/api/reviews' && origin.success) store.set(`request-origin:${review.id}`, origin.data.requestHandoff.requestId);
     store.remove('pending-command', ...command.clearKeys); setNotFound(false);
     onSaved(review); setMessage('Save confirmed. The current review state is shown below.');
   }
   async function send(command: Pending) {
+    if (store.warning) { setMessage('Save blocked: reload protection is unavailable. Keep this tab open.'); return; }
     setBusy(true); setMessage('Saving…'); setNotFound(false);
     try { confirmed(await api<Review>(command.path, user, command.body, { commandId: command.id }), command); }
     catch (e) {
@@ -37,7 +42,9 @@ export function useReviewCommands(user: User, onSaved: (review: Review) => void)
   async function start(path: string, body: unknown, label: string, clearKeys: string[] = []) {
     if (store.has('pending-command')) return;
     const command = { id: crypto.randomUUID(), path, body, label, clearKeys };
-    store.set('pending-command', command); await send(command);
+    store.set('pending-command', command);
+    if (store.warning) { setMessage('Save was not sent because reload protection is unavailable. Keep this tab open and resolve storage before retrying.'); return; }
+    await send(command);
   }
   async function check() {
     if (!pending || busy) return; setBusy(true); setMessage('Checking the saved result…');
@@ -48,7 +55,7 @@ export function useReviewCommands(user: User, onSaved: (review: Review) => void)
     } catch (e) { setMessage(e instanceof Error ? e.message : 'The result could not be checked.'); }
     finally { setBusy(false); }
   }
-  const notice = <section aria-label="Save status"><p role="status" aria-atomic="true">{message}</p>{pending && <div className="notice"><strong>{busy ? 'Working' : 'Save outcome not confirmed'}: {pending.label}</strong><p>Your draft is kept. Check the result before making another change. A pending request is never sent automatically after reload.</p><button type="button" className="secondary" disabled={busy} onClick={() => void check()}>Check saved result</button>{notFound && <button type="button" disabled={busy} onClick={() => void send(pending)}>Retry same save</button>}</div>}</section>;
+  const notice = <section aria-label="Save status"><p ref={feedback} tabIndex={-1} role="status" aria-atomic="true">{message}</p>{pending && <div className="notice"><strong>{busy ? 'Working' : 'Save outcome not confirmed'}: {pending.label}</strong><p>Your draft is kept. Check the result before making another change. A pending request is never sent automatically after reload.</p><button type="button" className="secondary" disabled={busy} onClick={() => void check()}>Check saved result</button>{notFound && <button type="button" disabled={busy} onClick={() => void send(pending)}>Retry same save</button>}</div>}</section>;
   return { start, notice, blocked: busy || !!pending };
 }
 export type ReviewCommands = ReturnType<typeof useReviewCommands>;

@@ -1,3 +1,410 @@
+# Signed-in create-review UI checkpoint — October 26, 2026
+
+This development checkpoint packages the create-review handoff and signed-in UI fixes, based on
+`bac66bd` on `codex/coordinated-milestone-2026-10-19`. The owner authorized committing and pushing
+this branch. Earlier uncommitted checkpoint notes below are historical; main and district systems
+remain outside this checkpoint. Accessibility limits below remain open.
+
+Maintainer browser checks now cover synthetic staff submission, administrator assignment, keyboard
+handoff activation, carried request context with empty policy evidence, protected draft resume,
+navigation retention, stale-save rejection, explicit revision refresh retaining source text, capture/link,
+confirmed-save reload and saved return navigation, and staff outcome privacy. The new private
+practice review has no decision or publication; the public library still has five resources.
+
+Fixed observed focus loss after request actions and rejected review saves. Updated request revisions
+focus the selected heading; completed non-success save feedback receives focus; a new h2 focuses
+on request-capture entry. Policy text now has a concise accessible name and a separate help description.
+Retests passed for those fixes. Keyboard Tab/Enter, sign-out dialog initial focus/Escape/return,
+headings/labels/status semantics and 320-CSS-pixel reflow were checked. Modal Escape preserved exact
+unsaved text. Temporary modal text was cleared and the browser finished signed out.
+
+Scope limits: the acting reviewer was the administrator role, not a separate reviewer-only account.
+This is maintainer QA, not independent acceptance. A guarded unfinished-draft scripted reload was
+cancelled by the in-app browser; navigation retention and unit draft-rehydration tests passed, and
+reload after confirmed capture passed. Lost-response/concurrent/revoked cases retain the preceding
+241-test emulator evidence; no browser network fault injection was performed. Native control of the
+app window was refused by the computer-use tool, so spoken VoiceOver output was not verified. Browser
+zoom shortcuts had no effect (measured viewport/pixel ratio unchanged), so actual 200% zoom remains
+unverified. Do not convert these limits into accessibility acceptance claims. One transient development
+hot-update context error cleared on full reload; no source change was needed for that development-only
+remount. The subsequent staff and public navigation completed normally.
+
+Fresh `npm run ci` passed: **554 tests**, TypeScript, build/bundle and isolation checks.
+Only browser focus/markup changed in this follow-up; the preceding 241 integration tests and two
+schema-11 recovery cycles remain its server/storage evidence. Private notes/screenshots/log:
+`.local/request-handoff-ui.md`, `.local/request-handoff-ui-reviewer.png`,
+`.local/request-handoff-ui-staff.png`, `.local/request-handoff-ui-ci.log`.
+
+Created exactly one synthetic request, **Willow handoff — synthetic accessibility QA**
+(`bc568931-fd4e-467c-97ee-39236ba53e65`, revision 7), and one private eight-measure review
+(`0e65b931-d322-4c70-9f21-4de496f79f19`). Archive/restore checks affected only that request;
+both audience archive flags finish false. Existing requests/reviews/publications were preserved.
+
+Preview remains running at `http://127.0.0.1:5173/` from `/private/tmp/privacypal-request-validation`.
+Latest whole-installation schema-11 backup was saved, verified, copied into this checkout and verified
+again: `.local/backups/2026-10-27T02-34-16-628Z-41a0c562-c0e0-4b74-b5b7-61b3b5006c76`.
+It includes the new QA request/review. Retain earlier backups; save again before shutdown after changes.
+Submission catalogue suggestions and configured tier help remain next implementation work; reviewer-only,
+spoken/zoom and independent integrated acceptance remain explicit outstanding checks. District and
+original systems remain untouched. No live provider calls or DPA automation.
+
+---
+
+# Create-review handoff checkpoint — October 26, 2026
+
+Current working tree: `codex/coordinated-milestone-2026-10-19`, based on `bac66bd`.
+This increment is implemented and validated locally, **uncommitted and unpushed**. The older
+checkpoint below describes the preceding state; its create-review recommendation is superseded here.
+
+Assigned reviewers now prepare a protected capture draft from a request. Existing drafts offer
+resume/resolve; a stale revision can explicitly be refreshed while retaining policy text. Request name,
+purpose and reference URL remain context, with empty policy evidence fields. Saving pasted/bundled
+policy atomically creates the review and links the request, including both histories and receipts.
+Assignment/revision/member/maintenance/capacity checks fence all writes. Same-command retries return
+one review; failed or competing commands cannot leave an orphan. Request attribution is copied from
+the authoritative request into private review capture history. No URL fetch, live analysis, approval
+or publication occurs. Normal schema-11 request and review storage formats are reused.
+
+`npm run ci` passed: **554 unit/isolation tests**, TypeScript, build/bundle/source guards.
+`npm run test:integration` passed **241 tests**, including concurrent handoff retries, lost response
+reconciliation, stale assignment, revoked/staff/viewer denial, maintenance and no publication effects.
+`npm run test:recovery` passed a schema-9 import and **two schema-11 shutdown/import cycles**,
+including exact document comparisons and replay of the new atomic handoff without further writes.
+Integration/recovery used `/private/tmp/privacypal-request-validation` with matching executable source
+and its own pinned dependencies after the primary synced-folder launcher stalled. Private logs:
+`.local/request-create-ci.log`, `.local/request-create-integration.log`, `.local/request-create-recovery.log`.
+
+The preview has been restored at `http://127.0.0.1:5173/` from that validation copy, using the
+newly saved/verified pre-test backup copied into the authoritative checkout:
+`.local/backups/2026-10-27T02-08-23-506Z-6f3ffaa4-66e5-4666-b304-c9fdc462aa3b`.
+This remains schema 11 and includes the preceding synthetic request picker QA data. Five public
+resources were observed after restoration. No saved preview records were changed in this increment.
+Save/verify again if subsequent work changes it before shutdown. Runtime log: `.local/request-create-preview.log`.
+
+New signed-in handoff UI, narrow-screen and spoken accessibility acceptance are **not run** in this
+checkpoint. Browser discovery stalled; only the restored anonymous library was checked. The detailed
+request handoff trial is appended to `docs/independent-trial.md`. Complete that browser acceptance,
+then implement submission catalogue suggestions and configured tier help before the integrated
+staff-to-review/publication/correction/archive trial. This remains a local development increment,
+not release readiness or independent acceptance. Main, original systems and district project remain
+untouched. DPA automation, provider calls, deployment and main merge remain excluded.
+
+---
+
+# Fresh-session handoff — October 26, 2026
+
+## Start here
+
+Work only in `/Users/sbeaverson/Documents/VIBECODE/PublicPrivacyPal` on
+`codex/coordinated-milestone-2026-10-19`. Latest implemented commit: **`67af343`**,
+pushed to origin. The working tree was clean before this handoff documentation update.
+This handoff is a documentation-only checkpoint following that implementation commit. Read `AGENTS.md`, `docs/open-source-plan.md`,
+`docs/component-parity.md`, `docs/request-workflow.md` and `docs/permissions.md` before implementation.
+Check branch/status afresh; do not switch to or merge main. Local main remains `cb5bb04`;
+remote main was last verified unchanged at `6edf69c` during the preceding push.
+
+## Overall progress and assessment
+
+The local foundation now supports versioned district setup, reviewer cards/four-tab service detail,
+evidence corrections, deterministic scoring, separate decisions and atomic audience publication.
+Review drafts, command receipts, bounded/versioned storage and synthetic assistance contracts are in place.
+This session restored the request lifecycle and dashboard as a usable connected local workflow:
+
+- Request states, assignment, claim/release/takeover, private history, independent archives and retry handling.
+- Request and review/publication totals, attention queues and detail navigation.
+- Tier distribution and combined review-name/tier/queue filters, with full matching counts.
+- Expanded public notices and explicitly published vendor privacy-policy links.
+- Existing-review picker, inspect/return navigation, and current published staff guidance from outcomes.
+- Reconciled parity inventory and improvement register for possible separately authorized original backports.
+
+The find-work and existing-review paths are implemented, not the entire parity milestone.
+Create-review handoff, submission catalogue suggestions, configured tier help and independent integrated
+acceptance remain. File inventory totals are not a completion percentage. Local test success does not
+establish release readiness, live AI readiness, production security or independent accessibility acceptance.
+
+## Recommended next implementation: create-review handoff
+
+1. Read the original request/review flow from the pinned `.private/upstream` reference without running it.
+   Inspect `src/RequestPanel.tsx`, `src/RequestReviewPicker.tsx`, `src/Reviews.tsx`, request/review journals,
+   `server/requests.ts` and the existing review command/receipt contracts.
+2. Offer the assigned reviewer an explicit **Create review from request** action when no existing match fits.
+   Carry the tool name, purpose and reference URL as request context into a protected review draft.
+   A reference URL is not captured policy evidence: no fetching, invented source text or live analysis.
+   Never overwrite an existing review draft; provide a deliberate resume/resolve choice.
+3. Define creation/linking semantics before writing UI: either a single authorized command or a durable,
+   reconciled two-step handoff. If creation succeeds but linking fails or its response is lost, retain
+   the created review ID and retry only the unresolved step. Do not produce duplicate reviews or mark
+   a request decided before the link is recorded. Preserve request attribution and revision authority.
+4. Keep capture, request outcome, district decision and publication separate. Creating a review must
+   not approve or publish anything. Support inspect/return and recovery after reload/navigation.
+5. Validate competing assignments, stale revisions, existing drafts, response loss after each step,
+   duplicate retries, revocation and maintenance. If storage changes, include backup compatibility and
+   serialized recovery checks. Run `npm run ci` and `npm run test:integration`; preserve the preview first.
+6. Update parity, request workflow, independent trial and this handoff with actual evidence/limitations.
+
+After that: staff-projection-only catalogue suggestions with explicit continue-anyway; configured tier
+help; full staff → reviewer → publication → correction/withdrawal → republish → archive/recovery trial.
+Independent staff-role UI, spoken accessibility and narrow-screen acceptance remain required.
+Priorities/batch workflows, broader facets and score distributions can follow the core request loop.
+Operational succession, independent public startup, upgrade/rollback and hosted/provider qualification
+remain separate release gates. Do not expand scope into them implicitly.
+
+## Evidence and limits
+
+Latest implementation validation: 552 unit/isolation tests, typecheck/build/bundle checks and 240
+integration tests passed. Final auth/navigation cleanup passed fresh typecheck/build. Integration
+used a matching temporary source copy (196 executable/config/test files matched) with its own pinned
+npm install because the primary synced-folder Firebase launcher stalled. No new full test run was
+needed for this handoff-only documentation update.
+
+Browser checks covered search, keyboard selection, authoritative detail navigation, retained reason/
+selection on return, explicit link recording and expanded published conditions. The new synthetic
+“Cedar guidance link — synthetic QA” request was created/claimed/linked; existing requests/reviews
+and publications were unchanged. Publication withdrawal/privacy checks passed in integration;
+do not relabel those as an independent staff browser or screen-reader pass.
+Logs/screenshots: `.local/request-picker-ci.log`, `.local/request-picker-integration.log`,
+`.local/request-picker-final-build.log`, `.local/request-review-picker.png`,
+`.local/request-staff-guidance.png`. These artifacts are private and untracked.
+
+## Preview and recovery
+
+Preview remains running at `http://127.0.0.1:5173/`, launched from
+`/private/tmp/privacypal-request-validation` (a validation/runtime copy, not the authoritative checkout).
+Port 5173 was checked at handoff. The source checkout above is where edits and commits belong.
+Do not kill unknown processes. Read `docs/local-development.md` and `docs/backup-recovery.md` before restart.
+
+**Latest backup saved and verified at handoff**, including the new synthetic QA request:
+`.local/backups/2026-10-27T01-54-07-871Z-b4fa7bef-08a8-4a6d-8b46-ea319d3f9d2f`
+in the authoritative checkout. UTC filename corresponds to October 26 in America/Chicago.
+Schema 11; restore only into a fresh matching demo installation using the runbook. Do not bootstrap
+after restore. Credentials are in ignored `.local/accounts/`; never print or publish them.
+Save/verify again if the preview changes before shutdown.
+
+Temporary runtime paths currently used:
+- Node 24: `/private/tmp/privacypal-runtime/node_modules/node/bin`
+- Java 21: `/private/tmp/privacypal-request-java/jdk-21.0.13+9/Contents/Home`
+
+Recheck their existence/versions: temporary files can disappear. The prior temp dependency symlink
+and Java runtime became incomplete; the validation copy now has its own fresh pinned dependencies.
+Do not claim this copy is an independent adopter installation or rely on its Git state for commits.
+
+## Non-negotiable scope
+
+DPA generation/signing/vendor upload/delivery automation is excluded. Existing manual agreement facts
+are separate. Original `inquiredu/privacypal` and the district instance are reference-only and untouched.
+Use synthetic data and `demo-` emulators only; no production logins, provider calls, deployment or main
+merge. Never publish `.private/`, `.local/`, credentials or backups. Do not start upstream scripts/app.
+The improvement register is a candidate list, not authorization to backport into the original.
+
+---
+
+# Existing-review picker and request guidance — October 26, 2026
+
+Development increment on `codex/coordinated-milestone-2026-10-19`, following `6367c5b`.
+Request assignees can search bounded existing-review summaries, explicitly select a reference,
+inspect the review and return to the request with their reason/selection preserved. Linking uses
+the existing revision-checked, actor-scoped command; it does not approve or publish a service.
+Linked outcomes expand only the current staff projection, removing guidance on withdrawal or
+unverified cached/error reads. Private review navigation remains reviewer/admin-only.
+Parity/request/trial/status docs are reconciled; create-review handoff, submission suggestions,
+configured tier help and independent multi-role/accessibility acceptance remain pending.
+DPA automation is excluded; main and original systems are unchanged.
+
+Validation: `npm run ci` passed (552 unit/isolation tests, typecheck/build); final navigation cleanup
+passed fresh typecheck/build. All 240 integration tests passed, including expanded linked-outcome
+checks for staff projection access, private/anonymous denial and withdrawal retaining historical
+outcomes. No authorization rules, API contracts or backup schemas changed. The primary synced-folder
+Firebase launcher stalled; the matching temporary source copy used its own fresh pinned npm install
+and a restored Java 21 runtime after the previous temporary dependencies were found incomplete.
+196 executable/config/test files matched. Logs: `.local/request-picker-ci.log`,
+`.local/request-picker-integration.log` and `.local/request-picker-final-build.log`.
+
+Browser checks passed: name search, keyboard selection, authoritative detail navigation,
+return-to-request selection/reason preservation, explicit recording and expanded published conditions.
+One new synthetic request, “Cedar guidance link — synthetic QA”, was created, claimed and linked
+for this walkthrough. Existing requests, reviews and publications were not changed. Screenshots:
+`.local/request-review-picker.png` and `.local/request-staff-guidance.png`.
+Independent staff-role UI, spoken accessibility and narrow-screen acceptance remain pending.
+
+Preview restored from verified schema-11 backup and running at port 5173 from
+`/private/tmp/privacypal-request-validation`. Pre-test backup:
+`.local/backups/2026-10-27T01-34-52-106Z-cccab687-4a20-46c4-9ca4-8dbb6b4b892b`
+(UTC filename; October 26 local date). It predates the new synthetic QA request.
+Save and verify again before stopping the preview. Private artifacts remain untracked.
+
+---
+
+# Tier distribution and review navigation — October 22, 2026
+
+Development checkpoint on `codex/coordinated-milestone-2026-10-19`, following `d44e453`.
+Dashboard tier totals now link to matching reviews, with separate Pending and No recorded tier
+categories. Case-insensitive literal name search combines with tier and attention queue filters
+before pagination. Matching counts cover the complete bounded inventory; overall totals and
+attention remain clearly labeled as all reviews. Opening a review and returning retains filters
+and page during the signed-in session; hidden dashboard polling stops. See
+[review dashboard](docs/review-dashboard.md) for semantics and the independent trial checklist.
+No classification, publication or saved review data is changed by these navigation controls.
+DPA automation remains excluded. Independent multi-role and spoken accessibility acceptance,
+score distributions, assistance-job attention and live requirement monitoring remain pending.
+
+Validation: `npm run ci` passed (552 tests, typecheck/build/isolation), and
+`npm run test:integration` passed all 240 tests in the matching local validation copy.
+All 189 executable/config/test files matched the checkout. Coverage includes combined filters
+across 1,000 reviews, pagination, tier sum consistency, Pending versus absent tier, literal name
+matching, empty results, invalid/repeated/oversized parameters and staff denial.
+Browser checks passed for keyboard tier selection, combined name/tier/attention filtering,
+authoritative review navigation, retained filters on return, empty results and clearing all filters.
+No saved records changed. Screenshots: `.local/tier-dashboard.png` and `.local/tier-distribution.png`.
+
+The restored synthetic preview runs at port 5173 from
+`/private/tmp/privacypal-request-validation`. The pre-test backup was saved, verified and copied to
+`.local/backups/2026-10-22T20-42-46-334Z-0f908939-2260-4c80-91a5-d306de073eb6`.
+Save/verify before stopping the owned preview. Logs: `.local/tier-dashboard-ci.log` and
+`.local/tier-dashboard-integration.log`. Private backups/logs/screenshots remain untracked.
+This increment is prepared for the current development branch; main and original systems remain unchanged.
+
+---
+
+# Review and publication dashboard — October 22, 2026
+
+Development checkpoint on `codex/coordinated-milestone-2026-10-19`, following `ffec0f4`.
+Dashboard now includes role-checked review totals, actual public/staff review projection counts,
+failed primary jobs, unfinished evidence, decision-needed, saved requirement gaps and publication
+mismatches. Each total filters a complete bounded queue; rows open authoritative review details.
+Draft journals remain intact. See [review dashboard](docs/review-dashboard.md) for exact semantics.
+Tier distributions, separate assistance/segmented-job attention, live requirement monitoring and
+independent acceptance remain pending. DPA automation, main and original systems remain untouched.
+
+Validation: `npm run ci` passed (551 tests, typecheck/build/isolation). The initial build exceeded the
+entry budget; deferred dashboard loading corrected this without raising budgets. Final focus/navigation
+changes passed fresh typecheck/build. `npm run test:integration` passed all 240 tests in the matching
+local validation copy; an initial fixture-creation failure was caused by the prior quota-exhaustion
+test and resolved by test ordering. The 189 executable/config/test files matched the checkout.
+Coverage includes all reader roles, staff/anonymous/revoked denial, actual publish/unpublish counts,
+publication mismatch/orphan failure, stale decision and evidence flags, 1,000-review totals/paging
+and overflow refusal. Full source/evidence is not read for summaries.
+
+Browser checks passed: two public review notices versus five total public resources, keyboard queue
+selection/focus, published and unfinished review detail navigation, reopening the active queue and
+capture draft retention across a different review. Only the temporary synthetic browser draft was
+removed; no saved review/publication records were changed. Screenshot: `.local/review-dashboard.png`.
+Independent multi-role and spoken accessibility acceptance remain pending.
+
+Preview is restored and running from `/private/tmp/privacypal-request-validation` at port 5173.
+Pre-test schema-11 backup was saved, verified and copied to this checkout:
+`.local/backups/2026-10-22T20-20-02-301Z-2b2fdc27-2b85-4591-9b2c-ca7e0320c9ba`.
+Save/verify before stopping the owned preview. Logs are `.local/review-dashboard-ci.log` and
+`.local/review-dashboard-integration.log`. Private backups/logs/screenshots remain untracked.
+
+---
+
+# Request dashboard restoration — October 22, 2026
+
+Development checkpoint on `codex/coordinated-milestone-2026-10-19`, following `a3d85ac`.
+Dashboard totals, reviewer attention and requester outcomes link into dedicated Requests / My Requests
+queues and selected request details. Counts cover the complete bounded request inventory, filtering
+before pagination and respecting each audience's archive. Errors show unavailable; no partial totals.
+See [request workflow](docs/request-workflow.md#request-dashboard--october-22).
+Review/publication summaries, review-specific attention and tier distributions remain pending.
+DPA automation, original project changes, main changes and deployment remain excluded.
+
+Validation: `npm run ci` passed in this checkout (550 tests, typecheck/build/isolation).
+`npm run test:integration` passed (238 tests) in `/private/tmp/privacypal-request-validation`
+after the synced-folder launcher stalled before emulator startup. All 185 executable/config/test
+files compared identically with the working checkout. Final role-change queue fallback passed
+fresh typecheck/build. Browser checks verified keyboard attention-row navigation and selected-detail
+focus, matching Decided queue, and request draft retention across dashboard navigation. Independent
+multi-role browser and assistive-technology acceptance remain pending. Screenshot `.local/request-dashboard.png`.
+
+The synthetic preview is restored and running at port 5173 from the validation copy. No request
+records were changed by the browser smoke check. Its pre-test backup was saved/verified and copied
+to this checkout at `.local/backups/2026-10-22T19-57-33-169Z-0ae16a02-b23a-4562-b3cb-1d1a854c5624`.
+Save/verify before stopping the owned preview. Logs are `.local/dashboard-ci.log` and
+`.local/dashboard-integration.log`; private artifacts remain untracked.
+
+---
+
+# Explicit public policy links — October 22, 2026
+
+The normal publication projection now allowlists a safe saved service `policyUrl`. Both the public
+notice and reviewer audience preview display it with a new-tab label and `noopener noreferrer`.
+Existing public records remain unchanged until explicit republishing. No private review lookup,
+URL guessing, fetching or DPA automation is added. The service form explains publication visibility.
+See [service detail](docs/service-detail.md#public-vendor-policy-link).
+
+Validation passed in the matching local source copy: `npm run ci` (548 tests, typecheck, build and
+isolation), `npm run test:integration` (236 tests), and focused missing-URL/no-private-fallback tests.
+The anonymous browser notice shows the policy link after an explicit normal publish command for
+the existing synthetic Cedar Browser QA review; all other public entries were verified unchanged.
+No external URL was fetched. Screenshot: `.local/public-policy-link.png`.
+
+The running preview remains `/private/tmp/privacypal-request-validation` at port 5173. Its latest
+verified schema-11 backup is `.local/backups/2026-10-22T19-35-04-646Z-14c2fc1c-96b9-4af6-bcc2-2f5ea4f3f182`.
+This checkpoint includes request workflows, public notice details, policy links and their updated
+documentation on `codex/coordinated-milestone-2026-10-19`. No main merge or deployment is included.
+Before this checkpoint, local main was `cb5bb04cde8d900f0376d11f5676369636845eae` and fresh remote
+main was `6edf69cf7b36a40a54fa5b335ed38b67e611e375`; both are left untouched.
+
+
+---
+
+# Public library detail interaction — October 22, 2026
+
+Cards now offer **View full notice**; Compact resource names open the same native modal dialog.
+It displays only the existing public projection: summary, scope, data involvement, conditions,
+parent permission, alternatives and district contact. Unknown fields remain explicitly unknown.
+The selected entry is derived from current public data, so updates stay current and withdrawal
+removes the dialog. Escape/Close returns focus; background interaction is blocked while open.
+No private-review fetch, authorization, projection, saved-data or DPA automation change was made.
+The subsequent policy-link increment above adds the explicit public projection contract; internal
+URLs are not fetched to fill gaps. Preview source was synced to the running local validation copy. `npm run ci` passed there
+(547 tests, typecheck, build and isolation). Browser checks passed for Cards and Compact opening,
+Escape and focus return. Screenshot: `.local/public-notice-detail.png`.
+
+---
+
+# Request lifecycle implementation — October 22, 2026
+
+Current branch remains `codex/coordinated-milestone-2026-10-19`; main remains
+`cb5bb04cde8d900f0376d11f5676369636845eae`. This implementation is included in the development
+checkpoint described above.
+
+[Request workflow](docs/request-workflow.md) documents the new server-owned request states,
+permissions, before/after history, actor receipts, revision checks, protected tab drafts and explicit
+retry reconciliation. Existing pending requests are adopted honestly on first command. Schema 11
+adds fenced request graph validation to backup/restore. DPA automation remains excluded.
+
+Implemented UI is in My workspace. Dashboard totals/attention queues, dedicated queue destinations,
+catalogue matching and a review picker/create-review handoff remain pending. Existing-review linking
+never approves or publishes a service. The parity checklist and improvement register are updated.
+
+Validation: `npm run ci` passed (545 tests plus typecheck/build/isolation); `npm run test:integration`
+passed (235 tests). Primary-checkout file reads stalled, so checks used
+`/private/tmp/privacypal-request-validation` with the matching installed dependencies. A Git-index
+hash comparison verified unchanged executable source against HEAD; every changed/new executable
+file was overlaid from this checkout. This is environment-specific validation, not a production trial.
+`npm run test:recovery` passed: schema-9 import and two schema-11 shutdown/import cycles,
+including exact document comparisons, preserved request receipts and maximum segmented storage.
+
+Browser smoke check passed in the restored preview: draft survives navigation/reload; create,
+claim and decline produce three ordered events. The fixture is named “Request lifecycle — synthetic
+check”; the earlier pending request and five public entries were preserved. Screenshot/logs remain
+private under `.local/request-workflow-validation-2026-10-22/`. The final spacing change passed
+fresh typecheck/build. The full independent multi-role browser checklist remains pending.
+
+Preview is running at `http://127.0.0.1:5173/` from
+`/private/tmp/privacypal-request-validation` using Node 24 and Java 21. It is a validated source copy,
+so later edits in this repository need to be synced before they appear there. The newest schema-11
+preview backup, including the synthetic request, is
+`.local/backups/2026-10-22T17-23-36-408Z-a1ea0494-3f97-4d1e-b2bd-a372f96f62e6`.
+Save and verify before stopping its owned emulator processes. Original local account passwords apply.
+
+The prior preview was saved and verified before stopping. Its unchanged schema-10 archive is
+`.local/backups/2026-10-22T17-10-58-850Z-2c4bb69b-6c4d-4e96-9130-898a96eca1c8`, backup identity
+`df00a8a6-cbb5-44e2-a291-dc77b755dbfd`. Keep it private. No original project or live provider was used.
+
+---
+
 # Component parity and next restoration — October 22, 2026
 
 The owner requested a component-by-component comparison after inspecting the local preview.

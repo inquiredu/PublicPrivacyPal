@@ -295,3 +295,48 @@ an aggregate score or approval. Source and dependency changes require a new revi
 The recorded Cedar suggestions, saved Lantern lab and offline segment tools demonstrate contracts and failure handling.
 They do not enable a live provider, automatic fetching or automatic acceptance of model findings.
 No production credentials or real policies are required for any step in this trial.
+
+## Request workflow increment
+
+Run the [request lifecycle acceptance checklist](request-workflow.md#independent-local-acceptance)
+with separate synthetic staff/reviewer/admin accounts. This adds states, permissions, private history,
+archive separation, draft continuity and response-loss reconciliation. Dashboard totals and dedicated
+queues are implemented locally; independent acceptance remains pending; do not mark the whole restoration milestone accepted from these tests.
+DPA automation remains excluded.
+
+### Request dashboard follow-up
+
+- [ ] With more than 20 synthetic requests, compare dashboard totals with all pages of each queue.
+- [ ] Open a total and an attention row using keyboard only; verify correct queue/detail and focus.
+- [ ] Verify staff/read-only reviewers see only their own totals; reviewers/admins see district work.
+- [ ] Archive independently in each audience; verify counts change in only the relevant view.
+- [ ] Claim/release/decide a request; return to Dashboard and verify refreshed totals/attention.
+- [ ] Interrupt API access: totals must say unavailable, never zero. Restore access and refresh.
+- [ ] Revoke membership and verify dashboard/detail access disappears. Navigate away from a partial
+      request/review draft and return; confirm text and unresolved command identity are preserved.
+
+Review/publication dashboard follow-up: complete the [dashboard acceptance checklist](review-dashboard.md#independent-acceptance), including publication totals, queue navigation and draft continuity.
+
+Tier/search follow-up: compare tier totals with queues, combine name/tier/attention filters across pages, test no matches and clear filters, then verify filter retention after opening review details.
+
+Request link follow-up: complete the existing-review picker and current staff-guidance acceptance in [request workflow](request-workflow.md#existing-review-picker-and-current-staff-guidance--october-26).
+
+## Request capture handoff acceptance (pending)
+
+- [ ] Submit as staff, claim as reviewer, inspect existing matches and choose Create review from request.
+      Verify name/purpose/reference context, empty policy text and no retrieval or approval.
+- [ ] Keep an unrelated capture draft; verify the action offers resume/resolve and never overwrites it.
+      Navigate/reload during capture and inspect/return to the originating request; verify exact text.
+- [ ] Capture a synthetic policy. Verify one review and linked request, no decision/publication/analysis.
+      Lose the response, reload and reconcile the same command; verify no duplicate.
+- [ ] Change assignment/revision before capture; verify complete rejection and preserved policy text.
+      Revoke membership or enter maintenance before save; verify denial and no orphan review.
+- [ ] Complete the separate evidence, district decision, publication, correction/withdrawal, fresh decision,
+      republication and independent archives workflow. Save/restore and compare both receipts/history.
+- [ ] Exercise keyboard, 320px/200% and spoken screen reader behavior in staff and reviewer roles.
+
+Maintainer follow-up (October 26): staff/admin keyboard, focus, draft navigation/stale resolution,
+capture/link, confirmed-save reload/return, staff privacy and 320px checks passed after focus/label
+fixes. This does not check the independent boxes above. Dedicated reviewer-only, spoken screen-reader,
+actual 200% zoom and interrupted-response browser checks remain unverified; see `HANDOFF.md` for
+observed tool limitations and separate automated evidence.

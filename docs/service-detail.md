@@ -59,7 +59,7 @@ inclusive in UTC. A declined decision remains recordable after evidence review d
 
 The preview and publication writer call the same explicit projection builder. The public projection
 adds only tier, grades, student-data involvement/categories, permitted-use/permission conditions and
-an alternative. The staff projection additionally selects support, age, curriculum, education notes,
+an alternative, plus the explicitly saved HTTP(S) vendor policy URL when present. The staff projection additionally selects support, age, curriculum, education notes,
 score and evidence coverage. Publication badges reflect acknowledged saved state.
 
 There is no time-triggered withdrawal job: a DPA becoming expired after publication needs operator
@@ -126,3 +126,15 @@ was discarded; no review, setting or publication was saved. Console checks retur
 errors. Private evidence is in `.local/validation/reviewer-ux/`. The existing 163 integration tests
 and two recovery cycles remain the earlier backend checkpoint; they were not rerun for this UI-only
 change. Owner acceptance and broader assistive-technology testing remain pending.
+
+## Public vendor-policy link
+
+The public notice and audience preview render `policyUrl` only from the explicit publication
+projection. A normal publish command copies a valid saved service reference URL; private reviews,
+source text and vendor-domain guesses are never fallback sources. Existing notices are not backfilled:
+they receive the link only when an authorized reviewer explicitly republishes. An empty/unsafe URL
+omits the link. Credential-bearing, non-HTTP(S), whitespace/control-containing and malformed URLs
+are rejected at display/projection boundaries. Links open a new tab with `noopener noreferrer`; no
+automatic fetch or policy analysis occurs. Service correction withdraws the old projection, and a
+fresh decision/publication is required for the changed URL. Unpublication removes the link with the
+notice. No DPA document generation, signing or delivery is introduced.

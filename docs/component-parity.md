@@ -20,8 +20,10 @@ were inspected for requests, publication and analysis. This is not an exhaustive
 - **P1:** next dashboard/request restoration milestone. **P2:** subsequent product parity work.
   Deferred integrations need their own scope; a checklist row does not authorize a provider or deployment.
 
-Inventory: **56 files — 10 present, 28 simplified, 18 missing**. These include utility files and
+Inventory: **56 files — 10 present, 29 simplified, 17 missing**. These include utility files and
 intentionally excluded DPA workflows; the totals are not a feature-completion percentage.
+
+October 22 implementation update: [request lifecycle foundation](request-workflow.md) adds server states, permissions, private history, retries and local controls. Request dashboard totals, attention queues and dedicated request navigation are implemented locally; review/publication totals and review attention queues are now implemented locally; tier distribution and combined review-name/tier/queue navigation are implemented locally.
 
 All rows are assessed; only unfinished restoration acceptance below uses unchecked boxes. Do not
 use file counts as a completion percentage. Four tab names do not establish full product parity.
@@ -32,10 +34,10 @@ complete-service tabs; this inventory adds source review, not a new full browser
 
 | Original component | Status | Current equivalent / observed scope | Remaining work / priority |
 | --- | --- | --- | --- |
-| [DashboardHub.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/DashboardHub.tsx) | Missing | No equivalent overview in `App.tsx` or `Reviews.tsx`. | P1: totals, actionable attention queue, tier distribution; score bands must not imply approval. |
+| [DashboardHub.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/DashboardHub.tsx) | Simplified | `RequestDashboard.tsx` / `ReviewDashboard.tsx`: bounded request/review counts, actual publication presence, attention and queue links. | Tier distribution and review-name/tier/queue filters restored; P2: broader review search; score bands must not imply approval. |
 | [InputDashboard.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/InputDashboard.tsx) | Simplified | `Reviews.tsx`: paste text/document sets or synthetic fixtures. | P2: guided intake and duplicate hints; URL discovery/live analysis and CSV batches remain gated. |
-| [ResultsDashboard.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/ResultsDashboard.tsx) | Simplified | `Reviews.tsx` / `ReviewCard.tsx`: paged cards and detail selection. | P1 search/filter navigation; P2 sorting, selection, reorder, CSV and batch commands. |
-| [FilterSidebar.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/FilterSidebar.tsx) | Simplified | `LibraryView.tsx`: public name/category search and tier filter; no reviewer facet sidebar. | P1 reviewer attention filters; P2 grade/data/curriculum facets with audience-safe fields. |
+| [ResultsDashboard.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/ResultsDashboard.tsx) | Simplified | `Reviews.tsx` / `ReviewCard.tsx`: paged cards and detail selection. | Dashboard name/tier/queue navigation restored; P2 sorting, selection, reorder, CSV and batch commands. |
+| [FilterSidebar.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/FilterSidebar.tsx) | Simplified | `LibraryView.tsx`: public name/category search and tier filter; no reviewer facet sidebar. | Dashboard reviewer attention filters restored; P2 grade/data/curriculum facets with audience-safe fields. |
 | [ToolCard.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/ToolCard.tsx) | Simplified | `ReviewCard.tsx`: publication, decision, coverage, score, tier and requirement warnings. | P2 restore review assignment, richer freshness/quality cues and safe batch entry points; no delete command. |
 | [CsvReviewModal.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/CsvReviewModal.tsx) | Missing | No CSV intake review/duplicate selection. | P2 after bounded batch contracts and failure reporting. |
 | [ImportReviewModal.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/ImportReviewModal.tsx) | Missing | JSON draft import exists, but is not CSV field-diff approval/import. | P2 explicit change preview, per-row errors and conflict/retry semantics. |
@@ -49,10 +51,10 @@ complete-service tabs; this inventory adds source review, not a new full browser
 
 | Original component | Status | Current equivalent / observed scope | Remaining work / priority |
 | --- | --- | --- | --- |
-| [RequestPortal.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/RequestPortal.tsx) | Simplified | `App.tsx` DistrictWork: tool name/purpose form, direct pending request creation. | P1 URL/context capture, library-match hints, protected draft and acknowledged submission. Quick AI is deferred. |
-| [RequestQueue.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/RequestQueue.tsx) | Simplified | DistrictWork lists district requests without workflow tabs or actions. | P1 Active / Decided / Archived queues, bounded paging and reviewer assignment. |
-| [RequestDetailModal.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/RequestDetailModal.tsx) | Missing | No detail, claim/release/takeover, rejection rationale or request-to-review handoff. | P1 server-owned lifecycle and accessible detail with explicit outcomes; no automatic publication. |
-| [MyRequests.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/MyRequests.tsx) | Simplified | DistrictWork lists own name/purpose/status only. | P1 requester detail/outcome, archive/restore and live status; preserve separate archive visibility. |
+| [RequestPortal.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/RequestPortal.tsx) | Simplified | `RequestPanel.tsx`: server submission, tool name/purpose/reference URL, tab-local drafts and receipt reconciliation. | P1 richer context and library-match hints; independent usability acceptance. Quick AI is deferred. |
+| [RequestQueue.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/RequestQueue.tsx) | Simplified | `RequestPanel.tsx`: bounded status/archive queues, assignment/actions and audience-specific archive visibility. | Active / Decided / Archived and status queues restored. P2 attributed priority field/filter remains absent. |
+| [RequestDetailModal.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/RequestDetailModal.tsx) | Simplified | `RequestPanel.tsx`: detail, claim/release/admin takeover, decline/link outcome, reopen and private history. | Existing-review search/picker, detail/return navigation and current staff guidance restored locally. P1 create-review handoff and independent accessibility acceptance remain. |
+| [MyRequests.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/MyRequests.tsx) | Simplified | `RequestPanel.tsx`: own details/outcomes, archive/restore and polled lists. | Dedicated destination and linked current staff guidance restored locally; request detail still refreshes explicitly. Independent acceptance remains. |
 | [StaffCatalogue.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/StaffCatalogue.tsx) | Simplified | DistrictWork + `ServiceNotice.tsx`: search and use guidance cards. | P1 link request matches to catalogue; P2 tier/consent filters, sort and detail dialog. |
 | [StaffToolCard.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/StaffToolCard.tsx) | Simplified | Staff service notice in cards; scope/conditions visible inline. | P2 restore dedicated detail interaction and review-context hierarchy. |
 | [StaffScoreBadge.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/StaffScoreBadge.tsx) | Simplified | `ServiceNotice.tsx` renders score and evidence context without the original confidence badge system. | P2 compare provenance/confidence semantics; retain score-is-not-permission wording. |
@@ -83,8 +85,8 @@ complete-service tabs; this inventory adds source review, not a new full browser
 | [LibraryFooter.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/LibraryFooter.tsx) | Present | `LibraryView.tsx` renders configured footer sections/contact. | Retain accessible headings and district-neutral text. |
 | [PublicLibrary.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/PublicLibrary.tsx) | Simplified | LibraryView uses narrow audience projections rather than the old full-tool library view. | P2 safe facets; never restore full internal records to anonymous users. |
 | [PublicToolCard.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/PublicToolCard.tsx) | Simplified | LibraryView + ServiceNotice render public cards/compact rows. | P2 details/tag browsing; tier editing remains private. |
-| [PublicNoticeLibrary.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/PublicNoticeLibrary.tsx) | Simplified | Search, tier filter, sort, cards/compact and footer exist. | P2 disclosure-basis filtering, detail dialogs and independently available public entry point. |
-| [PublicNoticeCard.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/PublicNoticeCard.tsx) | Simplified | Explicit disclosure fields shown inline. | P2 dedicated detail interaction and compare original disclosure/usage-mode distinctions. |
+| [PublicNoticeLibrary.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/PublicNoticeLibrary.tsx) | Simplified | Search, tier filter, sort, cards/compact, footer and public detail dialog exist. | Explicitly published vendor-policy links now appear in the detail dialog. P2 disclosure-basis filtering and independently available public entry point. |
+| [PublicNoticeCard.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/PublicNoticeCard.tsx) | Simplified | Concise cards open `PublicNoticeDetail.tsx`; full published summary, scope, data and conditions are disclosed with keyboard close/focus return. | Published policy-link contract is implemented; P2 compare original disclosure/usage-mode distinctions. |
 | [EmbedWizard.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/EmbedWizard.tsx) | Missing | No embed generator or supported separately hosted public entry. | P2 after independent public delivery and embedding policy/accessibility checks. |
 | [previewData.ts](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/previewData.ts) | Present | Authored synthetic fixtures and local bootstrap samples replace original preview examples. | Preserve synthetic-only public fixtures; do not import original preview records wholesale. |
 
@@ -92,7 +94,7 @@ complete-service tabs; this inventory adds source review, not a new full browser
 
 | Original component | Status | Current equivalent / observed scope | Remaining work / priority |
 | --- | --- | --- | --- |
-| [Header.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/Header.tsx) | Simplified | App shell: Public library / My workspace / Policy reviews / People & access / Settings. | P1 recognizable Dashboard / Requests / My Requests navigation; P2 remaining destinations. |
+| [Header.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/Header.tsx) | Simplified | App shell: Public library / My workspace / Policy reviews / People & access / Settings. | Dashboard / Requests / My Requests navigation restored; P2 remaining destinations. |
 | [LoginView.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/LoginView.tsx) | Simplified | Local email/password sign-in and operator-created synthetic accounts. | Hosted identity/Google sign-in is a separate production gate. |
 | [ContributorManagementModal.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/ContributorManagementModal.tsx) | Simplified | People & access manages explicit roles, revocation and protected initial admin. | Invitation/organization registration workflows absent; do not reintroduce self-claimed ownership. |
 | [AcceptInvitePage.tsx](https://github.com/inquiredu/privacypal/blob/adad00a05e67bf9ea88d145cf2e0a1100ec27889/components/AcceptInvitePage.tsx) | Missing | No invitation route or acceptance protocol. | Separate hosted identity/invitation design and tests. |
@@ -146,32 +148,34 @@ synthetic jobs are sufficient to prove the complete local request lifecycle.
 
 ### P1-0 — Agree the shared contract before UI writes
 
-- [ ] Define request identity, revision, requester scope, assignee, timestamps, outcome/reason,
+- [x] Define request identity, revision, requester scope, assignee, timestamps, outcome/reason,
   linked review ID and independent requester/admin archive fields. Preserve original attribution.
-- [ ] Define and test allowed transitions: pending → in review → decided; release returns to the
+- [x] Define and test allowed transitions: pending → in review → decided; release returns to the
   unassigned queue; reassignment/takeover has explicit authority and an audit reason. Decide reopen
   semantics explicitly instead of silently recycling an old outcome.
-- [ ] Distinguish request outcome, review finding, district use decision and publication. Linking
+- [x] Distinguish request outcome, review finding, district use decision and publication. Linking
   a request to a review must not grant approval or publish it. Several requests may link to one
   review without copying its private findings into requester-visible records.
 - [ ] Define a narrow requester outcome projection: status, appropriate reason, reviewer contact
   if configured, and allowed use guidance/link. Private evidence/rationale/other requesters stay private.
-- [ ] Move lifecycle writes behind authorized versioned commands with request-specific receipts,
+- [x] Move lifecycle writes behind authorized versioned commands with request-specific receipts,
   bounded history and draft protection. Existing `server/commands.ts` receipts assume a review ID;
   do not reuse them unchanged for request records. Recheck membership and maintenance in transactions.
-- [ ] Specify migration of today's pending requests and single `archived` flag. Preserve its
+- [x] Specify migration of today's pending requests and single `archived` flag. Preserve its
   requester meaning, do not manufacture historic decisions/assignees, and initialize admin archive
   separately. Add backup-reader/schema compatibility and recovery tests before new writes ship.
 
+Implemented contract details and remaining create-review handoff/guidance acceptance are recorded in [request workflow](request-workflow.md).
+
 ### P1-1 — Dashboard and find-work navigation
 
-- [ ] Restore Dashboard, reviewer Requests and staff My Requests destinations, keeping role-based
+- [x] Restore Dashboard, reviewer Requests and staff My Requests destinations, keeping role-based
   access and draft retention. Cards/queue rows open the existing authoritative review or request detail.
-- [ ] Add total reviews, actual publications, unassigned/in-review requests and actionable attention
-  categories (failed jobs, unfinished evidence, stale decisions, unmet service requirements).
-- [ ] Add tier distribution and optional descriptive score distribution. Unknown scores stay unknown;
+- [x] Add total reviews, actual publications, unassigned/in-review requests and actionable attention
+  categories (failed primary jobs, unfinished evidence, stale decisions, service requirement gaps at last save).
+- [x] Add tier distribution; optional descriptive score distribution remains deferred. Unknown scores stay unknown;
   no score band means approved. Label request counts separately from service/review counts.
-- [ ] Implement bounded summary queries/aggregates and matching filters. `Reviews.tsx` currently reads
+- [x] Implement bounded summary queries/aggregates and matching filters. `Reviews.tsx` currently reads
   pages of 20: never label the loaded page's count as an installation total or fetch all source/evidence
   documents to draw a dashboard. Define freshness/as-of semantics and prevent duplicate counts.
 - [ ] Verify empty/loading/error/revoked-access states and keyboard navigation. An unavailable query
@@ -179,18 +183,19 @@ synthetic jobs are sufficient to prove the complete local request lifecycle.
 
 ### P1-2 — Request submission and reviewer handling
 
-- [ ] Restore URL/context fields, existing-library suggestions and explicit continue-anyway behavior.
-  Suggestions use only the staff projection; similar names must not silently merge distinct tools.
-- [ ] Protect unsent drafts across navigation/reload and reconcile response loss after creation;
+- [x] Restore tool name, purpose and optional reference URL (recorded, never fetched).
+- [ ] Restore richer context, existing-library suggestions and explicit continue-anyway behavior.
+  Suggestions must use only the staff projection; similar names must not silently merge distinct tools.
+- [x] Protect unsent drafts across navigation/reload and reconcile response loss after creation;
   retrying the same submission creates one request, not duplicates.
-- [ ] Restore Active / Decided / Archived queues with paging, status/priority filters and detail view.
-  Priority is an explicitly attributed workflow field, not an AI risk or approval decision.
-- [ ] Implement claim, release and authorized takeover with revisions. Two reviewers racing to claim
+- [x] Restore Active / Decided / Archived queues with paging, status filters and detail view.
+- [ ] Add an explicitly attributed priority field/filter if needed; it is not an AI risk or approval decision.
+- [x] Implement claim, release and authorized takeover with revisions. Two reviewers racing to claim
   must see one winner and an actionable conflict; no last-write-wins ownership change.
 - [ ] Support explicit decline with reason and link/create review for further evidence work. Preserve
   a stable link and attribution without cloning a new review on every retry. Define how a later
   changed/withdrawn service decision affects the request's historical versus current use guidance.
-- [ ] Restore separate requester/admin archive and unarchive actions. Neither deletes the request,
+- [x] Restore separate requester/admin archive and unarchive actions. Neither deletes the request,
   changes its outcome nor hides it for the other audience. Email notification stays optional/deferred.
 
 ### P1-3 — Requester outcomes and integrated acceptance
@@ -231,3 +236,31 @@ weak write validation or publication success disconnected from actual audience r
 See [the improvement and backport register](public-improvements.md). It records what is new or
 stronger, which strengths were inherited, local evidence and limitations, and the dependencies of
 a possible original-project patch. No row authorizes editing, migrating or deploying the original.
+
+See [review dashboard](review-dashboard.md) for count semantics, limits and pending independent acceptance.
+
+## October 26 — request links increment
+
+Existing-review selection now uses bounded name search with explicit choice, distinguishing duplicate
+names by reference. Inspect/return navigation preserves the action draft and chosen reference.
+Recording the outcome still requires the assignee, a reason and the existing versioned command.
+Linked outcomes open current staff guidance from the staff projection only; withdrawal removes the
+shown guidance while preserving the historical request outcome. Unavailable/offline guidance is not
+presented as current. No private evidence lookup is used for requesters.
+
+Create-review handoff, submission catalogue suggestions, configured tier help and independent
+multi-role/accessibility acceptance remain pending. The P1-2/P1-3 composite acceptance boxes remain
+unchecked until the complete workflow is proven. No DPA automation is introduced.
+
+## October 26 — create-review handoff increment
+
+Assigned reviewers can prepare a protected capture draft from a request without overwriting an
+existing draft. Capturing policy and linking its review now commit atomically with revision/assignment
+checks and retry receipts. Request purpose/reference remain context; no URL retrieval, analysis,
+approval or publication occurs. See [request workflow](request-workflow.md#create-review-from-request--october-26).
+Submission catalogue suggestions, configured tier help and independent integrated acceptance remain
+pending; composite P1 acceptance boxes remain unchecked.
+
+Signed-in maintainer follow-up passed staff/admin capture-link and return navigation, stale-draft
+resolution, keyboard/focus, staff outcome privacy and 320px checks after focus/label fixes. Actual
+spoken/200% zoom, reviewer-only and independent acceptance remain open; see `HANDOFF.md`.

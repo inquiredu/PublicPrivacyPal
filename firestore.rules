@@ -48,21 +48,8 @@ service cloud.firestore {
             && d.updatedAt == request.time && d.updatedBy == request.auth.uid;
         }
       }
-      match /requests/{id} {
-        allow read: if reviews(districtId) || (belongs(districtId) && resource.data.requestedBy == request.auth.uid);
-        allow create: if writable() && belongs(districtId)
-          && request.resource.data.keys().hasAll(['toolName', 'purpose', 'requestedBy', 'status', 'createdAt', 'archived'])
-          && request.resource.data.keys().hasOnly(['toolName', 'purpose', 'requestedBy', 'status', 'createdAt', 'archived'])
-          && text(request.resource.data.toolName, 120) && text(request.resource.data.purpose, 2000)
-          && request.resource.data.requestedBy == request.auth.uid
-          && request.resource.data.status == 'pending'
-          && request.resource.data.createdAt == request.time
-          && request.resource.data.archived == false;
-        allow update: if writable() && belongs(districtId) && resource.data.requestedBy == request.auth.uid
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['archived'])
-          && request.resource.data.archived is bool;
-        // Review decisions and attributed history will use a server command in milestone 2.
-      }
+      // Request heads, history and actor receipts are API-only, including legacy records.
+      // Requester reads use a narrow projection; all writes require revision/receipt checks.
       match /reviews/{reviewId} {
         allow get: if hasRole(districtId, ['admin', 'reviewer', 'viewer']);
         allow list: if hasRole(districtId, ['admin', 'reviewer', 'viewer']) && request.query.limit <= 21;
