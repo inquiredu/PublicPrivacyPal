@@ -112,3 +112,6 @@ summary{cursor:pointer}
 .request-totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-block: 20px; }
 .request-totals button { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 20px; text-align: left; }
 .request-totals strong { font-size: 2rem; }
+
+.catalogue-suggestions { overflow-wrap: anywhere; }
+.catalogue-suggestions button { max-width: 100%; white-space: normal; }

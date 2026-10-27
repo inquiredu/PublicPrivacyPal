@@ -184,8 +184,9 @@ Implemented contract details and remaining create-review handoff/guidance accept
 ### P1-2 — Request submission and reviewer handling
 
 - [x] Restore tool name, purpose and optional reference URL (recorded, never fetched).
-- [ ] Restore richer context, existing-library suggestions and explicit continue-anyway behavior.
-  Suggestions must use only the staff projection; similar names must not silently merge distinct tools.
+- [x] Add staff-projection-only catalogue name suggestions with explicit continue-anyway submission.
+  Similar names never merge distinct tools; publication guidance remains separate from requesting.
+- [ ] Restore any additional request context justified by independent usability acceptance.
 - [x] Protect unsent drafts across navigation/reload and reconcile response loss after creation;
   retrying the same submission creates one request, not duplicates.
 - [x] Restore Active / Decided / Archived queues with paging, status filters and detail view.
@@ -264,3 +265,10 @@ pending; composite P1 acceptance boxes remain unchecked.
 Signed-in maintainer follow-up passed staff/admin capture-link and return navigation, stale-draft
 resolution, keyboard/focus, staff outcome privacy and 320px checks after focus/label fixes. Actual
 spoken/200% zoom, reviewer-only and independent acceptance remain open; see `HANDOFF.md`.
+
+## October 26 — submission catalogue suggestions
+
+The request form now pauses for bounded, paged staff-projection-only name hints and inline current
+use guidance. Continue-anyway explicitly submits a separate request in loading/error/empty/matched
+states; inspection never submits or links anything. Request drafts and retry contracts are preserved.
+Configured tier help and independent integrated acceptance remain pending. See [request workflow](request-workflow.md#submission-catalogue-suggestions--october-26).

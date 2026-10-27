@@ -19,7 +19,7 @@ is recorded, never fetched. The server sets requester identity, time and initial
 | Archive/restore reviewer view | Reviewer or administrator | Changes only the district reviewer archive flag |
 
 A linked review is a work reference, **not service approval or publication**. The request command
-cannot alter scores, decisions, catalogue entries or public projections. Request-to-new-review capture/link is implemented below. Automatic duplicate matching remains pending. Reviewers now search existing review names, explicitly
+cannot alter scores, decisions, catalogue entries or public projections. Request-to-new-review capture/link is implemented below. Submission name hints now use the published staff catalogue only; they do not establish duplicate identity. Reviewers now search existing review names, explicitly
 select a review and inspect it with a return-to-request action; selection is preserved in the action draft. No AI dispatch occurs in these commands.
 
 Staff and read-only reviewers see their own requests and current outcomes through explicit projections.
@@ -78,7 +78,7 @@ Use synthetic accounts and records only:
 - [ ] Save, shut down and restore using the runbook; verify history and receipt reconciliation.
 
 Implemented: request dashboard totals/attention queues backed by complete bounded data and
-Active/Decided/Archived navigation. Next: submission catalogue-match suggestions; broader keyboard and
+Active/Decided/Archived navigation. Next: configured tier help; broader keyboard and
 assistive-technology acceptance. Automated tests do not replace this independent walkthrough.
 
 
@@ -151,8 +151,7 @@ has no district decision, publication or dispatched analysis. Fixture analysis a
 perform this handoff. Existing schema-11 request history and normal review receipt formats are reused.
 
 Intentional change from the original: automatic URL discovery/model execution and later promotion are
-replaced with explicit policy capture and an atomic work link. Staff catalogue suggestions and configured
-tier help remain separate work. Maintainer tests do not establish independent browser/accessibility acceptance.
+replaced with explicit policy capture and an atomic work link. Configured tier help remains separate work. Maintainer tests do not establish independent browser/accessibility acceptance.
 
 
 Validation for this increment: 554 unit/isolation tests, typecheck/build/bundle guards, 241 emulator
@@ -177,3 +176,47 @@ Spoken VoiceOver could not be tested because native control of the app window wa
 by the browser guard; navigation retention/unit rehydration and post-save reload passed. Receipt
 response-loss/revocation/concurrency remain emulator evidence, not browser fault-injection results.
 See `HANDOFF.md` for the exact synthetic records, private screenshots and new verified backup.
+
+## Submission catalogue suggestions — October 26
+
+**Review catalogue before submitting** validates the request form and opens a separate suggestion
+step. No request is created by checking names or inspecting guidance. **Continue anyway and submit
+request** explicitly creates a separate pending request through the existing journal/command flow.
+The choice remains available while loading and after unavailable/overflow results. **Keep editing
+request** returns focus to the name field; all request text stays intact. Inputs remain editable and
+continuing revalidates the current fields. Navigation/reload retains the form but requires a new
+catalogue check; no previously selected continuation automatically submits anything.
+
+Only `districts/{districtId}/staffTools` is read under the existing membership rules. There is no
+private review search, tool lookup, URL/domain lookup, fetching or AI dispatch. The subscription
+requests at most 1,001 entries; more than 1,000 refuses partial suggestions. Valid results are
+allowlisted before rendering, matched across the whole bounded inventory, and paged ten at a time.
+Case/punctuation/Unicode-width normalized literal name containment ranks exact names first; duplicate
+names retain distinct document references. Unlike the original's broader token/fuzzy matching, these
+are deliberately simple name hints, not identity or completeness claims. Even no matches requires an
+explicit continuation and does not imply the service was never reviewed.
+
+Each hint can expand current staff guidance inline, preserving request text and showing permitted
+use/conditions where published. Name similarity or a score never confers permission; suggestion
+cards omit scores. Withdrawal removes the hint/guidance on the next subscription snapshot. Cached,
+failed or malformed reads clear displayed guidance and explain that current suggestions cannot be
+verified. Retrying a check never retries a request mutation. Submission and its receipts remain
+independent of catalogue availability. No request, authorization-rule or backup-schema changes.
+
+Acceptance to record separately:
+- [ ] As staff, check a matching name and inspect use conditions; verify no request exists yet.
+- [ ] Keep editing, change name/purpose/reference and confirm text remains; check again.
+- [ ] Continue despite matches and despite no matches; verify one separate pending request.
+- [ ] Try duplicate names and more than ten matches; verify full matching counts and paging.
+- [ ] Withdraw a hint/revoke access/disconnect while expanded; verify guidance disappears or is
+      clearly unavailable, with no private fallback and request text preserved.
+- [ ] Check keyboard focus/Enter, 320px, actual zoom and spoken screen-reader behavior. Prior
+      spoken/zoom/independent acceptance limits remain open until actually exercised.
+
+Validation: 558 unit/isolation tests, typecheck/build/bundle/source guards and 242 emulator integration
+tests passed. Maintainer staff browser checks passed matching/expanded guidance, no-match messaging,
+draft preservation/return focus, invalid edited URL revalidation, Enter/heading focus, 320px reflow and
+one explicit continue-anyway submission. Browser paging/overflow/outage/withdrawal/revocation, real
+zoom, spoken screen-reader and independent acceptance remain unverified. These browser limits do
+not replace the separate matching/bounds regressions and role/revocation/withdrawal emulator evidence.
+See `HANDOFF.md` for the new synthetic request, saved preview and verified backup.

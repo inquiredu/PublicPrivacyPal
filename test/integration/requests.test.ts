@@ -9,7 +9,7 @@ import { readFileSync } from 'node:fs';
 import { once } from 'node:events';
 import type { DecodedIdToken } from 'firebase-admin/auth';
 import { initializeTestEnvironment, assertFails, type RulesTestEnvironment } from '@firebase/rules-unit-testing';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, query, limit, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
 import { loadConfig } from '../../server/config.ts';
 import { localServices, type Services } from '../../server/firebase.ts';
 import { bootstrap } from '../../server/operations.ts';
@@ -166,6 +166,32 @@ test('heads, history and receipts deny direct browser reads and writes for every
       await assertFails(getDoc(doc(db, path))); await assertFails(setDoc(doc(db, path), { forged: true }));
     }
   }
+});
+test('catalogue suggestion reads use only current staff projections and enforce membership for every role', async () => {
+  const projection = s.db.doc(`${base}/staffTools/suggestion-test`);
+  const privateRef = s.db.doc(`${base}/reviews/suggestion-private`);
+  await projection.set({ name: 'Synthetic catalogue hint', summary: 'Only published guidance', category: 'Practice', conditions: 'Teacher supervised' });
+  await privateRef.set({ name: 'Synthetic catalogue hint', sourceText: 'Private policy evidence' });
+  try {
+    for (const actor of [admin, reviewer, viewer, staff]) {
+      const db = env.authenticatedContext(actor.uid, { email: actor.email, email_verified: true }).firestore();
+      const snap = await getDocs(query(collection(db, `${base}/staffTools`), limit(1001)));
+      const hint = snap.docs.find(d => d.id === 'suggestion-test')!;
+      assert.equal(hint.get('conditions'), 'Teacher supervised'); assert.equal(hint.get('sourceText'), undefined);
+    }
+    const anonymousDb = env.unauthenticatedContext().firestore();
+    await assertFails(getDocs(query(collection(anonymousDb, `${base}/staffTools`), limit(1001))));
+    const nonmemberDb = env.authenticatedContext('no-membership', { email: 'unknown@school.example', email_verified: true }).firestore();
+    await assertFails(getDocs(query(collection(nonmemberDb, `${base}/staffTools`), limit(1001))));
+    const staffDb = env.authenticatedContext(staff.uid, { email: staff.email, email_verified: true }).firestore();
+    await assertFails(getDoc(doc(staffDb, privateRef.path)));
+    await s.db.doc(`${base}/members/${staff.uid}`).update({ active: false });
+    try { await assertFails(getDocs(query(collection(staffDb, `${base}/staffTools`), limit(1001)))); }
+    finally { await s.db.doc(`${base}/members/${staff.uid}`).update({ active: true }); }
+    await projection.delete();
+    const current = await getDocs(query(collection(staffDb, `${base}/staffTools`), limit(1001)));
+    assert.equal(current.docs.some(d => d.id === 'suggestion-test'), false, 'Withdrawal cannot fall back to a matching private review');
+  } finally { await projection.delete(); await privateRef.delete(); }
 });
 test('schema 11 backup validates request chain and receipts; old schema cannot hide new records', async () => {
   await fenced(async lock => { assert.equal((await validateRequestInstallation(s, lock)).hasArtifacts, true); });

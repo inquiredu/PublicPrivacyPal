@@ -1,3 +1,4 @@
+import { RequestCatalogueSuggestions } from './RequestCatalogueSuggestions';
 import { RequestCreateReview } from './RequestCreateReview';
 import type { Client } from './firebase';
 import { RequestReviewPicker } from './RequestReviewPicker';
@@ -14,6 +15,9 @@ const emptyForm = { toolName: '', purpose: '', requestedUrl: '' };
 const explain = (e: unknown) => e instanceof Error ? e.message : 'Request service unavailable.';
 
 export function RequestPanel({ client, onOpenReview, onCreateReview, user, role, scope, initialQueue = 'active', initialId }: { client: Client; onCreateReview: (requestId: string) => void; onOpenReview: (id: string, requestId: string) => void; user: User; role: Role; scope: string; initialQueue?: RequestQueue; initialId?: string }) {
+  const [checkingCatalogue, setCheckingCatalogue] = useState(false);
+  const requestForm = useRef<HTMLFormElement>(null);
+  const nameField = useRef<HTMLInputElement>(null);
   const detailHeading = useRef<HTMLHeadingElement>(null);
   const openSequence = useRef(0);
   useEffect(() => () => { openSequence.current++; }, []);
@@ -55,6 +59,7 @@ export function RequestPanel({ client, onOpenReview, onCreateReview, user, role,
   useEffect(() => { if (selected) detailHeading.current?.focus(); }, [selected?.id, selected?.revision]);
   function accepted(r: RequestView, pending: NonNullable<RequestJournal['pending']>) {
     persist({ ...journal, pending: null, form: pending.path === '/api/requests' ? emptyForm : journal.form });
+    if (pending.path === '/api/requests') setCheckingCatalogue(false);
     setSelected(r); setHistory([]); setHistoryCursor(null); setReload(n => n + 1); setNotice('Request change saved. A request outcome does not approve or publish a service.'); setFailed(false); setRetryReady(false);
   }
   async function send(pending: NonNullable<RequestJournal['pending']>) {
@@ -93,14 +98,15 @@ export function RequestPanel({ client, onOpenReview, onCreateReview, user, role,
       {retryReady && <button disabled={busy} onClick={() => void send(journal.pending!)}>Retry same request command</button>}
       {failed && <button onClick={() => { try { persist({ ...journal, pending: null }); setFailed(false); } catch (e) { setStorageError(explain(e)); } }}>Keep text and clear rejected command</button>}
     </div>}
-    <form onSubmit={(e: FormEvent) => { e.preventDefault(); void start(journal.form, '/api/requests'); }}>
+    <form ref={requestForm} onSubmit={(e: FormEvent) => { e.preventDefault(); setCheckingCatalogue(true); }}>
       <fieldset disabled={locked}><legend>Request a tool</legend>
-        <label>Tool name<input required maxLength={120} value={journal.form.toolName} onChange={e => draft({ toolName: e.target.value })}/></label>
+        <label>Tool name<input ref={nameField} required maxLength={120} value={journal.form.toolName} onChange={e => draft({ toolName: e.target.value })}/></label>
         <label>How would you use it?<textarea required maxLength={2000} value={journal.form.purpose} onChange={e => draft({ purpose: e.target.value })}/></label>
         <label>Reference URL (optional; never fetched)<input type="url" maxLength={2000} value={journal.form.requestedUrl} onChange={e => draft({ requestedUrl: e.target.value })}/></label>
-        <button>Submit request</button>
+        <button>Review catalogue before submitting</button>
       </fieldset>
     </form>
+    {checkingCatalogue && <RequestCatalogueSuggestions client={client} name={journal.form.toolName} locked={locked} onEdit={() => { setCheckingCatalogue(false); nameField.current?.focus(); }} onContinue={() => { if (requestForm.current?.reportValidity()) void start(journal.form, '/api/requests'); }}/>}
     <h3>{reviewer ? 'District requests' : 'Your requests'}</h3>
     <label>Request queue<select value={queue} onChange={e => { setQueue(e.target.value as RequestQueue); setCursor(undefined); setItems([]); setLoading(true); }}>{requestQueues.filter(q => reviewer || q !== 'assigned').map(q => <option key={q} value={q}>{queueLabels[q]}</option>)}</select></label>
     {listError ? <p role="alert">Requests unavailable: {listError}</p> : loading ? <p role="status">Loading requests…</p> : !items.length && <p>No requests in this queue on this page.</p>}

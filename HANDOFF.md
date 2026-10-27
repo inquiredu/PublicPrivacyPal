@@ -1,3 +1,54 @@
+# Staff catalogue suggestions checkpoint — October 26, 2026
+
+This checkpoint packages staff catalogue suggestions on `codex/coordinated-milestone-2026-10-19`,
+based on `92becc0`. The owner authorized committing and pushing this increment; the remaining
+acceptance checks below stay open. Fresh remote inspection found `92becc0` already included in
+remote main through PR #4 (`5d028eb`) and the remote development branch deleted. The same development
+branch is being recreated for this checkpoint without switching to or merging main. Local main
+remains `cb5bb04`; remote main and district/original systems are unchanged by this work.
+
+Request submission now opens staff-projection-only catalogue hints before any request write. Name
+hints use normalized literal containment, exact-first sorting, a 1,000-entry supported inventory and
+ten-result pages. Similar names never merge/link records. Inline staff guidance uses an allowlist
+and clears on cache/error/withdrawal snapshots. Continue anyway explicitly submits a separate request
+in matched/unmatched/loading/error/overflow states; fields are revalidated and the existing request
+journal/receipt contract is unchanged. Keep editing restores focus and preserves text. No private
+review lookup, URL retrieval, AI call, publication, new API, rule or backup schema is introduced.
+
+`npm run ci` passed **558 unit/isolation tests**, TypeScript, build/bundle/source guards.
+`npm run test:integration` passed **242 tests**, including staff/viewer/reviewer/admin catalogue
+reads, anonymous/nonmember/revoked denial, withdrawal and no private-review fallback. Tests ran
+serially in the matching temporary validation copy after the preview backup/shutdown; dependencies
+remain that copy's own pinned install. Final button-label cleanup passed fresh typecheck/build.
+Private logs: `.local/catalogue-suggestions-ci.log`, `.local/catalogue-suggestions-integration.log`,
+`.local/catalogue-suggestions-final-build.log`; screenshot `.local/catalogue-suggestions-staff.png`.
+
+Maintainer staff browser checks passed: matching Cedar hint; expanded actual permitted-use/parent
+permission conditions; no request before explicit continuation; no-match wording; Keep editing/name
+focus and exact purpose/reference retention; invalid edited URL denied/focused before submission;
+keyboard Enter; heading focus and 320px reflow without horizontal overflow. Explicit continuation
+created exactly one new synthetic **Cedar** pending request, identified by purpose
+“Synthetic catalogue-suggestion check: similar name, different classroom context.” No existing
+requests/reviews/publications were changed. The original five public resources remain intact.
+Temporary inspection text was cleared by deliberate sign-out after the walkthrough; preview is signed out.
+
+Browser paging/overflow, network fault injection, live expanded-guidance withdrawal and revocation,
+real 200% zoom, spoken screen-reader and independent acceptance remain unverified. Paging/overflow
+have pure regression coverage; role/revocation/withdrawal have emulator evidence, not a browser pass.
+No fresh recovery rehearsal was needed: this increment adds no stored format or mutation contract.
+Previous create-review recovery evidence remains separately dated below. Configured tier help is
+next implementation work, followed by the full independent integrated workflow trial.
+
+Preview runs at `http://127.0.0.1:5173/` from `/private/tmp/privacypal-request-validation`.
+Pre-test archive was saved/verified and copied into this checkout:
+`.local/backups/2026-10-27T02-50-49-526Z-5cab4cb2-c6c9-44ae-af49-068a961e6895`.
+Latest schema-11 archive includes the new pending request and was saved, verified, copied and
+verified again: `.local/backups/2026-10-27T02-55-56-845Z-aa4fa4a1-80f9-4c76-981e-f8aeb1b8d40c`.
+Keep earlier archives; save again before shutdown after further changes. Runtime log:
+`.local/catalogue-suggestions-preview.log`. Private artifacts remain untracked.
+
+---
+
 # Signed-in create-review UI checkpoint — October 26, 2026
 
 This development checkpoint packages the create-review handoff and signed-in UI fixes, based on

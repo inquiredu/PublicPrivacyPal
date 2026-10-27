@@ -340,3 +340,12 @@ capture/link, confirmed-save reload/return, staff privacy and 320px checks passe
 fixes. This does not check the independent boxes above. Dedicated reviewer-only, spoken screen-reader,
 actual 200% zoom and interrupted-response browser checks remain unverified; see `HANDOFF.md` for
 observed tool limitations and separate automated evidence.
+
+Submission follow-up: complete [catalogue suggestion acceptance](request-workflow.md#submission-catalogue-suggestions--october-26).
+Check matching and unmatched names, inspect current guidance without a request write, preserve the
+form on return, and explicitly continue anyway to create one separate request. Include unavailable,
+withdrawn and revoked cases; name hints must never become approval or expose private review data.
+
+Maintainer suggestion checks (October 26) passed staff matching/inline conditions, unmatched hints,
+form retention, invalid-URL focus, explicit submission, keyboard and 320px reflow. Independent boxes
+remain open; browser fault/withdrawal/revocation and spoken/zoom acceptance were not exercised.
