@@ -1,3 +1,4 @@
+import { prepareCreatedReviewLink } from './requests.ts';
 import { LONG_BUNDLE_VERSION } from '../shared/source-segments.ts';
 import { prepareSegmentedAction, verifiedSegmentedProposal } from './segmented-reviews.ts';
 import type { SegmentedReceiptEffect } from '../shared/segmented-assistance.ts';
@@ -88,6 +89,8 @@ export async function createReview(s: Services, actor: DecodedIdToken, raw: unkn
   return s.db.runTransaction(async tx => {
     await authorize(s, tx, actor, true);
     const replay = await replayCommand(s, tx, actor, command); if (replay) return replay;
+    if (input.requestHandoff && (imported || !command || !('sourceKind' in input))) throw new HttpError(400, 'Request handoff requires captured policy text and a command identity.');
+    const link = input.requestHandoff ? await prepareCreatedReviewLink(s, tx, actor, input.requestHandoff, id, command!) : undefined;
     const counter = s.db.doc(`districts/${s.config.districtId}/reviewCounters/current`);
     const count = await tx.get(counter);
     if (!count.exists && !(await tx.get(reviews(s).limit(1))).empty) throw new HttpError(409, 'Run the local review storage migration.');
@@ -112,8 +115,8 @@ export async function createReview(s: Services, actor: DecodedIdToken, raw: unkn
       job: { ...job(actor), ...(pasted ? { status: 'awaiting_review' as const, attempt: 0 } : {}) },
       createdAt: capturedAt, updatedAt: capturedAt,
     };
-    spend?.(); tx.set(counter, { count: total + 1 }); writeReview(s, tx, r);
-    event(s, tx, r, imported ? 'imported_as_draft' : pasted ? 'policy_captured' : 'analysis_queued', actor.uid, { sourceHash: r.sourceHash, sourceVersion: r.sourceVersion, sourceLabel: r.sourceLabel });
+    link?.commit(); spend?.(); tx.set(counter, { count: total + 1 }); writeReview(s, tx, r);
+    event(s, tx, r, imported ? 'imported_as_draft' : pasted ? 'policy_captured' : 'analysis_queued', actor.uid, { sourceHash: r.sourceHash, sourceVersion: r.sourceVersion, sourceLabel: r.sourceLabel, ...(link ? { requestContext: link.context } : {}) });
     recordCommand(s, tx, actor, r, command);
     return r;
   });

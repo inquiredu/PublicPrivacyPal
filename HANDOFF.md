@@ -1,3 +1,96 @@
+# Signed-in create-review UI checkpoint — October 26, 2026
+
+This development checkpoint packages the create-review handoff and signed-in UI fixes, based on
+`bac66bd` on `codex/coordinated-milestone-2026-10-19`. The owner authorized committing and pushing
+this branch. Earlier uncommitted checkpoint notes below are historical; main and district systems
+remain outside this checkpoint. Accessibility limits below remain open.
+
+Maintainer browser checks now cover synthetic staff submission, administrator assignment, keyboard
+handoff activation, carried request context with empty policy evidence, protected draft resume,
+navigation retention, stale-save rejection, explicit revision refresh retaining source text, capture/link,
+confirmed-save reload and saved return navigation, and staff outcome privacy. The new private
+practice review has no decision or publication; the public library still has five resources.
+
+Fixed observed focus loss after request actions and rejected review saves. Updated request revisions
+focus the selected heading; completed non-success save feedback receives focus; a new h2 focuses
+on request-capture entry. Policy text now has a concise accessible name and a separate help description.
+Retests passed for those fixes. Keyboard Tab/Enter, sign-out dialog initial focus/Escape/return,
+headings/labels/status semantics and 320-CSS-pixel reflow were checked. Modal Escape preserved exact
+unsaved text. Temporary modal text was cleared and the browser finished signed out.
+
+Scope limits: the acting reviewer was the administrator role, not a separate reviewer-only account.
+This is maintainer QA, not independent acceptance. A guarded unfinished-draft scripted reload was
+cancelled by the in-app browser; navigation retention and unit draft-rehydration tests passed, and
+reload after confirmed capture passed. Lost-response/concurrent/revoked cases retain the preceding
+241-test emulator evidence; no browser network fault injection was performed. Native control of the
+app window was refused by the computer-use tool, so spoken VoiceOver output was not verified. Browser
+zoom shortcuts had no effect (measured viewport/pixel ratio unchanged), so actual 200% zoom remains
+unverified. Do not convert these limits into accessibility acceptance claims. One transient development
+hot-update context error cleared on full reload; no source change was needed for that development-only
+remount. The subsequent staff and public navigation completed normally.
+
+Fresh `npm run ci` passed: **554 tests**, TypeScript, build/bundle and isolation checks.
+Only browser focus/markup changed in this follow-up; the preceding 241 integration tests and two
+schema-11 recovery cycles remain its server/storage evidence. Private notes/screenshots/log:
+`.local/request-handoff-ui.md`, `.local/request-handoff-ui-reviewer.png`,
+`.local/request-handoff-ui-staff.png`, `.local/request-handoff-ui-ci.log`.
+
+Created exactly one synthetic request, **Willow handoff — synthetic accessibility QA**
+(`bc568931-fd4e-467c-97ee-39236ba53e65`, revision 7), and one private eight-measure review
+(`0e65b931-d322-4c70-9f21-4de496f79f19`). Archive/restore checks affected only that request;
+both audience archive flags finish false. Existing requests/reviews/publications were preserved.
+
+Preview remains running at `http://127.0.0.1:5173/` from `/private/tmp/privacypal-request-validation`.
+Latest whole-installation schema-11 backup was saved, verified, copied into this checkout and verified
+again: `.local/backups/2026-10-27T02-34-16-628Z-41a0c562-c0e0-4b74-b5b7-61b3b5006c76`.
+It includes the new QA request/review. Retain earlier backups; save again before shutdown after changes.
+Submission catalogue suggestions and configured tier help remain next implementation work; reviewer-only,
+spoken/zoom and independent integrated acceptance remain explicit outstanding checks. District and
+original systems remain untouched. No live provider calls or DPA automation.
+
+---
+
+# Create-review handoff checkpoint — October 26, 2026
+
+Current working tree: `codex/coordinated-milestone-2026-10-19`, based on `bac66bd`.
+This increment is implemented and validated locally, **uncommitted and unpushed**. The older
+checkpoint below describes the preceding state; its create-review recommendation is superseded here.
+
+Assigned reviewers now prepare a protected capture draft from a request. Existing drafts offer
+resume/resolve; a stale revision can explicitly be refreshed while retaining policy text. Request name,
+purpose and reference URL remain context, with empty policy evidence fields. Saving pasted/bundled
+policy atomically creates the review and links the request, including both histories and receipts.
+Assignment/revision/member/maintenance/capacity checks fence all writes. Same-command retries return
+one review; failed or competing commands cannot leave an orphan. Request attribution is copied from
+the authoritative request into private review capture history. No URL fetch, live analysis, approval
+or publication occurs. Normal schema-11 request and review storage formats are reused.
+
+`npm run ci` passed: **554 unit/isolation tests**, TypeScript, build/bundle/source guards.
+`npm run test:integration` passed **241 tests**, including concurrent handoff retries, lost response
+reconciliation, stale assignment, revoked/staff/viewer denial, maintenance and no publication effects.
+`npm run test:recovery` passed a schema-9 import and **two schema-11 shutdown/import cycles**,
+including exact document comparisons and replay of the new atomic handoff without further writes.
+Integration/recovery used `/private/tmp/privacypal-request-validation` with matching executable source
+and its own pinned dependencies after the primary synced-folder launcher stalled. Private logs:
+`.local/request-create-ci.log`, `.local/request-create-integration.log`, `.local/request-create-recovery.log`.
+
+The preview has been restored at `http://127.0.0.1:5173/` from that validation copy, using the
+newly saved/verified pre-test backup copied into the authoritative checkout:
+`.local/backups/2026-10-27T02-08-23-506Z-6f3ffaa4-66e5-4666-b304-c9fdc462aa3b`.
+This remains schema 11 and includes the preceding synthetic request picker QA data. Five public
+resources were observed after restoration. No saved preview records were changed in this increment.
+Save/verify again if subsequent work changes it before shutdown. Runtime log: `.local/request-create-preview.log`.
+
+New signed-in handoff UI, narrow-screen and spoken accessibility acceptance are **not run** in this
+checkpoint. Browser discovery stalled; only the restored anonymous library was checked. The detailed
+request handoff trial is appended to `docs/independent-trial.md`. Complete that browser acceptance,
+then implement submission catalogue suggestions and configured tier help before the integrated
+staff-to-review/publication/correction/archive trial. This remains a local development increment,
+not release readiness or independent acceptance. Main, original systems and district project remain
+untouched. DPA automation, provider calls, deployment and main merge remain excluded.
+
+---
+
 # Fresh-session handoff — October 26, 2026
 
 ## Start here

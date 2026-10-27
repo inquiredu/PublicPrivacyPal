@@ -1,3 +1,4 @@
+import { requestHandoffSchema } from './requests';
 import { humanSourceReviewSchema, type HumanSourceReview } from './source-segments.ts';
 import { segmentedActionSchemas, segmentedProposalRefSchema, type SegmentedProvenance, type SegmentedReviewMarker } from './segmented-assistance.ts';
 import { serviceEditSchema, type ServiceRecord } from './service.ts';
@@ -14,7 +15,7 @@ export { criteria } from './scoring/profiles.ts';
 export const PROFILE_VERSION = 'community-demo-v1'; // Legacy records without a profile stay on this version.
 export const fixtureIds = ['complete', 'gaps', 'retry'] as const;
 export const MAX_REVIEW_IMPORT_BYTES = 2 * 1024 * 1024;
-const reviewFields = { serviceSettingsRevision: z.number().int().positive().optional(), name: z.string().trim().min(1).max(120), profileVersion: z.enum(profileVersions).default(DEFAULT_PROFILE) };
+const reviewFields = { requestHandoff: requestHandoffSchema.optional(), serviceSettingsRevision: z.number().int().positive().optional(), name: z.string().trim().min(1).max(120), profileVersion: z.enum(profileVersions).default(DEFAULT_PROFILE) };
 export const fixtureReviewSchema = z.object({ ...reviewFields, fixtureId: z.enum(fixtureIds) }).strict();
 export const pastedReviewSchema = z.object({ ...reviewFields, sourceKind: z.literal('pasted'), sourceLabel: z.string().trim().min(1).max(160), sourceText: policyTextSchema }).strict();
 export const districtReviewSchema = pastedReviewSchema.omit({ profileVersion: true }).extend({ rubricMode: z.literal('district'), settingsRevision: z.number().int().positive(), engineVersion: z.enum(['upstream-weighted-v1', 'evidence-weighted-v1']) }).strict().transform(i => ({ ...i, profileVersion: i.engineVersion === 'upstream-weighted-v1' ? 'community-demo-v1' as const : 'community-evidence-v1' as const }));

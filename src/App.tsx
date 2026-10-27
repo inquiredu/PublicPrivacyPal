@@ -1,6 +1,5 @@
 import { RequestDashboard } from './RequestDashboard';
 import type { RequestQueue } from '../shared/request-dashboard';
-import { RequestPanel } from './RequestPanel';
 import { clearRequestDrafts, hasRequestDrafts } from './request-journal';
 import { ServiceNotice } from './ServiceNotice';
 import { DraftProvider } from './ReviewDrafts';
@@ -16,6 +15,7 @@ import { collection, doc, onSnapshot, updateDoc, serverTimestamp } from 'firebas
 import { connectLocal, type Client } from './firebase';
 import { roles, type Role } from '../shared/config';
 
+const RequestPanel = lazy(() => import('./RequestPanel').then(m => ({ default: m.RequestPanel })));
 const ReviewDashboard = lazy(() => import('./ReviewDashboard').then(m => ({ default: m.ReviewDashboard })));
 const Reviews = lazy(() => import('./Reviews').then(m => ({ default: m.Reviews })));
 const Settings = lazy(() => import('./Settings').then(m => ({ default: m.Settings })));
@@ -148,10 +148,10 @@ function Workspace({ client }: { client: Client }) {
         {currentTab === 'library' && <>{libraryError && <Notice>{libraryError}</Notice>}{library ? <LibraryView settings={library} profiles={profiles} onCustomize={member?.role === 'admin' ? () => { setTab('settings'); setCustomizeRequest(n => n + 1); } : undefined}/> : !libraryError && <p role="status">Loading library settings…</p>}{!user && <Login client={client}/>}</>}
         {member?.role === 'admin' && user && (currentTab === 'settings' || settingsOwner === user.uid) && <div hidden={currentTab !== 'settings'}><DeferredScreen name="Settings"><Settings key={user.uid} user={user} openLibraryRequest={customizeRequest}/></DeferredScreen></div>}
         {currentTab === 'reviews' && returnRequest && canReview && <button onClick={() => { openRequests('active', returnRequest); setReturnRequest(undefined); }}>Return to request</button>}
-        {currentTab === 'reviews' && canReview && user && drafts && <DeferredScreen name="Policy reviews"><Reviews key={`${user.uid}-${member.role}`} client={client} user={user} readOnly={member.role === 'viewer'} initialId={reviewTarget.id} openVisit={reviewTarget.visit}/></DeferredScreen>}
+        {currentTab === 'reviews' && canReview && user && drafts && <DeferredScreen name="Policy reviews"><Reviews onReturnRequest={id => openRequests('active', id)} key={`${user.uid}-${member.role}`} client={client} user={user} readOnly={member.role === 'viewer'} initialId={reviewTarget.id} openVisit={reviewTarget.visit}/></DeferredScreen>}
         {dashboardVisited && canReview && user && <div hidden={currentTab !== 'dashboard'}><DeferredScreen name="Review dashboard"><ReviewDashboard key={`${user.uid}/${member!.role}`} user={user} onOpen={openReview} active={currentTab === 'dashboard'}/></DeferredScreen></div>}
         {currentTab === 'dashboard' && member && user && <RequestDashboard key={`${user.uid}/${member.role}`} user={user} onOpen={openRequests}/>}
-        {currentTab === 'requests' && member && user && <RequestPanel client={client} onOpenReview={(id, requestId) => { openReview(id); setReturnRequest(requestId); }} key={`${user.uid}/${member.role}/${requestTarget.visit}`} user={user} role={member.role} scope={`${client.config.projectId}/${client.config.districtId}`} initialQueue={requestTarget.queue} initialId={requestTarget.id}/>}
+        {currentTab === 'requests' && member && user && <DeferredScreen name="Requests"><RequestPanel onCreateReview={requestId => { openReview(); setReturnRequest(requestId); }} client={client} onOpenReview={(id, requestId) => { openReview(id); setReturnRequest(requestId); }} key={`${user.uid}/${member.role}/${requestTarget.visit}`} user={user} role={member.role} scope={`${client.config.projectId}/${client.config.districtId}`} initialQueue={requestTarget.queue} initialId={requestTarget.id}/></DeferredScreen>}
         {currentTab === 'workspace' && member && user && <DistrictWork key={`${user.uid}-${member.role}`} client={client} user={user} member={member}/>}
         {currentTab === 'people' && member?.role === 'admin' && user && <People client={client} user={user}/>}
         <footer>PrivacyPal Community <span>District-owned tools. Informed decisions.</span></footer>

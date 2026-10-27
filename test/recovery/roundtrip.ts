@@ -237,7 +237,10 @@ try {
       const before = await allDocuments();
       await requestCommand(s, actor, null, receipt.request.body, commandIdentity(receipt.request.commandId, '/api/requests', receipt.request.body));
       assert.deepEqual(await allDocuments(), before);
-      assert.equal((await requestHistory(s, receipt.identities.admin as DecodedIdToken, receipt.request.id)).items.length, 2);
+      assert.equal((await requestHistory(s, receipt.identities.admin as DecodedIdToken, receipt.request.id)).items.length, 3);
+      const handoffCommand = commandIdentity(receipt.handoff.commandId, '/api/reviews', receipt.handoff.payload);
+      assert.equal((await createReview(s, receipt.identities.reviewer as DecodedIdToken, receipt.handoff.payload, false, handoffCommand)).id, receipt.handoff.reviewId);
+      assert.deepEqual(await allDocuments(), before);
     }
     if (receipt.segmented) await verifySegmentedRecovery(s, receipt.identities.reviewer as DecodedIdToken, receipt.segmented);
     const longReview = await s.db.runTransaction(tx => readReview(s, tx, receipt.longId));
@@ -317,6 +320,10 @@ try {
       const request = await requestCommand(s, receipt.identities.staff as DecodedIdToken, null, requestBody, commandIdentity(requestCommandId, '/api/requests', requestBody));
       const claim = { action: 'claim', revision: request.revision };
       await requestCommand(s, receipt.identities.reviewer as DecodedIdToken, request.id, claim, commandIdentity(randomUUID(), `/api/requests/${request.id}`, claim));
+      const handoffPayload = { ...pastedDraft, requestHandoff: { requestId: request.id, revision: 2, reason: 'Capture and link recovery' } };
+      const handoffCommandId = randomUUID();
+      const linked = await createReview(s, receipt.identities.reviewer as DecodedIdToken, handoffPayload, false, commandIdentity(handoffCommandId, '/api/reviews', handoffPayload));
+      receipt.handoff = { commandId: handoffCommandId, payload: handoffPayload, reviewId: linked.id };
       receipt.request = { id: request.id, body: requestBody, commandId: requestCommandId };
       receipt.backup = await saveBackup(s);
       assert.equal(verifyBackup(receipt.backup, config).dataSchema, 11);

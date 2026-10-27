@@ -1,3 +1,6 @@
+import { createReview } from '../../server/reviews.ts';
+import { commandStatus } from '../../server/commands.ts';
+import { pastedDraft } from '../fixtures/pasted-policy.ts';
 import { requestQueues } from '../../shared/request-dashboard.ts';
 import { before, after, test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -108,6 +111,36 @@ test('linking a review requires a district review and never publishes or changes
     assert.deepEqual((await s.db.doc(`${base}/reviews/${reviewId}`).get()).data(), { syntheticReference: true });
     assert.equal((await s.db.doc(`publicDistricts/${config.districtId}/tools/${reviewId}`).get()).exists, false);
   } finally { await s.db.doc(`${base}/reviews/${reviewId}`).delete(); }
+});
+test('request capture and link commit together; lost responses and races cannot duplicate reviews', async () => {
+  let r = await run(staff, null, { ...body, requestedUrl: 'https://synthetic.example/reference' });
+  r = await run(reviewer, r.id, { action: 'claim', revision: r.revision });
+  const payload = { ...pastedDraft, requestHandoff: { requestId: r.id, revision: r.revision, reason: 'Review created; no approval yet' } };
+  const id = randomUUID(); const command = commandIdentity(id, '/api/reviews', payload);
+  await denied(createReview(s, admin, payload, false, command), 409);
+  await denied(createReview(s, staff, payload, false, command), 403);
+  await denied(createReview(s, viewer, payload, false, command), 403);
+  await fenced(async () => { await denied(createReview(s, reviewer, payload, false, command), 503); });
+  const membership = s.db.doc(`${base}/members/${reviewer.uid}`);
+  await membership.update({ active: false });
+  try { await denied(createReview(s, reviewer, payload, false, command), 403); } finally { await membership.update({ active: true }); }
+  const [a, b] = await Promise.all([createReview(s, reviewer, payload, false, command), createReview(s, reviewer, payload, false, command)]);
+  assert.equal(a.id, b.id); assert.equal(a.published, false); assert.equal(a.decision, null); assert.equal(a.job.status, 'awaiting_review');
+  assert.equal((await commandStatus(s, reviewer, id)).state, 'applied');
+  assert.equal((await createReview(s, reviewer, payload, false, command)).id, a.id);
+  assert.equal((await requestDetail(s, staff, r.id)).outcome?.reviewId, a.id);
+  assert.equal((await requestHistory(s, admin, r.id)).items.length, 3);
+  await denied(createReview(s, reviewer, payload, false, commandIdentity(randomUUID(), '/api/reviews', payload)), 409);
+  const history = await s.db.collection(`${base}/reviews/${a.id}/history`).get();
+  assert.equal(history.docs[0].get('details.requestContext.requestedUrl'), 'https://synthetic.example/reference');
+  assert.equal((await s.db.doc(`${base}/staffTools/review-${a.id}`).get()).exists, false);
+  // A fresh draft loses its authority after assignment changes, without creating an orphan review.
+  let stale = await run(staff, null, body); stale = await run(reviewer, stale.id, { action: 'claim', revision: stale.revision });
+  const stalePayload = { ...payload, requestHandoff: { ...payload.requestHandoff, requestId: stale.id, revision: stale.revision } };
+  await run(admin, stale.id, { action: 'takeover', revision: stale.revision, reason: 'Synthetic competing assignment' });
+  const beforeCount = (await s.db.doc(`${base}/reviewCounters/current`).get()).get('count');
+  await denied(createReview(s, reviewer, stalePayload, false, commandIdentity(randomUUID(), '/api/reviews', stalePayload)), 409);
+  assert.equal((await s.db.doc(`${base}/reviewCounters/current`).get()).get('count'), beforeCount);
 });
 test('revocation, changed role and maintenance are rechecked before receipt replay', async () => {
   const id = randomUUID(); const r = await run(other, null, body, id);

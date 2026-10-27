@@ -2,6 +2,7 @@ import { z } from 'zod';
 export const REQUEST_LIMITS = { count: 100, events: 64, bytes: 262144, record: 24576, page: 20 } as const;
 export const requestIdSchema = z.string().regex(/^[a-zA-Z0-9_-]{1,128}$/);
 const text = (max: number) => z.string().trim().min(1).max(max);
+export const requestHandoffSchema = z.object({ requestId: requestIdSchema, revision: z.number().int().nonnegative(), reason: text(1000) }).strict();
 export const requestCreateSchema = z.object({ toolName: text(120), purpose: text(2000), requestedUrl: z.string().max(2000).refine(v => !v || /^https?:\/\//i.test(v), 'Use an http(s) reference URL.').default('') }).strict();
 export const requestActionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('claim'), revision: z.number().int().nonnegative() }).strict(),

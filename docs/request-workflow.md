@@ -19,8 +19,7 @@ is recorded, never fetched. The server sets requester identity, time and initial
 | Archive/restore reviewer view | Reviewer or administrator | Changes only the district reviewer archive flag |
 
 A linked review is a work reference, **not service approval or publication**. The request command
-cannot alter scores, decisions, catalogue entries or public projections. Automatic request-to-new-review
-creation and duplicate matching remain pending. Reviewers now search existing review names, explicitly
+cannot alter scores, decisions, catalogue entries or public projections. Request-to-new-review capture/link is implemented below. Automatic duplicate matching remains pending. Reviewers now search existing review names, explicitly
 select a review and inspect it with a return-to-request action; selection is preserved in the action draft. No AI dispatch occurs in these commands.
 
 Staff and read-only reviewers see their own requests and current outcomes through explicit projections.
@@ -79,7 +78,7 @@ Use synthetic accounts and records only:
 - [ ] Save, shut down and restore using the runbook; verify history and receipt reconciliation.
 
 Implemented: request dashboard totals/attention queues backed by complete bounded data and
-Active/Decided/Archived navigation. Next: create-review handoff and submission catalogue-match suggestions; broader keyboard and
+Active/Decided/Archived navigation. Next: submission catalogue-match suggestions; broader keyboard and
 assistive-technology acceptance. Automated tests do not replace this independent walkthrough.
 
 
@@ -126,3 +125,55 @@ Additional acceptance:
 - [ ] Withdraw or correct the review while guidance is open; verify guidance disappears, outcome remains.
 - [ ] Disconnect/revoke access; verify no cached guidance is presented as current.
 - [ ] Exercise keyboard controls, narrow screens, empty search and failed search without losing text.
+
+## Create review from request — October 26
+
+The assigned reviewer can choose **Create review from request** after inspecting existing matches
+and entering an outcome reason. This prepares a tab-protected capture draft with the request ID,
+revision, tool name, purpose and reference URL. Policy label/text start empty. The URL is context,
+never fetched or treated as captured evidence. Existing capture drafts are never replaced: resume
+and inspect/discard deliberately before starting another. Pending review saves must be reconciled.
+Drafts retain the existing tab lifetime and sign-out boundaries; they are not installation backups.
+
+Saving captured pasted/bundled policy uses one review command and one Firestore transaction for
+review creation, request transition, immutable histories and both actor-scoped receipts. No intermediate
+created-but-unlinked state exists. Assignment, exact request revision, current membership, maintenance,
+request history/byte limits and review capacity are checked before writes. A changed assignment/revision
+rejects the entire save and retains draft text; return to the request to inspect current authority.
+For the same request, explicitly adopt its refreshed revision/reason while retaining the policy draft.
+Request context/attribution is retained in the private review capture history from the authoritative
+request, rather than trusting browser-supplied purpose or requester identity.
+
+A lost response uses **Check saved result** and the same review command identity for any retry.
+Concurrent retries create one review and one link. A distinct new command using the old request
+revision fails. Request outcome becomes decided only alongside its recorded review link; the review
+has no district decision, publication or dispatched analysis. Fixture analysis and review import cannot
+perform this handoff. Existing schema-11 request history and normal review receipt formats are reused.
+
+Intentional change from the original: automatic URL discovery/model execution and later promotion are
+replaced with explicit policy capture and an atomic work link. Staff catalogue suggestions and configured
+tier help remain separate work. Maintainer tests do not establish independent browser/accessibility acceptance.
+
+
+Validation for this increment: 554 unit/isolation tests, typecheck/build/bundle guards, 241 emulator
+integration tests and a schema-9 import followed by two schema-11 recovery cycles passed. Recovery
+compares every saved document and replays the handoff receipt without new writes. Signed-in
+maintainer UI and narrow-screen checks followed as recorded below; spoken and independent acceptance
+remain pending. See `HANDOFF.md` for private evidence paths and preview state.
+
+## Signed-in UI follow-up — October 26
+
+Maintainer staff → administrator browser checks passed for request submission/claim, keyboard handoff,
+empty policy evidence with carried context, protected draft resume/navigation, stale rejection,
+explicit revision refresh without losing policy text, atomic capture/link, confirmed-save reload and
+return navigation, and staff outcome privacy. The private synthetic review has no decision/publication.
+Fixed focus loss after request revisions and rejected saves; capture now has a focused h2, and policy
+text has a concise accessible name with separate help. Retests, 320px reflow and sign-out modal
+Escape/focus return passed. Fresh CI passed all 554 tests plus typecheck/build/isolation.
+
+This was administrator-as-reviewer maintainer QA. Reviewer-only and independent acceptance remain.
+Spoken VoiceOver could not be tested because native control of the app window was refused; real
+200% zoom could not be applied by the in-app browser. Unfinished-draft scripted reload was cancelled
+by the browser guard; navigation retention/unit rehydration and post-save reload passed. Receipt
+response-loss/revocation/concurrency remain emulator evidence, not browser fault-injection results.
+See `HANDOFF.md` for the exact synthetic records, private screenshots and new verified backup.

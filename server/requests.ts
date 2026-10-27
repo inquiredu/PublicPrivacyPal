@@ -139,3 +139,35 @@ export async function requestCommand(s: Services, actor: DecodedIdToken, id: str
     return requestView(after, actor.uid, reviewer(m.role));
   });
 }
+
+/** Prepare reads first; commit this link in the same transaction as the new review. */
+export async function prepareCreatedReviewLink(s: Services, tx: Transaction, actor: DecodedIdToken,
+  input: { requestId: string; revision: number; reason: string }, reviewId: string, command: CommandIdentity) {
+  const m = await member(s, tx, actor);
+  commandAuthority('decide', m.role);
+  const ref = requestsRef(s).doc(input.requestId);
+  const head = requestHead(input.requestId, (await tx.get(ref)).data());
+  const before = head.state;
+  if (before.revision !== input.revision) throw new HttpError(409, 'Request changed. Return to the request and resolve this draft before saving.');
+  const action = { action: 'decide' as const, revision: input.revision, outcome: 'review_linked' as const, reason: input.reason, reviewId };
+  let next: RequestState;
+  try { next = transitionRequest(before, action, actor.uid, m.role); }
+  catch (e) { throw new HttpError(409, (e as Error).message); }
+  if (before.revision >= L.events) throw new HttpError(409, 'Request history capacity reached.');
+  const at = new Date().toISOString();
+  const after = parse(requestStateSchema, { ...next, revision: before.revision + 1, updatedAt: at });
+  const event = parse(requestEventSchema, { version: 1, requestId: before.id, revision: after.revision, actorUid: actor.uid, actorRole: m.role,
+    at, action: 'decide', note: '', commandId: command.id, before, after });
+  // Ordinary request receipt semantics preserve schema-11 recovery compatibility.
+  const route = `/api/requests/${before.id}`;
+  const receipt = parse(requestReceiptSchema, { version: 1, actorUid: actor.uid, requestId: before.id, commandId: command.id,
+    hash: digest({ route, body: action }), route, revision: after.revision, at });
+  const receiptRef = receiptsRef(s, actor.uid).doc(command.id);
+  if ((await tx.get(receiptRef)).exists) throw new HttpError(409, 'Request command identity already used.');
+  const retainedBytes = head.retainedBytes + requestBytes(event) + requestBytes(receipt);
+  if (requestBytes(after) > L.record || requestBytes(event) > L.record * 2 || retainedBytes + requestBytes(after) > L.bytes) throw new HttpError(409, 'Request storage capacity reached.');
+  return { context: { requestId: before.id, revision: before.revision, requestedBy: before.requestedBy, toolName: before.toolName,
+    purpose: before.purpose, requestedUrl: before.requestedUrl }, commit: () => {
+    tx.set(ref, { state: after, retainedBytes }); tx.create(ref.collection('history').doc(eventId(after.revision)), event); tx.create(receiptRef, receipt);
+  } };
+}

@@ -251,3 +251,16 @@ presented as current. No private evidence lookup is used for requesters.
 Create-review handoff, submission catalogue suggestions, configured tier help and independent
 multi-role/accessibility acceptance remain pending. The P1-2/P1-3 composite acceptance boxes remain
 unchecked until the complete workflow is proven. No DPA automation is introduced.
+
+## October 26 — create-review handoff increment
+
+Assigned reviewers can prepare a protected capture draft from a request without overwriting an
+existing draft. Capturing policy and linking its review now commit atomically with revision/assignment
+checks and retry receipts. Request purpose/reference remain context; no URL retrieval, analysis,
+approval or publication occurs. See [request workflow](request-workflow.md#create-review-from-request--october-26).
+Submission catalogue suggestions, configured tier help and independent integrated acceptance remain
+pending; composite P1 acceptance boxes remain unchecked.
+
+Signed-in maintainer follow-up passed staff/admin capture-link and return navigation, stale-draft
+resolution, keyboard/focus, staff outcome privacy and 320px checks after focus/label fixes. Actual
+spoken/200% zoom, reviewer-only and independent acceptance remain open; see `HANDOFF.md`.

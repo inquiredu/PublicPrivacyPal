@@ -320,3 +320,23 @@ Review/publication dashboard follow-up: complete the [dashboard acceptance check
 Tier/search follow-up: compare tier totals with queues, combine name/tier/attention filters across pages, test no matches and clear filters, then verify filter retention after opening review details.
 
 Request link follow-up: complete the existing-review picker and current staff-guidance acceptance in [request workflow](request-workflow.md#existing-review-picker-and-current-staff-guidance--october-26).
+
+## Request capture handoff acceptance (pending)
+
+- [ ] Submit as staff, claim as reviewer, inspect existing matches and choose Create review from request.
+      Verify name/purpose/reference context, empty policy text and no retrieval or approval.
+- [ ] Keep an unrelated capture draft; verify the action offers resume/resolve and never overwrites it.
+      Navigate/reload during capture and inspect/return to the originating request; verify exact text.
+- [ ] Capture a synthetic policy. Verify one review and linked request, no decision/publication/analysis.
+      Lose the response, reload and reconcile the same command; verify no duplicate.
+- [ ] Change assignment/revision before capture; verify complete rejection and preserved policy text.
+      Revoke membership or enter maintenance before save; verify denial and no orphan review.
+- [ ] Complete the separate evidence, district decision, publication, correction/withdrawal, fresh decision,
+      republication and independent archives workflow. Save/restore and compare both receipts/history.
+- [ ] Exercise keyboard, 320px/200% and spoken screen reader behavior in staff and reviewer roles.
+
+Maintainer follow-up (October 26): staff/admin keyboard, focus, draft navigation/stale resolution,
+capture/link, confirmed-save reload/return, staff privacy and 320px checks passed after focus/label
+fixes. This does not check the independent boxes above. Dedicated reviewer-only, spoken screen-reader,
+actual 200% zoom and interrupted-response browser checks remain unverified; see `HANDOFF.md` for
+observed tool limitations and separate automated evidence.

@@ -1,3 +1,4 @@
+import { RequestCreateReview } from './RequestCreateReview';
 import type { Client } from './firebase';
 import { RequestReviewPicker } from './RequestReviewPicker';
 import { RequestStaffGuidance } from './RequestStaffGuidance';
@@ -12,7 +13,7 @@ const statusLabel = { pending: 'Pending', in_review: 'In review', decided: 'Deci
 const emptyForm = { toolName: '', purpose: '', requestedUrl: '' };
 const explain = (e: unknown) => e instanceof Error ? e.message : 'Request service unavailable.';
 
-export function RequestPanel({ client, onOpenReview, user, role, scope, initialQueue = 'active', initialId }: { client: Client; onOpenReview: (id: string, requestId: string) => void; user: User; role: Role; scope: string; initialQueue?: RequestQueue; initialId?: string }) {
+export function RequestPanel({ client, onOpenReview, onCreateReview, user, role, scope, initialQueue = 'active', initialId }: { client: Client; onCreateReview: (requestId: string) => void; onOpenReview: (id: string, requestId: string) => void; user: User; role: Role; scope: string; initialQueue?: RequestQueue; initialId?: string }) {
   const detailHeading = useRef<HTMLHeadingElement>(null);
   const openSequence = useRef(0);
   useEffect(() => () => { openSequence.current++; }, []);
@@ -51,7 +52,7 @@ export function RequestPanel({ client, onOpenReview, user, role, scope, initialQ
   }, [user, cursor, queue, reload]);
   useEffect(() => { if (initialId) void open(initialId); }, [initialId]);
   async function open(id: string) { const sequence = ++openSequence.current; try { const row = await api<RequestView>(`/api/requests/${id}`, user); if (sequence !== openSequence.current) return; setSelected(row); setHistory([]); setHistoryCursor(null); } catch (e) { if (sequence === openSequence.current) { setSelected(undefined); setNotice(explain(e)); } } }
-  useEffect(() => { if (selected) detailHeading.current?.focus(); }, [selected?.id]);
+  useEffect(() => { if (selected) detailHeading.current?.focus(); }, [selected?.id, selected?.revision]);
   function accepted(r: RequestView, pending: NonNullable<RequestJournal['pending']>) {
     persist({ ...journal, pending: null, form: pending.path === '/api/requests' ? emptyForm : journal.form });
     setSelected(r); setHistory([]); setHistoryCursor(null); setReload(n => n + 1); setNotice('Request change saved. A request outcome does not approve or publish a service.'); setFailed(false); setRetryReady(false);
@@ -120,6 +121,7 @@ export function RequestPanel({ client, onOpenReview, user, role, scope, initialQ
           {role === 'admin' && selected.status === 'in_review' && selected.assignee !== user.uid && <button disabled={!reason.trim()} onClick={() => act({ action: 'takeover', reason } as RequestAction)}>Take over with private reason</button>}
           {role === 'admin' && selected.status === 'decided' && <button disabled={!reason.trim()} onClick={() => act({ action: 'reopen', reason } as RequestAction)}>Reopen with private reason</button>}
           {selected.status === 'in_review' && selected.assignee === user.uid && <><button disabled={!reason.trim()} onClick={() => act({ action: 'decide', outcome: 'declined', reason, reviewId: null } as RequestAction)}>Record declined request</button>
+            <RequestCreateReview request={selected} reason={reason} onOpen={() => onCreateReview(selected.id)}/>
             <RequestReviewPicker key={selected.id} user={user} selectedId={reviewId} onSelect={id => actionText({ reviewId: id })} onOpen={id => onOpenReview(id, selected.id)}/>
             <button disabled={!reason.trim() || !reviewId.trim()} onClick={() => act({ action: 'decide', outcome: 'review_linked', reason, reviewId } as RequestAction)}>Record link to review</button></>}
         </>}
