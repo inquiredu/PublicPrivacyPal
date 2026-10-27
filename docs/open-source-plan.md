@@ -192,14 +192,16 @@ Native Chrome acceptance was focused; it did not test screen-reader speech. Thes
 not rerun for the October 22 documentation consolidation. Test totals are historical observations,
 not future acceptance thresholds. A new candidate must pass its own applicable checks.
 
-The latest recorded saved-preview archive is schema 10, id
-`1ef70c3f-8ac4-4123-bc68-d5deda429fa3`; its private path and restoration instructions are in
-[HANDOFF](../HANDOFF.md). Runtime liveness and archive integrity were not rechecked for this docs
-update. A fresh adopter must create their own installation and backup, not use that private archive.
+Current handoff: implemented changes through `67af343` are committed and pushed on the development
+branch. Latest recorded implementation checks passed 552 unit/isolation and 240 integration tests;
+see [HANDOFF](../HANDOFF.md) for precise evidence and limits. At the October 26 wrap-up, the synthetic
+preview was running and a schema-11 archive was saved and verified, including the new QA request.
+The private recovery path and temporary runtime details are in HANDOFF. A fresh adopter must create
+their own installation and backup, not use that private archive.
 
 ### Ordered work plan
 
-1. **Baseline consolidation — this documentation increment.** Use this status index, the dated
+1. **Baseline consolidation — complete for this checkpoint.** Use this status index, the dated
    handoff and the trial checklist. Preserve historical evidence. Review actual branch changes
    and candidate checks before any separately authorized main integration.
 2. **Request handoff and integrated acceptance — next implementation.** Dashboard totals/filtering,

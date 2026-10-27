@@ -1,3 +1,110 @@
+# Fresh-session handoff — October 26, 2026
+
+## Start here
+
+Work only in `/Users/sbeaverson/Documents/VIBECODE/PublicPrivacyPal` on
+`codex/coordinated-milestone-2026-10-19`. Latest implemented commit: **`67af343`**,
+pushed to origin. The working tree was clean before this handoff documentation update.
+This handoff is a documentation-only checkpoint following that implementation commit. Read `AGENTS.md`, `docs/open-source-plan.md`,
+`docs/component-parity.md`, `docs/request-workflow.md` and `docs/permissions.md` before implementation.
+Check branch/status afresh; do not switch to or merge main. Local main remains `cb5bb04`;
+remote main was last verified unchanged at `6edf69c` during the preceding push.
+
+## Overall progress and assessment
+
+The local foundation now supports versioned district setup, reviewer cards/four-tab service detail,
+evidence corrections, deterministic scoring, separate decisions and atomic audience publication.
+Review drafts, command receipts, bounded/versioned storage and synthetic assistance contracts are in place.
+This session restored the request lifecycle and dashboard as a usable connected local workflow:
+
+- Request states, assignment, claim/release/takeover, private history, independent archives and retry handling.
+- Request and review/publication totals, attention queues and detail navigation.
+- Tier distribution and combined review-name/tier/queue filters, with full matching counts.
+- Expanded public notices and explicitly published vendor privacy-policy links.
+- Existing-review picker, inspect/return navigation, and current published staff guidance from outcomes.
+- Reconciled parity inventory and improvement register for possible separately authorized original backports.
+
+The find-work and existing-review paths are implemented, not the entire parity milestone.
+Create-review handoff, submission catalogue suggestions, configured tier help and independent integrated
+acceptance remain. File inventory totals are not a completion percentage. Local test success does not
+establish release readiness, live AI readiness, production security or independent accessibility acceptance.
+
+## Recommended next implementation: create-review handoff
+
+1. Read the original request/review flow from the pinned `.private/upstream` reference without running it.
+   Inspect `src/RequestPanel.tsx`, `src/RequestReviewPicker.tsx`, `src/Reviews.tsx`, request/review journals,
+   `server/requests.ts` and the existing review command/receipt contracts.
+2. Offer the assigned reviewer an explicit **Create review from request** action when no existing match fits.
+   Carry the tool name, purpose and reference URL as request context into a protected review draft.
+   A reference URL is not captured policy evidence: no fetching, invented source text or live analysis.
+   Never overwrite an existing review draft; provide a deliberate resume/resolve choice.
+3. Define creation/linking semantics before writing UI: either a single authorized command or a durable,
+   reconciled two-step handoff. If creation succeeds but linking fails or its response is lost, retain
+   the created review ID and retry only the unresolved step. Do not produce duplicate reviews or mark
+   a request decided before the link is recorded. Preserve request attribution and revision authority.
+4. Keep capture, request outcome, district decision and publication separate. Creating a review must
+   not approve or publish anything. Support inspect/return and recovery after reload/navigation.
+5. Validate competing assignments, stale revisions, existing drafts, response loss after each step,
+   duplicate retries, revocation and maintenance. If storage changes, include backup compatibility and
+   serialized recovery checks. Run `npm run ci` and `npm run test:integration`; preserve the preview first.
+6. Update parity, request workflow, independent trial and this handoff with actual evidence/limitations.
+
+After that: staff-projection-only catalogue suggestions with explicit continue-anyway; configured tier
+help; full staff → reviewer → publication → correction/withdrawal → republish → archive/recovery trial.
+Independent staff-role UI, spoken accessibility and narrow-screen acceptance remain required.
+Priorities/batch workflows, broader facets and score distributions can follow the core request loop.
+Operational succession, independent public startup, upgrade/rollback and hosted/provider qualification
+remain separate release gates. Do not expand scope into them implicitly.
+
+## Evidence and limits
+
+Latest implementation validation: 552 unit/isolation tests, typecheck/build/bundle checks and 240
+integration tests passed. Final auth/navigation cleanup passed fresh typecheck/build. Integration
+used a matching temporary source copy (196 executable/config/test files matched) with its own pinned
+npm install because the primary synced-folder Firebase launcher stalled. No new full test run was
+needed for this handoff-only documentation update.
+
+Browser checks covered search, keyboard selection, authoritative detail navigation, retained reason/
+selection on return, explicit link recording and expanded published conditions. The new synthetic
+“Cedar guidance link — synthetic QA” request was created/claimed/linked; existing requests/reviews
+and publications were unchanged. Publication withdrawal/privacy checks passed in integration;
+do not relabel those as an independent staff browser or screen-reader pass.
+Logs/screenshots: `.local/request-picker-ci.log`, `.local/request-picker-integration.log`,
+`.local/request-picker-final-build.log`, `.local/request-review-picker.png`,
+`.local/request-staff-guidance.png`. These artifacts are private and untracked.
+
+## Preview and recovery
+
+Preview remains running at `http://127.0.0.1:5173/`, launched from
+`/private/tmp/privacypal-request-validation` (a validation/runtime copy, not the authoritative checkout).
+Port 5173 was checked at handoff. The source checkout above is where edits and commits belong.
+Do not kill unknown processes. Read `docs/local-development.md` and `docs/backup-recovery.md` before restart.
+
+**Latest backup saved and verified at handoff**, including the new synthetic QA request:
+`.local/backups/2026-10-27T01-54-07-871Z-b4fa7bef-08a8-4a6d-8b46-ea319d3f9d2f`
+in the authoritative checkout. UTC filename corresponds to October 26 in America/Chicago.
+Schema 11; restore only into a fresh matching demo installation using the runbook. Do not bootstrap
+after restore. Credentials are in ignored `.local/accounts/`; never print or publish them.
+Save/verify again if the preview changes before shutdown.
+
+Temporary runtime paths currently used:
+- Node 24: `/private/tmp/privacypal-runtime/node_modules/node/bin`
+- Java 21: `/private/tmp/privacypal-request-java/jdk-21.0.13+9/Contents/Home`
+
+Recheck their existence/versions: temporary files can disappear. The prior temp dependency symlink
+and Java runtime became incomplete; the validation copy now has its own fresh pinned dependencies.
+Do not claim this copy is an independent adopter installation or rely on its Git state for commits.
+
+## Non-negotiable scope
+
+DPA generation/signing/vendor upload/delivery automation is excluded. Existing manual agreement facts
+are separate. Original `inquiredu/privacypal` and the district instance are reference-only and untouched.
+Use synthetic data and `demo-` emulators only; no production logins, provider calls, deployment or main
+merge. Never publish `.private/`, `.local/`, credentials or backups. Do not start upstream scripts/app.
+The improvement register is a candidate list, not authorization to backport into the original.
+
+---
+
 # Existing-review picker and request guidance — October 26, 2026
 
 Development increment on `codex/coordinated-milestone-2026-10-19`, following `6367c5b`.
