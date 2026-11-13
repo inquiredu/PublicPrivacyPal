@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { saveLocalAccount } from './account-file.ts';
 import { loadConfig } from '../server/config.ts';
 import { localServices } from '../server/firebase.ts';
 import { bootstrap, installation } from '../server/operations.ts';
@@ -29,9 +29,7 @@ try {
     if (!email || !isDistrictEmail(config, email)) throw new Error('Use --email person@your-configured-synthetic-domain.');
     await s.auth.createUser({ email, password, emailVerified: true });
   } else throw new Error('Use bootstrap or user --email.');
-  mkdirSync('.local/accounts', { recursive: true, mode: 0o700 });
-  const path = `.local/accounts/${config.projectId}-${email.replaceAll(/[^a-z0-9@.-]/g, '_')}.json`;
-  writeFileSync(path, JSON.stringify({ email, password, projectId: config.projectId, localEmulatorOnly: true }, null, 2) + '\n', { mode: 0o600 });
+  const path = saveLocalAccount({ email, password, projectId: config.projectId });
   console.log(`Local account created. Sign-in details: ${path}`);
   if (command === 'user') console.log('This account has no access until an administrator assigns a role in the app.');
 } catch (error) {

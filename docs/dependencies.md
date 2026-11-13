@@ -1,5 +1,37 @@
 # Dependency review
 
+## November 12, 2026 local-preview refresh
+
+The first wizard install exposed newer advisories than the historical review below: 20 flagged
+packages overall (2 high), including 8 in `npm audit --omit=dev` (1 high). The reviewed refresh
+updates eight transitive lockfile entries within their parents' existing major-version ranges:
+`re2js` 2.10.0, `body-parser` 1.20.9 and 2.4.0, `@hono/node-server` 2.1.8, `hono` 4.13.18,
+`fast-uri` 3.1.9, `fast-xml-parser` 5.12.0 and its `is-unsafe` dependency 2.0.3.
+Direct package versions and the Firebase CLI version are unchanged. The automatic audit proposal's
+cloud-client downgrades and forced major changes were excluded.
+
+The high-severity findings addressed here are the
+[RE2JS repeated lookbehind matching issue](https://github.com/advisories/GHSA-gg6h-894w-4m9c)
+and [body-parser compressed-body crash](https://github.com/advisories/GHSA-27r3-jxmh-p828).
+RE2JS is in the runtime dependency graph; body-parser is development tooling. Application review
+logic, permissions and rubric definitions are unchanged.
+
+Fresh audit of the patched lockfile: **14 moderate flagged packages overall, 6 moderate with
+`--omit=dev`, and no reported high/critical/low findings**. Runtime flags are `glob`/`minimatch`
+and the inheriting `rimraf`, `google-gax`, `gaxios` and `gcp-metadata` chain. The development tree
+also inherits OpenTelemetry/UUID/archive-tool flags. These remain open dependency-review work;
+this is not a clean audit or a production security certification. No forced downgrade/major override
+was applied to make the count disappear. Keep this emulator preview on loopback with synthetic data.
+
+The lockfile changes the exact dependency hash required by installation backups. Old archives
+must use their matching earlier source, configuration and lockfile; never edit an archive manifest
+to bypass that check. A local source-only snapshot of the previous lockfile/runtime is preserved
+under `.local/validation/local-wizard/` and excluded from sharing. The colleague preview starts its
+own installation and makes new backups. This dependency refresh is not a supported archive migration.
+See [repository-wizard verification](repository-wizard-validation.md) for candidate checks and limitations.
+
+## Historical October 15 review
+
 Reviewed 2026-10-15. Runtime: Node 24. Dependencies are exact versions with a lockfile.
 The local app is built on React 19, Firebase JS SDK 13, Admin SDK 14, and Zod 4. Tooling uses
 TypeScript 7, Vite 8, and Firebase CLI 15. These are independent of the private source's lockfiles.
