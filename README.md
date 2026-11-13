@@ -21,6 +21,14 @@ See the [service workflow](docs/service-detail.md) and [accessibility and bundle
 
 ## Run locally
 
+**Copied or cloned this repository? Start with [INSTALL.md](INSTALL.md).** The deployment wizard
+is included in the source. With Node 24 and Java 21+ installed, run `npm run deploy:wizard`,
+`sh ./install.sh` on macOS/Linux, or `powershell -File .\install.ps1` on Windows. On macOS you
+can also open **Install PrivacyPal.command**. The wizard checks prerequisites, installs this
+copy's pinned dependencies with confirmation, and guides a new local installation or verified
+restore. No separate ZIP or author's account is needed. Current target: synthetic local preview;
+hosted deployment remains unavailable. Save a backup before stopping.
+
 Prerequisites: **Node 24**, **Java 21+**, and Git. No Firebase login, cloud project, or API key is needed.
 Use a checkout of `inquiredu/PublicPrivacyPal` and open a terminal in its root directory.
 If you use nvm, `nvm use` selects Node 24; otherwise select Node 24 with your installed runtime manager.

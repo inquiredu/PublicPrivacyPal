@@ -14,12 +14,14 @@ if (Number(process.versions.node.split('.')[0]) !== 24) throw new Error('Use Nod
 const configPath = mode === 'test' ? 'config/test.example.json' : process.env.PRIVACYPAL_CONFIG || 'config/local.json';
 const config = loadConfig(configPath);
 const options = process.argv.slice(3);
-if (options.length && (mode !== 'dev' || options.length !== 2 || options[0] !== '--restore')) throw new Error('Use npm run dev, or npm run dev -- --restore BACKUP_PATH.');
+const guided = mode === 'dev' && options.length === 1 && options[0] === '--setup';
+const restoring = mode === 'dev' && options.length === 2 && options[0] === '--restore';
+if (options.length && !guided && !restoring) throw new Error('Use npm run setup, npm run dev, or npm run dev -- --restore BACKUP_PATH.');
 // A restore never attaches to an existing emulator or merges with a running installation.
 await assertLocalPortsAvailable([5173, 8787, 9099, 8080, 4400, 4500, 9150]);
 const cleanEnv = emulatorEnvironment(config);
-const restored = options.length ? stageRestore(options[1], config) : undefined;
-const env = { ...cleanEnv, PRIVACYPAL_CONFIG: configPath, FIREBASE_CLI_DISABLE_UPDATE_CHECK: 'true', PRIVACYPAL_RESTORE: restored?.path || '' };
+const restored = restoring ? stageRestore(options[1], config) : undefined;
+const env = { ...cleanEnv, PRIVACYPAL_CONFIG: configPath, FIREBASE_CLI_DISABLE_UPDATE_CHECK: 'true', PRIVACYPAL_RESTORE: restored?.path || '', PRIVACYPAL_GUIDED_SETUP: guided ? '1' : '' };
 const bin = (name: string) => resolve('node_modules', name);
 const firebase = bin('firebase-tools/lib/bin/firebase.js');
 const firebaseConfig = resolve('firebase.local.json');

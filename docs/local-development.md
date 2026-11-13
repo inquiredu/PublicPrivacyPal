@@ -6,6 +6,12 @@ configuration and makes no AI, mail, Drive, or production database calls.
 
 ## First run
 
+For guided first-time setup, use `npm run setup` after installing Node 24 and Java 21+.
+It can install missing pinned dependencies, initialize a fresh fictional workspace and run the
+protected administrator bootstrap in one terminal. It also offers verified restore without
+bootstrap. See [the colleague preview guide](colleague-preview.md). The manual steps below remain
+available; configuration, loopback restrictions and backup requirements are the same.
+
 Use a checkout of `inquiredu/PublicPrivacyPal`, with Git available, and run commands from its root.
 Install Node 24 (use `.nvmrc` with your runtime manager) and Java 21 or later.
 Check `node --version`, `npm --version` and `java -version` in every terminal used for the trial.
